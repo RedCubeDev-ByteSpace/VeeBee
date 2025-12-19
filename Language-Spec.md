@@ -18,7 +18,7 @@
 | Object | 4 bytes | reference to any object | | 
 | Collection | dynamic | dynamic | Dynamic size array type |
 | Dictionary | dynamic | dynamic | Key/Value storage |
-| User-Defined | sum of its parts | idk | very cool struct |
+| User-Defined | sum of its parts | it really depends tbh | very cool struct |
 
 [^1]: https://stackoverflow.com/questions/18637364/why-is-booleans-size-in-vba-2-bytes
 
