@@ -65,6 +65,6 @@ Dim iCalender(1 To 12, 1 To 31) As String ' will create a 2D array with the give
 
 # Sources
 (some of them are german and i dont care)  
-https://learn.microsoft.com/en-us/office/vba/language/reference/user-interface-help/data-type-summary
-https://learn.microsoft.com/en-us/office/vba/language/how-to/user-defined-data-type
-https://learn.microsoft.com/de-de/office/vba/language/concepts/getting-started/using-arrays
+- https://learn.microsoft.com/en-us/office/vba/language/reference/user-interface-help/data-type-summary
+- https://learn.microsoft.com/en-us/office/vba/language/how-to/user-defined-data-type
+- https://learn.microsoft.com/de-de/office/vba/language/concepts/getting-started/using-arrays
