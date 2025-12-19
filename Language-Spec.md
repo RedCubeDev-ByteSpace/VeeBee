@@ -1,8 +1,9 @@
 # Language Specification
 
-# Variables
+# Types
 
-## Datatypes
+## Base types
+
 | Type | Size In Memory | Possible States | Notes |
 | ---- | -------------- | --------------- | ----- |
 | Boolean | 2 bytes (yes really)[^1] | True / False |  |
@@ -21,6 +22,18 @@
 | User-Defined | sum of its parts | it really depends tbh | very cool struct |
 
 [^1]: https://stackoverflow.com/questions/18637364/why-is-booleans-size-in-vba-2-bytes
+
+## Structures
+VeeBee also allows for user defined structures, the same way as VBA does. Types are defined using the `Type`-keyword, followed by the types fields.
+
+```vb
+Type Employee
+  Name As String ' Name of the employee
+  Age As Integer ' Age of the employee
+End Employee
+```
+
+# Variables
 
 ## Definition of Primitives
 ```vb
@@ -42,7 +55,7 @@ ReDim a2Pixels(200, 200) ' resize our matrix to size 200x200
 ReDim Preserve a2Pixels(200, 200) ' resize our matrix and keep our previously set values, if they dont fit they will be truncated
 
 ' We can do up to 60 dimensions because hell yeah
-Dim a60MyGod(10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10)
+Dim a60MyGod(10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10) As Integer
 
 ' Index offsets
 Dim sDaysOfTheWeek(1 To 7) As String ' will create an array whos first index is 1 and last index is 7
@@ -53,5 +66,5 @@ Dim iCalender(1 To 12, 1 To 31) As String ' will create a 2D array with the give
 # Sources
 (some of them are german and i dont care)  
 https://learn.microsoft.com/en-us/office/vba/language/reference/user-interface-help/data-type-summary
+https://learn.microsoft.com/en-us/office/vba/language/how-to/user-defined-data-type
 https://learn.microsoft.com/de-de/office/vba/language/concepts/getting-started/using-arrays
-https://learn.microsoft.com/en-us/office/vba/language/reference/user-interface-help/data-type-summary
