@@ -37,11 +37,16 @@ ReDim aNumberList(15) ' resize our array to be of size 15, this also clears the 
 ReDim Preserve aNumberList(15) ' resize our array to be of size 15 and keep the old values
 
 ' Multidimensional arrays
-Dim a2Pixels(100, 100) ' declare a Matrix of size 100x100
+Dim a2Pixels(100, 100) As Byte ' declare a matrix of size 100x100
+ReDim a2Pixels(200, 200) ' resize our matrix to size 200x200
+ReDim Preserve a2Pixels(200, 200) ' resize our matrix and keep our previously set values, if they dont fit they will be truncated
+
+' We can do up to 60 dimensions because hell yeah
+Dim a60MyGod(10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10)
 
 ' Index offsets
-Dim sDaysOfTheWeek(1 To 7) ' will create an array whos first index is 1 and last index is 7
-Dim iCalender(1 To 12, 1 To 31) ' will create a 2D array with the given ranges
+Dim sDaysOfTheWeek(1 To 7) As String ' will create an array whos first index is 1 and last index is 7
+Dim iCalender(1 To 12, 1 To 31) As String ' will create a 2D array with the given ranges
 ```
 
 
