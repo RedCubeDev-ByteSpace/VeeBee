@@ -1,4 +1,6 @@
-<img style="z-index: 100;" align="right" alt="Logo" height="180" src="https://raw.githubusercontent.com/RedCubeDev-ByteSpace/VeeBee/refs/heads/main/res/veebee.png" />
+<h1>
+  VeeBee
+  <img align="right" alt="Logo" height="180" src="https://raw.githubusercontent.com/RedCubeDev-ByteSpace/VeeBee/refs/heads/main/res/veebee.png" />
+</h1>
 
-# VeeBee
 A portable Visual Basic runtime, made to be integrated into larger projects as a scripting language.
