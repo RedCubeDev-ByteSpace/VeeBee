@@ -1,7 +1,52 @@
 # Language Specification
 
-# Types
+# General notes
 
+## On the matter of case sensitivity
+Visual Basic, by default, is not case sensitive. This means keywords as well as variables can be written in any combination of upper and lowercase letters. While this might sound fun, its definitely not recommended. So here are some general style guidelines:
+1. Keywords generally have their first letter capitalized, eg. `If`, `Then`, `While`, `Sub`, `Function`
+2. Function and Sub names are written in PascalCase
+3. Local variable names are written in camelCase and are prefixed with a type specifying letter, eg. `iSomeInt`, `fSomeFloat`, `sSomeString`, `aSomeArray`, `oSomeObject` 
+
+# Functions and Subroutines
+In VB, there are different kinds of user defined procedures. The first one of these is called a subroutine. These very simple procedures can take in arguments but generally arent able to return anything. Alternatively, there are also functions, just like subroutines they can take in arguments but can also give back a return value.
+
+By default, VeeBee begins execution at a subroutine called `Main`. Theres no program code allowed in the global namespace, all code needs to be contained inside of a subroutine or function.
+
+## Subroutines
+Subroutines can be defined using the `Sub`-keyword. When calling a subroutines, no parenthesis are used when listing its arguments. Alternatively, the `Call`-statement can be used, this does require the use of parenthesis.
+```vba
+Sub Main()
+  SomeOtherSub "some text"
+  Call SomeOtherSub("some more text")
+End Sub
+
+Sub SomeOtherSub(text)
+  MessageBox text
+End Sub
+```
+
+## Functions
+Functions are essentially just subroutines but capable of returning a value. A value is returned by assigning it to the functions name. Whatever value is stored in this special reserved variable when the function call ends will be returned to the functions callsite.
+
+When calling a function whos return value will be used for further computation parenthesis are required. If the return value will be discaded anyways, no parenthesis are required.
+
+```vba
+Sub Main()
+  MessageBox Add(2, 4)
+  Say "look mum no parenthesis"
+End Sub
+
+Function Add(a, b)
+  Add = a + b
+End Function
+
+Function Say(text)
+  MessageBox text
+  Say = text 
+End Function
+```
+## Types
 ## Base types
 
 | Type | Size In Memory | Possible States | Notes |
@@ -26,7 +71,7 @@
 ## Structures
 VeeBee also allows for user defined structures, the same way as VBA does. Types are defined using the `Type`-keyword, followed by the types fields.
 
-```vb
+```vba
 Type Employee
   Name As String ' Name of the employee
   Age As Integer ' Age of the employee
@@ -36,14 +81,14 @@ End Employee
 # Variables
 
 ## Definition of Primitives
-```vb
+```vba
 Dim vMyVariable ' define new variable of type 'Variant'
 Dim iMyNumer As Integer ' define new variable of type 'Integer' 
 Dim oMyObject As Object ' define new variable of type 'Object'
 ```
 
 ## Definition of Arrays
-```vb
+```vba
 ' Single dimensional arrays
 Dim aNumberList(10) As Integer ' create a new array of type Integer of length 10
 ReDim aNumberList(15) ' resize our array to be of size 15, this also clears the array
@@ -65,6 +110,7 @@ Dim iCalender(1 To 12, 1 To 31) As String ' will create a 2D array with the give
 
 # Sources
 (some of them are german and i dont care)  
+- https://learn.microsoft.com/en-us/office/vba/language/concepts/getting-started/calling-sub-and-function-procedures
 - https://learn.microsoft.com/en-us/office/vba/language/reference/user-interface-help/data-type-summary
 - https://learn.microsoft.com/en-us/office/vba/language/how-to/user-defined-data-type
 - https://learn.microsoft.com/de-de/office/vba/language/concepts/getting-started/using-arrays
