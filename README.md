@@ -6,6 +6,6 @@
 A portable Visual Basic runtime, made to be integrated into larger projects as a scripting language.
 
 
-This runtime is based on Microsofts "Visual Basic for Applications" (VBA) runtime, as it's are continuation of Microsofts commercial "Visual Basic 6.0". It is the most robust, stable and consistent of all the different Visual Basic standards.
+This runtime is based on Microsofts "Visual Basic for Applications" (VBA) runtime, a continuation of Microsofts commercial "Visual Basic 6.0". As of today, it is the most robust, stable and consistent of all the different Visual Basic standards.
 
 <a href="https://docs.rect.ml/"><strong>More Information about the Language Specification »</strong></a>
