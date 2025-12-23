@@ -130,3 +130,46 @@ void SOURCE_Unload(source_t *me) {
     // free the source buffer
     free(me->buffer);
 }
+
+// ---------------------------------------------------------------------------------------------------------------------
+// Span logic
+span_t SPAN_FromPos(uint64_t line, uint64_t column) {
+    return (span_t) {
+        (text_position_t){line, column},
+        (text_position_t){line, column},
+    };
+}
+
+span_t SPAN_FromToken(token_t token) {
+    return (span_t) {
+        (text_position_t){token.line, token.column},
+        (text_position_t){token.line, token.column + token.length},
+    };
+}
+span_t SPAN_Between(span_t a, span_t b) {
+    // to begin, just assume that span a starts before b
+    text_position_t start = a.start;
+
+    // if thats not the case...
+    if (b.start.line < start.line || b.start.line == start.line && b.start.column < start.column) {
+
+        // start at the beginning of b
+        start = b.start;
+    }
+
+    // same thing goes for the ending position so:
+    // assume that a ends after b
+    text_position_t end = a.end;
+
+    // if thats not the case...
+    if (b.end.line > end.line || b.end.line == end.line && b.end.column > end.column) {
+
+        // end at the end of b
+        end = b.end;
+    }
+
+    // return our newly expanded span
+    return (span_t){
+        start, end
+    };
+}

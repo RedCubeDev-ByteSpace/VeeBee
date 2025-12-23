@@ -6,6 +6,8 @@
 #define SOURCE_H
 #include <stdint.h>
 
+#include "token.h"
+
 // ---------------------------------------------------------------------------------------------------------------------
 // Source code source types
 #define FOREACH_SOURCE_TYPE(GEN)   \
@@ -41,5 +43,21 @@ source_t SOURCE_Init_Empty();
 source_t SOURCE_Init_FromText(char *text);
 source_t SOURCE_Init_FromFile(char *filename);
 void SOURCE_Unload(source_t *me);
+
+// ---------------------------------------------------------------------------------------------------------------------
+// Specific span of text
+typedef struct TEXT_POSITION {
+    uint64_t line;
+    uint64_t column;
+} text_position_t;
+
+typedef struct SPAN {
+    text_position_t start;
+    text_position_t end;
+} span_t;
+
+span_t SPAN_FromPos(uint64_t line, uint64_t column);
+span_t SPAN_FromToken(token_t token);
+span_t SPAN_Between(span_t a, span_t b);
 
 #endif //SOURCE_H

@@ -2,6 +2,7 @@ cmake_minimum_required(VERSION 3.30)
 project(veebee C)
 
 set(CMAKE_C_STANDARD 11)
+set(CMAKE_C_FLAGS -fsanitize=address)
 
 if (DEFINED ENV{TESTING})
     add_compile_definitions(TESTING)
@@ -22,6 +23,10 @@ add_library(veebee_backend
         backend/Lexer/source.h
         backend/Lexer/source.c
         backend/Lexer/lexer.h
+        backend/Lexer/lexer.c
+        backend/Debug/pretty_print.h
+        backend/Debug/pretty_print.c
+        backend/Debug/ansi.h
 )
 
 target_include_directories(veebee_backend

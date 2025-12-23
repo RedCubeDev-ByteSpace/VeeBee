@@ -9,30 +9,37 @@
 
 #define DEFINE_TEST(NAME) bool NAME();
 
-#define BEGIN_TEST_SET(NAME)             \
-  int main() {                           \
-    bool testOk = true;                  \
-    bool thisTestOk;                     \
-    printf("\nTestset \"%s\"\n", #NAME); \
+#define BEGIN_TEST_SET(NAME)                               \
+  int main() {                                             \
+    bool testOk = true;                                    \
+    bool thisTestOk;                                       \
+                                                           \
+    printf("\nTestset \"%s\"\n", #NAME);                   \
 
-#define END_TEST_SET                   \
-    if (testOk) return 0;              \
-    else return 1;                     \
-  }                                    \
+#define END_TEST_SET                                       \
+    if (testOk) return 0;                                  \
+    else return 1;                                         \
+  }                                                        \
 
-#define RUN_TEST(TEST)                 \
-  thisTestOk = (TEST());               \
-  if (thisTestOk) printf("  OK\n");    \
-  else printf("  FAILED\n");           \
-  testOk &= thisTestOk;                \
+#define RUN_TEST(TEST)                                     \
+                                                           \
+  thisTestOk = (TEST());                                   \
+                                                           \
+  if (thisTestOk) {                                        \
+    printf("  OK\n");                                      \
+  } else {                                                 \
+    printf("  FAILED\n");                                  \
+  }                                                        \
+                                                           \
+  testOk &= thisTestOk;                                    \
 
 
 
-#define BEGIN_TEST(TEST_NAME)          \
-  bool TEST_NAME() {                   \
-    printf(" -> %s: ", #TEST_NAME);    \
-    fflush(stdout);                    \
-    bool passed = true;                \
+#define BEGIN_TEST(TEST_NAME)                              \
+  bool TEST_NAME() {                                       \
+    printf(" -> %s: ", #TEST_NAME);                        \
+    fflush(stdout);                                        \
+    bool passed = true;                                    \
 
 #define TEST_ASSERT(ASSERTION)                             \
   if (!(ASSERTION)) {                                      \
@@ -40,9 +47,9 @@
   passed = false;                                          \
   }
 
-#define END_TEST                 \
-    if (!passed) printf("\n  "); \
-    return passed;               \
-  }                              \
+#define END_TEST                                           \
+    if (!passed) printf("\n  ");                           \
+    return passed;                                         \
+  }                                                        \
 
 #endif //TEST_H

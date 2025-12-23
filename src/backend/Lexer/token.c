@@ -17,10 +17,16 @@ token_list_t LX_TOKEN_LIST_Init() {
 }
 
 void LX_TOKEN_LIST_Unload(const token_list_t *me) {
+    for (int i = 0; i < me->length; ++i) {
+
+        if (me->tokens[i].strValue != NULL) free(me->tokens[i].strValue);
+        if (me->tokens[i].value != NULL) free(me->tokens[i].value);
+    }
+
     free(me->tokens);
 }
 
-void LX_TOKEN_LIST_add(token_list_t *me, const token_t newToken) {
+void LX_TOKEN_LIST_Add(token_list_t *me, const token_t newToken) {
     // grow the list buffer if needed
     if (!LX_TOKEN_LIST_grow(me)) {
 
