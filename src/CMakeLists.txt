@@ -3,6 +3,10 @@ project(veebee C)
 
 set(CMAKE_C_STANDARD 11)
 
+if (DEFINED ENV{TESTING})
+    add_compile_definitions(TESTING)
+endif ()
+
 # veebee backend library
 add_library(veebee_backend
         backend/veebee.h
@@ -17,6 +21,7 @@ add_library(veebee_backend
         backend/Lexer/token.c
         backend/Lexer/source.h
         backend/Lexer/source.c
+        backend/Lexer/lexer.h
 )
 
 target_include_directories(veebee_backend
@@ -27,9 +32,12 @@ target_include_directories(veebee_backend
 # veebee frontend executable
 add_executable(veebee
         frontend/main.c
-        backend/Lexer/lexer.h
 )
 
 target_link_libraries(veebee
         PRIVATE veebee_backend
 )
+
+# Testing
+enable_testing()
+add_subdirectory(test)

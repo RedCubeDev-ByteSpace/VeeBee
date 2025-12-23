@@ -9,6 +9,7 @@
 // ---------------------------------------------------------------------------------------------------------------------
 // Source code source types
 #define FOREACH_SOURCE_TYPE(GEN)   \
+    GEN(SC_EMPTY)                  \
     GEN(SC_FILE)                   \
     GEN(SC_TEXT)                   \
 
@@ -36,6 +37,7 @@ typedef struct SOURCE {
 } source_t;
 
 // methods
+source_t SOURCE_Init_Empty();
 source_t SOURCE_Init_FromText(char *text);
 source_t SOURCE_Init_FromFile(char *filename);
 void SOURCE_Unload(source_t *me);

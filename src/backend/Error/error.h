@@ -27,6 +27,8 @@ static const char *SUBSYSTEM_NAMES[] = {
 // Define all VeeBee error codes
 # define FOREACH_ERROR_TYPE(GEN) \
     GEN(ERR_INTERNAL)            \
+    GEN(ERR_LX_SOURCE_TEXT_NULL) \
+    GEN(ERR_LX_PATH_NULL)        \
     GEN(ERR_LX_PATH_TOO_LONG)    \
     GEN(ERR_LX_FILE_NOT_FOUND)   \
 
@@ -42,6 +44,12 @@ static const char *ERROR_TYPE_NAMES[] = {
 
 // ---------------------------------------------------------------------------------------------------------------------
 // Reporting functions
+
+#ifndef TESTING
+#define ERROR(SUBSYSTEM, TYPE, MSG) error(SUBSYSTEM, TYPE, MSG);
+#else
+#define ERROR(A,B,C)
+#endif
 
 void error(err_subsystem_t subsystem, error_type_t type, const char *msg);
 
