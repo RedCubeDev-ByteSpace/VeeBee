@@ -1,5 +1,6 @@
 <h1>
-  VeeBee
+  VeeBee 
+  <img src="https://github.com/RedCubeDev-ByteSpace/VeeBee/actions/workflows/cmake-single-platform.yml/badge.svg">
   <img align="right" alt="Logo" height="180" src="https://raw.githubusercontent.com/RedCubeDev-ByteSpace/VeeBee/refs/heads/main/res/veebee_bordered.png" />
 </h1>
 
