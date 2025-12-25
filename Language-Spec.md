@@ -161,6 +161,12 @@ fMyDouble = 9.9# ' # is a 64 bit float (Double)
 cMyDecimal = 9.9@ ' @ is a fixed point number (Currency)
 ```
 
+Theres no specifier for the Byte data type, which is honestly strange. So I added one to VeeBee.
+
+```vba
+bMyByte = 255~ ' ~ is an 8 bit Integer (Byte)
+```
+
 This also works for all the other kinds of numeric notation.
 
 ```vba
@@ -171,7 +177,7 @@ iMyDouble = 1E3#
 When no suffix is specified:
 - all floating point numbers are assumed to be doubles.
 - Integers are assumed to be 16-bit (Integer) if in range, otherwise they will be 32-bit (Long).
-- Hex and octal literals will be assumed to be 32-bit (Long)
+- Hex, octal and binary literals will be assumed to be 32-bit (Long)
 
 # Variables
 
