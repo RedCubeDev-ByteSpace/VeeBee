@@ -78,6 +78,93 @@ Type Employee
 End Employee
 ```
 
+# Literals
+
+## Numeric literals
+VBA supports a surprisingly large amount of specifying numeric literals.
+
+### Decimal numbers
+
+#### Integers
+Base 10 integers are specified exactly as one would expect using the digits 0...9.
+
+```vba
+iMyNumber = 1
+iMyOtherNumber = 100234
+iMyOtherestNumber = 001 ' leading zeros will be stripped away
+```
+
+VBA disallows the use of underscores as a thousands seperator. VeeBee *does* support this because I find it improves the readability a considerable amount and also i just like it.
+
+```vba
+iMyLargeNumber = 1_000_000 ' note: this doesnt work in vba! use with care
+```
+
+#### Floating point (decimal notation)
+When specifying floating point numbers you are allowed to take some shortcuts. The VBA language specification only requires at least one digit on at least one of the sides of the decimal point.
+
+```vba
+fMyNumber = 1.5
+fLookMumOneDigit = .5
+fOneDigitAgain = 1. ' what
+```
+
+(The abbreviated `.5` and `1.` have both been called "abominations" by my very german programming teacher. I assume these forms are way more popular in america, here in germany they are mostly seen as inappropriate to use in serious work.)
+(This language is fundamentally unserious though.)
+
+#### Floating point (exponential notation)
+An alternate way of specifying floating point numbers is by using scientific notation. This is done by specifying a decimal number followed by an **integer** exponent.
+
+```vba
+fMyNumber = 1E3 ' also works using a lowercase e
+fMyNumber = 1E+3 ' allows for specifying the sign
+fMyNumber = 1E-3 
+fMyNumber = 1.5E2 
+fMyNumber = .5E5 ' of course also works with wonky decimals
+```
+
+### Hexadecimal numbers
+Numbers can also be specified in hexadecimal using the `&H` prefix.
+
+```vba
+iMyNumber = &HFF
+iMyLargerNumber = &H0A0A0A
+```
+
+### Octal numbers
+You can also specify numbers in octal. No idea why you would ever want to do this. Ive never wanted to do this.
+
+```vba
+iWhoTfUsesOctal = &O7
+iMoreOctal = &O377
+```
+
+### Specifying numeric data types in literals
+When specifying a numeric literal you can also append a type suffix. This forces the literal expression to be of a certain data type.
+
+```vba
+iMyInteger  = 99% ' % is a 16 bit integer
+iMyLong     = 99& ' & is a 32 bit integer
+iMyLongLong = 99^ ' ^ is a 64 bit integer
+
+fMySingle = 9.9! ' ! is a 32 bit float
+fMyDouble = 9.9# ' # is a 64 bit float
+
+cMyDecimal = 9.9@ ' @ is a fixed point number
+```
+
+This also works for all the other kinds of numeric notation.
+
+```vba
+iMyLong = &H99&
+iMyDouble = 1E3#
+```
+
+When no suffix is specified:
+- all floating point numbers are assumed to be doubles.
+- Integers are assumed to be 16-bit (Integer) if in range, otherwise they will be 32-bit (Long).
+- Hex and octal literals will be assumed to be 32-bit (Long)
+
 # Variables
 
 ## Definition of Primitives
