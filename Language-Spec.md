@@ -81,7 +81,7 @@ End Employee
 # Literals
 
 ## Numeric literals
-VBA supports a surprisingly large amount of specifying numeric literals.
+VBA supports a surprisingly large amount of ways to specify numeric literals.
 
 ### Decimal numbers
 
