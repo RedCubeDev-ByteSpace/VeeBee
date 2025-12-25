@@ -143,14 +143,14 @@ iMoreOctal = &O377
 When specifying a numeric literal you can also append a type suffix. This forces the literal expression to be of a certain data type.
 
 ```vba
-iMyInteger  = 99% ' % is a 16 bit integer
-iMyLong     = 99& ' & is a 32 bit integer
-iMyLongLong = 99^ ' ^ is a 64 bit integer
+iMyInteger  = 99% ' % is a 16 bit integer (Integer)
+iMyLong     = 99& ' & is a 32 bit integer (Long)
+iMyLongLong = 99^ ' ^ is a 64 bit integer (LongLong)
 
-fMySingle = 9.9! ' ! is a 32 bit float
-fMyDouble = 9.9# ' # is a 64 bit float
+fMySingle = 9.9! ' ! is a 32 bit float (Single)
+fMyDouble = 9.9# ' # is a 64 bit float (Double)
 
-cMyDecimal = 9.9@ ' @ is a fixed point number
+cMyDecimal = 9.9@ ' @ is a fixed point number (Currency)
 ```
 
 This also works for all the other kinds of numeric notation.
