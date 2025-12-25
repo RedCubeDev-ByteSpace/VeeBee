@@ -139,6 +139,14 @@ iWhoTfUsesOctal = &O7
 iMoreOctal = &O377
 ```
 
+### Binary numbers
+VBA **does not** allow for binary literals. VeeBee on the other hand does allow it as its extremely useful.
+
+```vba
+iMyBinary = &B10010001
+iMyBinary = &B1001_0001 ' also allows for underscores as visual separators
+```
+
 ### Specifying numeric data types in literals
 When specifying a numeric literal you can also append a type suffix. This forces the literal expression to be of a certain data type.
 
