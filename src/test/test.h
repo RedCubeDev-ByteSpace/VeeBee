@@ -51,6 +51,9 @@
   passed = false;                           \
   printf("\n    [!] Test not implemented"); \
 
+#define TEST_IGNORE()               \
+  printf("\n    [!] Test ignored"); \
+
 
 #define END_TEST                                           \
     if (!passed) printf("\n  ");                           \
