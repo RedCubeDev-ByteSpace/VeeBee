@@ -47,6 +47,11 @@
   passed = false;                                          \
   }
 
+#define TEST_NOT_IMPLEMENTED()              \
+  passed = false;                           \
+  printf("\n    [!] Test not implemented"); \
+
+
 #define END_TEST                                           \
     if (!passed) printf("\n  ");                           \
     return passed;                                         \

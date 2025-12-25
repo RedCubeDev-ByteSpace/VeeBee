@@ -37,7 +37,7 @@ BEGIN_TEST(TEST_LX_source_text_real)
   TEST_ASSERT(src.length == strlen(testText))
   TEST_ASSERT(strcmp(testText, src.buffer) == 0)
 
-  SOURCE_Unload(&src);
+  SOURCE_Unload(src);
 END_TEST
 
 BEGIN_TEST(TEST_LX_source_text_empty)
@@ -48,7 +48,7 @@ BEGIN_TEST(TEST_LX_source_text_empty)
   TEST_ASSERT(src.length == 0)
   TEST_ASSERT(strlen(src.buffer) == 0)
 
-  SOURCE_Unload(&src);
+  SOURCE_Unload(src);
 END_TEST
 
 BEGIN_TEST(TEST_LX_source_text_null)
@@ -59,7 +59,7 @@ BEGIN_TEST(TEST_LX_source_text_null)
   TEST_ASSERT(src.length == 0)
   TEST_ASSERT(strlen(src.buffer) == 0)
 
-  SOURCE_Unload(&src);
+  SOURCE_Unload(src);
 END_TEST
 
 BEGIN_TEST(TEST_LX_source_file_real)
@@ -80,7 +80,7 @@ BEGIN_TEST(TEST_LX_source_file_real)
   TEST_ASSERT(src.length == strlen(testText))
   TEST_ASSERT(strcmp(testText, src.buffer) == 0)
 
-  SOURCE_Unload(&src);
+  SOURCE_Unload(src);
 END_TEST
 
 BEGIN_TEST(TEST_LX_source_file_empty)
@@ -92,7 +92,7 @@ BEGIN_TEST(TEST_LX_source_file_empty)
   TEST_ASSERT(src.length == 0)
   TEST_ASSERT(strlen(src.buffer) == 0)
 
-  SOURCE_Unload(&src);
+  SOURCE_Unload(src);
 END_TEST
 
 BEGIN_TEST(TEST_LX_source_file_null)
@@ -104,7 +104,7 @@ BEGIN_TEST(TEST_LX_source_file_null)
   TEST_ASSERT(src.length == 0)
   TEST_ASSERT(strlen(src.buffer) == 0)
 
-  SOURCE_Unload(&src);
+  SOURCE_Unload(src);
 END_TEST
 
 BEGIN_TEST(TEST_LX_source_file_toolong)
@@ -116,5 +116,5 @@ BEGIN_TEST(TEST_LX_source_file_toolong)
   TEST_ASSERT(src.length == 0)
   TEST_ASSERT(strlen(src.buffer) == 0)
 
-  SOURCE_Unload(&src);
+  SOURCE_Unload(src);
 END_TEST

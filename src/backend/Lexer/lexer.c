@@ -222,6 +222,9 @@ void LEXER_lexClassifyWord(lexer_t *me, token_t *token) {
 void LEXER_lexString(lexer_t *me) {
     uint64_t tokenStart = me->pos;
 
+    // remember the starting position for error handling
+    span_t startingPosition = SPAN_FromPos(me->line, me->column);
+
     // step over the opening quotation mark
     STEP()
 
@@ -229,18 +232,31 @@ void LEXER_lexString(lexer_t *me) {
     char stringBuffer[MAX_TOKEN_LENGTH + 1];
     uint32_t stringLength = 0;
 
+    // declare a flag for if this string is too long for the buffer
+    bool errStringTooLong = false;
+
     // step through the buffer until we hit the end of file or
     while (CURRENT() != '"') {
 
         // strings are not allowed to be multiline!
         if (AT_EOF() || CURRENT() == '\r' || CURRENT() == '\n') {
-            ERROR_AT(SUB_LEXER, ERR_LX_UNTERMINATED_STRING, me->source, SPAN_FromPos(me->line, me->column), "A given string is never terminated")
+            ERROR_AT(SUB_LEXER, ERR_LX_UNTERMINATED_STRING, me->source, startingPosition, "A given string is never terminated")
             break;
         }
 
-        // copy the current char into the string content buffer
-        stringBuffer[stringLength] = CURRENT();
-        stringLength++;
+        // is there still place in the buffer?
+        if (stringLength < MAX_TOKEN_LENGTH) {
+
+            // copy the current char into the string content buffer
+            stringBuffer[stringLength] = CURRENT();
+            stringLength++;
+        }
+
+        // otherwise, set the error flag
+        else {
+            errStringTooLong = true;
+        }
+
 
         // next char!
         STEP()
@@ -252,9 +268,18 @@ void LEXER_lexString(lexer_t *me) {
             STEP()
             STEP()
 
-            // add a single quotation mark onto our string buffer
-            stringBuffer[stringLength] = '"';
-            stringLength++;
+            // is there still place in the buffer?
+            if (stringLength < MAX_TOKEN_LENGTH) {
+
+                // add a single quotation mark onto our string buffer
+                stringBuffer[stringLength] = '"';
+                stringLength++;
+            }
+
+            // otherwise, set the error flag
+            else {
+                errStringTooLong = true;
+            }
         }
     }
 
@@ -263,6 +288,11 @@ void LEXER_lexString(lexer_t *me) {
 
     // create a new token
     token_t token = LEXER_createToken(me, TK_LT_STRING, tokenStart, me->pos);
+
+    // make sure to report this error
+    if (errStringTooLong) {
+        ERROR_AT(SUB_LEXER, ERR_LX_TOKEN_VALUE_TOO_LONG, me->source, SPAN_FromToken(token), "The given string is larger than the allowed maximum token size")
+    }
 
     // allocate a buffer for this string and copy it over
     token.strValue = malloc(stringLength + 1);

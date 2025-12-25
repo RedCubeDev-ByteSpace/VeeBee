@@ -110,7 +110,7 @@ typedef struct TOKEN_LIST {
 } token_list_t;
 
 token_list_t LX_TOKEN_LIST_Init();
-void LX_TOKEN_LIST_Unload(const token_list_t *me);
+void LX_TOKEN_LIST_Unload(token_list_t me);
 void LX_TOKEN_LIST_Add(token_list_t *me, token_t newToken);
 bool LX_TOKEN_LIST_grow(token_list_t *me);
 

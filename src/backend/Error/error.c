@@ -13,7 +13,7 @@ void error(err_subsystem_t subsystem, error_type_t type, const char *msg) {
 }
 
 void error_at(err_subsystem_t subsystem, error_type_t type, source_t source, span_t span, const char *msg) {
-    printf(RED "\n[" BRED "%s" RED "](" BRED "%s" RED "): %s\n" CRESET, SUBSYSTEM_NAMES[subsystem], ERROR_TYPE_NAMES[type], msg);
+    printf("\n" RED "[" BRED "%s" RED "](" BRED "%s" RED "): %s\n" CRESET, SUBSYSTEM_NAMES[subsystem], ERROR_TYPE_NAMES[type], msg);
 
     if (span.start.line == span.end.line) {
         error_highlight_singleline(source, span);

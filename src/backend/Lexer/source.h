@@ -42,7 +42,7 @@ typedef struct SOURCE {
 source_t SOURCE_Init_Empty();
 source_t SOURCE_Init_FromText(char *text);
 source_t SOURCE_Init_FromFile(char *filename);
-void SOURCE_Unload(source_t *me);
+void SOURCE_Unload(source_t me);
 
 // ---------------------------------------------------------------------------------------------------------------------
 // Specific span of text

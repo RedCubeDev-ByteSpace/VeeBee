@@ -126,9 +126,9 @@ source_t SOURCE_Init_FromFile(char *filename) {
     return source;
 }
 
-void SOURCE_Unload(source_t *me) {
+void SOURCE_Unload(source_t me) {
     // free the source buffer
-    free(me->buffer);
+    free(me.buffer);
 }
 
 // ---------------------------------------------------------------------------------------------------------------------

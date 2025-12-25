@@ -12,9 +12,9 @@ int main(void) {
 
     DBG_PRETTY_PRINT_Print_TokenList(lexer->tokens);
 
-    LX_TOKEN_LIST_Unload(&lexer->tokens);
+    LX_TOKEN_LIST_Unload(lexer->tokens);
     LEXER_Unload(lexer);
-    SOURCE_Unload(&source);
+    SOURCE_Unload(source);
 
     return 0;
 }
