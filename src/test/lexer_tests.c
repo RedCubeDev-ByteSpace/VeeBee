@@ -195,6 +195,7 @@ BEGIN_TEST(TEST_LX_LEX_identifier)
 
     TEST_ASSERT(lexer->tokens.tokens[3].type == TK_EOS);
 
+    LX_TOKEN_LIST_Unload(lexer->tokens);
     LEXER_Unload(lexer);
     SOURCE_Unload(source);
 END_TEST
@@ -220,6 +221,7 @@ BEGIN_TEST(TEST_LX_LEX_identifier_toolong)
 
     TEST_ASSERT(lexer->tokens.tokens[2].type == TK_EOS);
 
+    LX_TOKEN_LIST_Unload(lexer->tokens);
     LEXER_Unload(lexer);
     SOURCE_Unload(source);
 END_TEST
@@ -246,6 +248,7 @@ BEGIN_TEST(TEST_LX_LEX_string)
 
     TEST_ASSERT(lexer->tokens.tokens[3].type == TK_EOS);
 
+    LX_TOKEN_LIST_Unload(lexer->tokens);
     LEXER_Unload(lexer);
     SOURCE_Unload(source);
 END_TEST
@@ -277,6 +280,7 @@ BEGIN_TEST(TEST_LX_LEX_string_toolong)
 
     TEST_ASSERT(lexer->tokens.tokens[1].type == TK_EOS);
 
+    LX_TOKEN_LIST_Unload(lexer->tokens);
     LEXER_Unload(lexer);
     SOURCE_Unload(source);
     free(longStringSource);
@@ -302,6 +306,7 @@ BEGIN_TEST(TEST_LX_LEX_string_unterminated)
 
     TEST_ASSERT(lexer->tokens.tokens[3].type == TK_EOS);
 
+    LX_TOKEN_LIST_Unload(lexer->tokens);
     LEXER_Unload(lexer);
     SOURCE_Unload(source);
 END_TEST
