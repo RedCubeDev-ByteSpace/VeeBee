@@ -218,6 +218,17 @@ void LEXER_classifyWord(lexer_t *me, token_t *token) {
         }
     }
 
+    // is this actually a boolean literal?
+    if (strcmp(token->strValue, "true") == 0 || strcmp(token->strValue, "false") == 0) {
+        token->type = TK_LT_BOOLEAN;
+
+        // allocate a value buffer for this and store the value of this literal
+        token->value = malloc(sizeof(bool));
+        *(bool*)token->value = strcmp(token->strValue, "true") == 0;
+
+        return;
+    }
+
     // if we didn't find anything -> definitely an identifier
     token->type = TK_IDENTIFIER;
 }

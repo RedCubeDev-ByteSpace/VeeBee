@@ -6,7 +6,7 @@
 #include "Lexer/source.h"
 
 int main(void) {
-    source_t source = SOURCE_Init_FromFile("numbers.bee");
+    source_t source = SOURCE_Init_FromFile("bool.bee");
     lexer_t *lexer = LEXER_Init(source);
     LEXER_Lex(lexer);
 

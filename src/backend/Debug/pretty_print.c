@@ -15,6 +15,8 @@ void DBG_PRETTY_PRINT_Print_TokenList(token_list_t tokens) {
         else {
             if (tokens.tokens[i].type == TK_LT_STRING) {
                 printf("[%d]: " BYEL "%s," CYN " '%s'" CRESET " (L: %d, C: %d)\n", i, TOKEN_TYPE_STRING[tokens.tokens[i].type], tokens.tokens[i].strValue, tokens.tokens[i].line, tokens.tokens[i].column);
+            } else if (tokens.tokens[i].type == TK_LT_BOOLEAN) {
+                    printf("[%d]: " BYEL "%s," CYN " '%s'" GRN " %d" CRESET " (L: %d, C: %d)\n", i, TOKEN_TYPE_STRING[tokens.tokens[i].type], tokens.tokens[i].strValue, *((bool*)tokens.tokens[i].value), tokens.tokens[i].line, tokens.tokens[i].column);
             } else {
                 if (tokens.tokens[i].numberValueType == NUMBER_VALUE_BYTE)
                     printf("[%d]: " BYEL "%s," CYN " '%s'" GRN " NUMBER_VALUE_BYTE %u" CRESET " (L: %d, C: %d)\n", i, TOKEN_TYPE_STRING[tokens.tokens[i].type], tokens.tokens[i].strValue, *((uint8_t*)tokens.tokens[i].value), tokens.tokens[i].line, tokens.tokens[i].column);
