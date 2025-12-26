@@ -26,16 +26,20 @@ static const char *SUBSYSTEM_NAMES[] = {
 
 // ---------------------------------------------------------------------------------------------------------------------
 // Define all VeeBee error codes
-# define FOREACH_ERROR_TYPE(GEN)     \
-    GEN(ERR_INTERNAL)                \
-    GEN(ERR_LX_SOURCE_TEXT_NULL)     \
-    GEN(ERR_LX_PATH_NULL)            \
-    GEN(ERR_LX_PATH_TOO_LONG)        \
-    GEN(ERR_LX_FILE_NOT_FOUND)       \
-    GEN(ERR_LX_TOKEN_VALUE_TOO_LONG) \
-    GEN(ERR_LX_IDENTIFIER_TOO_LONG)  \
-    GEN(ERR_LX_UNTERMINATED_STRING)  \
-    GEN(ERR_LX_UNEXPECTED_CHARACTER) \
+# define FOREACH_ERROR_TYPE(GEN)                      \
+    GEN(ERR_INTERNAL)                                 \
+    GEN(ERR_LX_SOURCE_TEXT_NULL)                      \
+    GEN(ERR_LX_PATH_NULL)                             \
+    GEN(ERR_LX_PATH_TOO_LONG)                         \
+    GEN(ERR_LX_FILE_NOT_FOUND)                        \
+    GEN(ERR_LX_TOKEN_VALUE_TOO_LONG)                  \
+    GEN(ERR_LX_IDENTIFIER_TOO_LONG)                   \
+    GEN(ERR_LX_UNTERMINATED_STRING)                   \
+    GEN(ERR_LX_UNEXPECTED_CHARACTER)                  \
+    GEN(ERR_LX_UNEXPECTED_LITERAL_QUALIFIER)          \
+    GEN(ERR_LX_UNEXPECTED_CHAR_IN_NUMERIC_LITERAL)    \
+    GEN(ERR_LX_INCOMPATIBLE_NUMERIC_TYPE_AND_LITERAL) \
+    GEN(ERR_LX_INCOMPATIBLE_VALUE_FOR_NUMERIC_TYPE)   \
 
 // Error type enum
 typedef enum ERR_ERROR_TYPE {
@@ -54,8 +58,8 @@ static const char *ERROR_TYPE_NAMES[] = {
 #define ERROR(SUBSYSTEM, TYPE, MSG) error(SUBSYSTEM, TYPE, MSG);
 #define ERROR_AT(SUBSYSTEM, TYPE, SOURCE, SPAN, MSG) error_at(SUBSYSTEM, TYPE, SOURCE, SPAN, MSG);
 #else
-#define ERROR(A,B,C)
-#define ERROR_AT(A,B,C,D,E)
+#define ERROR(SUBSYSTEM, TYPE, MSG)
+#define ERROR_AT(SUBSYSTEM, TYPE, SOURCE, SPAN, MSG)
 #endif
 
 void error(err_subsystem_t subsystem, error_type_t type, const char *msg);

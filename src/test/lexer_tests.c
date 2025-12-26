@@ -288,7 +288,6 @@ END_TEST
 
 BEGIN_TEST(TEST_LX_LEX_string_unterminated)
 
-
     // Test buffer of some identifiers with mixed capitalisation
     source_t source = SOURCE_Init_FromText("Begin Sub \"not exactly closed string End Sub");
     lexer_t *lexer = LEXER_Init(source);
@@ -312,7 +311,10 @@ BEGIN_TEST(TEST_LX_LEX_string_unterminated)
 END_TEST
 
 BEGIN_TEST(TEST_LX_LEX_number)
-TEST_IGNORE()
+
+// create a source with a few different numbers
+source_t source = SOURCE_Init_FromText("");
+
 END_TEST
 
 BEGIN_TEST(TEST_LX_LEX_number_toolong)

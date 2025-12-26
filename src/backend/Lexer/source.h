@@ -59,5 +59,7 @@ typedef struct SPAN {
 span_t SPAN_FromPos(uint64_t line, uint64_t column);
 span_t SPAN_FromToken(token_t token);
 span_t SPAN_Between(span_t a, span_t b);
+span_t SPAN_ShiftByChars(span_t anchor, uint32_t numChars);
+span_t SPAN_ExtendByChars(span_t anchor, uint32_t numChars);
 
 #endif //SOURCE_H

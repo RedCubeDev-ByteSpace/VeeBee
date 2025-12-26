@@ -173,3 +173,27 @@ span_t SPAN_Between(span_t a, span_t b) {
         start, end
     };
 }
+
+span_t SPAN_ShiftByChars(span_t anchor, uint32_t numChars) {
+    return (span_t) {
+        (text_position_t) {
+            anchor.start.line, anchor.start.column + numChars,
+        },
+
+        (text_position_t) {
+            anchor.end.line, anchor.end.column + numChars,
+        }
+    };
+}
+
+span_t SPAN_ExtendByChars(span_t anchor, uint32_t numChars) {
+    return (span_t) {
+        (text_position_t) {
+            anchor.start.line, anchor.start.column,
+        },
+
+        (text_position_t) {
+            anchor.end.line, anchor.end.column + numChars,
+        }
+    };
+}
