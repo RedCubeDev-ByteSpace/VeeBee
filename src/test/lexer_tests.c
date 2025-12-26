@@ -21,7 +21,8 @@ DEFINE_TEST(TEST_LX_LEX_identifier_toolong)
 DEFINE_TEST(TEST_LX_LEX_string)
 DEFINE_TEST(TEST_LX_LEX_string_toolong)
 DEFINE_TEST(TEST_LX_LEX_string_unterminated)
-DEFINE_TEST(TEST_LX_LEX_number)
+DEFINE_TEST(TEST_LX_LEX_number_decimal)
+DEFINE_TEST(TEST_LX_LEX_number_hex_oct_bin)
 DEFINE_TEST(TEST_LX_LEX_number_toolong)
 DEFINE_TEST(TEST_LX_LEX_comment)
 DEFINE_TEST(TEST_LX_LEX_newline)
@@ -36,7 +37,8 @@ BEGIN_TEST_SET(LEXER)
     RUN_TEST(TEST_LX_LEX_string)
     RUN_TEST(TEST_LX_LEX_string_toolong)
     RUN_TEST(TEST_LX_LEX_string_unterminated)
-    RUN_TEST(TEST_LX_LEX_number)
+    RUN_TEST(TEST_LX_LEX_number_decimal)
+    RUN_TEST(TEST_LX_LEX_number_hex_oct_bin)
     RUN_TEST(TEST_LX_LEX_number_toolong)
     RUN_TEST(TEST_LX_LEX_comment)
     RUN_TEST(TEST_LX_LEX_newline)
@@ -310,11 +312,145 @@ BEGIN_TEST(TEST_LX_LEX_string_unterminated)
     SOURCE_Unload(source);
 END_TEST
 
-BEGIN_TEST(TEST_LX_LEX_number)
+BEGIN_TEST(TEST_LX_LEX_number_decimal)
 
-// create a source with a few different numbers
-source_t source = SOURCE_Init_FromText("");
+    // create a source with a few different numbers
+    source_t source = SOURCE_Init_FromText(
+        "1 "
+        "001 "
+        "100 "
+        "100~ "
+        "100% "
+        "100& "
+        "100^ "
+        "100! "
+        "100# "
+        "100@ "
 
+        "1.5 "
+        ".5 "
+        "1. "
+        "1.5E3 "
+        "1.5E-3 "
+        "1.1@ "
+        );
+
+    lexer_t *lexer = LEXER_Init(source);
+    LEXER_Lex(lexer);
+
+    // 17 numbers + one EOS
+    TEST_ASSERT(lexer->tokens.length == 17)
+
+    TEST_ASSERT(lexer->tokens.tokens[0].type == TK_LT_NUMBER);
+    TEST_ASSERT(lexer->tokens.tokens[0].numberValueType == NUMBER_VALUE_INT);
+    TEST_ASSERT(*(int16_t*)lexer->tokens.tokens[0].value == 1);
+
+    TEST_ASSERT(lexer->tokens.tokens[1].type == TK_LT_NUMBER);
+    TEST_ASSERT(lexer->tokens.tokens[1].numberValueType == NUMBER_VALUE_INT);
+    TEST_ASSERT(*(int16_t*)lexer->tokens.tokens[1].value == 1);
+
+    TEST_ASSERT(lexer->tokens.tokens[2].type == TK_LT_NUMBER);
+    TEST_ASSERT(lexer->tokens.tokens[2].numberValueType == NUMBER_VALUE_INT);
+    TEST_ASSERT(*(int16_t*)lexer->tokens.tokens[2].value == 100);
+
+    TEST_ASSERT(lexer->tokens.tokens[3].type == TK_LT_NUMBER);
+    TEST_ASSERT(lexer->tokens.tokens[3].numberValueType == NUMBER_VALUE_BYTE);
+    TEST_ASSERT(*(uint8_t*)lexer->tokens.tokens[3].value == 100);
+
+    TEST_ASSERT(lexer->tokens.tokens[4].type == TK_LT_NUMBER);
+    TEST_ASSERT(lexer->tokens.tokens[4].numberValueType == NUMBER_VALUE_INT);
+    TEST_ASSERT(*(int16_t*)lexer->tokens.tokens[4].value == 100);
+
+    TEST_ASSERT(lexer->tokens.tokens[5].type == TK_LT_NUMBER);
+    TEST_ASSERT(lexer->tokens.tokens[5].numberValueType == NUMBER_VALUE_LONG);
+    TEST_ASSERT(*(int32_t*)lexer->tokens.tokens[5].value == 100);
+
+    TEST_ASSERT(lexer->tokens.tokens[6].type == TK_LT_NUMBER);
+    TEST_ASSERT(lexer->tokens.tokens[6].numberValueType == NUMBER_VALUE_LONG_LONG);
+    TEST_ASSERT(*(int64_t*)lexer->tokens.tokens[6].value == 100);
+
+    TEST_ASSERT(lexer->tokens.tokens[7].type == TK_LT_NUMBER);
+    TEST_ASSERT(lexer->tokens.tokens[7].numberValueType == NUMBER_VALUE_SINGLE);
+    TEST_ASSERT(*(float*)lexer->tokens.tokens[7].value == 100);
+
+    TEST_ASSERT(lexer->tokens.tokens[8].type == TK_LT_NUMBER);
+    TEST_ASSERT(lexer->tokens.tokens[8].numberValueType == NUMBER_VALUE_DOUBLE);
+    TEST_ASSERT(*(double*)lexer->tokens.tokens[8].value == 100);
+
+    TEST_ASSERT(lexer->tokens.tokens[9].type == TK_LT_NUMBER);
+    TEST_ASSERT(lexer->tokens.tokens[9].numberValueType == NUMBER_VALUE_CURRENCY);
+    TEST_ASSERT(*(int64_t*)lexer->tokens.tokens[9].value == 100'0000);
+
+    TEST_ASSERT(lexer->tokens.tokens[10].type == TK_LT_NUMBER);
+    TEST_ASSERT(lexer->tokens.tokens[10].numberValueType == NUMBER_VALUE_DOUBLE);
+    TEST_ASSERT(*(double*)lexer->tokens.tokens[10].value == 1.5);
+
+    TEST_ASSERT(lexer->tokens.tokens[11].type == TK_LT_NUMBER);
+    TEST_ASSERT(lexer->tokens.tokens[11].numberValueType == NUMBER_VALUE_DOUBLE);
+    TEST_ASSERT(*(double*)lexer->tokens.tokens[11].value == 0.5);
+
+    TEST_ASSERT(lexer->tokens.tokens[12].type == TK_LT_NUMBER);
+    TEST_ASSERT(lexer->tokens.tokens[12].numberValueType == NUMBER_VALUE_DOUBLE);
+    TEST_ASSERT(*(double*)lexer->tokens.tokens[12].value == 1.0);
+
+    TEST_ASSERT(lexer->tokens.tokens[13].type == TK_LT_NUMBER);
+    TEST_ASSERT(lexer->tokens.tokens[13].numberValueType == NUMBER_VALUE_DOUBLE);
+    TEST_ASSERT(*(double*)lexer->tokens.tokens[13].value == 1500);
+
+    TEST_ASSERT(lexer->tokens.tokens[14].type == TK_LT_NUMBER);
+    TEST_ASSERT(lexer->tokens.tokens[14].numberValueType == NUMBER_VALUE_DOUBLE);
+    TEST_ASSERT(*(double*)lexer->tokens.tokens[14].value == 0.0015);
+
+    TEST_ASSERT(lexer->tokens.tokens[15].type == TK_LT_NUMBER);
+    TEST_ASSERT(lexer->tokens.tokens[15].numberValueType == NUMBER_VALUE_CURRENCY);
+    TEST_ASSERT(*(int64_t*)lexer->tokens.tokens[15].value == 1'1000);
+
+    LX_TOKEN_LIST_Unload(lexer->tokens);
+    LEXER_Unload(lexer);
+    SOURCE_Unload(source);
+END_TEST
+
+
+BEGIN_TEST(TEST_LX_LEX_number_hex_oct_bin)
+
+    // create a source with a few different numbers
+    source_t source = SOURCE_Init_FromText(
+        "&HFF00 "
+        "&O7700 "
+        "&B11110000 "
+        "&B11111111~ "
+        "&HFF~ "
+        );
+
+    lexer_t *lexer = LEXER_Init(source);
+    LEXER_Lex(lexer);
+
+    // 6 numbers + one EOS
+    TEST_ASSERT(lexer->tokens.length == 6)
+
+    TEST_ASSERT(lexer->tokens.tokens[0].type == TK_LT_NUMBER);
+    TEST_ASSERT(lexer->tokens.tokens[0].numberValueType == NUMBER_VALUE_LONG);
+    TEST_ASSERT(*(uint32_t*)lexer->tokens.tokens[0].value == 65280);
+
+    TEST_ASSERT(lexer->tokens.tokens[1].type == TK_LT_NUMBER);
+    TEST_ASSERT(lexer->tokens.tokens[1].numberValueType == NUMBER_VALUE_LONG);
+    TEST_ASSERT(*(uint32_t*)lexer->tokens.tokens[1].value == 4032);
+
+    TEST_ASSERT(lexer->tokens.tokens[2].type == TK_LT_NUMBER);
+    TEST_ASSERT(lexer->tokens.tokens[2].numberValueType == NUMBER_VALUE_LONG);
+    TEST_ASSERT(*(uint32_t*)lexer->tokens.tokens[2].value == 240);
+
+    TEST_ASSERT(lexer->tokens.tokens[3].type == TK_LT_NUMBER);
+    TEST_ASSERT(lexer->tokens.tokens[3].numberValueType == NUMBER_VALUE_BYTE);
+    TEST_ASSERT(*(uint8_t*)lexer->tokens.tokens[3].value == 255);
+
+    TEST_ASSERT(lexer->tokens.tokens[4].type == TK_LT_NUMBER);
+    TEST_ASSERT(lexer->tokens.tokens[4].numberValueType == NUMBER_VALUE_BYTE);
+    TEST_ASSERT(*(uint8_t*)lexer->tokens.tokens[4].value == 255);
+
+    LX_TOKEN_LIST_Unload(lexer->tokens);
+    LEXER_Unload(lexer);
+    SOURCE_Unload(source);
 END_TEST
 
 BEGIN_TEST(TEST_LX_LEX_number_toolong)

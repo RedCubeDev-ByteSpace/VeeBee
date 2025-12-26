@@ -659,7 +659,7 @@ number_literal_type_t LEXER_classifyNumber(lexer_t *me, const char *buffer, span
                 if (buffer[i] == '0' || buffer[i] == '1') continue;
 
                 // for everything else: fail
-                ERROR_AT(SUB_LEXER, ERR_LX_UNEXPECTED_CHAR_IN_NUMERIC_LITERAL, me->source, SPAN_ShiftByChars(startingPosition, i), "Unexpected character in octal literal")
+                ERROR_AT(SUB_LEXER, ERR_LX_UNEXPECTED_CHAR_IN_NUMERIC_LITERAL, me->source, SPAN_ShiftByChars(startingPosition, i), "Unexpected character in binary literal")
                 return NUMBER_LITERAL_ERROR | NUMBER_VALUE_NONE;
             break;
 
