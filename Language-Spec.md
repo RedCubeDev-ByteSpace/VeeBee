@@ -14,6 +14,9 @@ In VB, there are different kinds of user defined procedures. The first one of th
 By default, VeeBee begins execution at a subroutine called `Main`. Theres no program code allowed in the global namespace, all code needs to be contained inside of a subroutine or function.
 
 ## Subroutines
+> [!CAUTION]
+> This part of the language specification is not currently implemented
+
 Subroutines can be defined using the `Sub`-keyword. When calling a subroutines, no parenthesis are used when listing its arguments. Alternatively, the `Call`-statement can be used, this does require the use of parenthesis.
 ```vba
 Sub Main()
@@ -27,6 +30,9 @@ End Sub
 ```
 
 ## Functions
+> [!CAUTION]
+> This part of the language specification is not currently implemented
+
 Functions are essentially just subroutines but capable of returning a value. A value is returned by assigning it to the functions name. Whatever value is stored in this special reserved variable when the function call ends will be returned to the functions callsite.
 
 When calling a function whos return value will be used for further computation parenthesis are required. If the return value will be discaded anyways, no parenthesis are required.
@@ -48,6 +54,8 @@ End Function
 ```
 ## Types
 ## Base types
+> [!WARNING]
+> This part of the language specification is only partially implemented
 
 | Type | Size In Memory | Possible States | Notes |
 | ---- | -------------- | --------------- | ----- |
@@ -69,6 +77,9 @@ End Function
 [^1]: https://stackoverflow.com/questions/18637364/why-is-booleans-size-in-vba-2-bytes
 
 ## Structures
+> [!CAUTION]
+> This part of the language specification is not currently implemented
+
 VeeBee also allows for user defined structures, the same way as VBA does. Types are defined using the `Type`-keyword, followed by the types fields.
 
 ```vba
@@ -79,6 +90,8 @@ End Employee
 ```
 
 # Literals
+> [!NOTE]
+> This part of the language specification has been implemented 
 
 ## Numeric literals
 VBA supports a surprisingly large amount of ways to specify numeric literals.
@@ -180,6 +193,8 @@ When no suffix is specified:
 - Hex, octal and binary literals will be assumed to be 32-bit (Long)
 
 # Variables
+> [!CAUTION]
+> This part of the language specification is not currently implemented
 
 ## Definition of Primitives
 ```vba
