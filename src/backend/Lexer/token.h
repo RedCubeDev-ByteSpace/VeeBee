@@ -47,6 +47,10 @@
     GEN(TK_KW_TO)                 \
     GEN(TK_KW_AS)                 \
                                   \
+    GEN(TK_KW_FOR)                \
+    GEN(TK_KW_STEP)               \
+    GEN(TK_KW_NEXT)               \
+                                  \
     GEN(TK_PC_OPEN_PARENTHESIS)   \
     GEN(TK_PC_CLOSED_PARENTHESIS) \
     GEN(TK_PC_COMMA)              \
@@ -138,9 +142,12 @@ static const char *KEYWORDS[] = {
     "redim",
     "preserve",
     "to",
-    "as"
+    "as",
+    "for",
+    "step",
+    "next",
 };
-#define NUM_KEYWORDS 11
+#define NUM_KEYWORDS 15
 
 // ---------------------------------------------------------------------------------------------------------------------
 // List of all punctuation marks and operators in the order they are listed in above

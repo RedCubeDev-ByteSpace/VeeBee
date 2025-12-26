@@ -7,5 +7,6 @@
 #include "Lexer/token.h"
 
 void DBG_PRETTY_PRINT_Print_TokenList(token_list_t tokens);
+void DBG_PRETTY_PRINT_Print_TokenList_AsSource(token_list_t tokens);
 
 #endif //PRETTY_PRINT_H
