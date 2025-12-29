@@ -152,7 +152,7 @@ Variadic arguments are not compatible with optional parameters. A sub or functio
 
 The array created by the variadic parameter is required to be of type `Variant` array.
 
-```
+```vba
 Sub Main()
   PrintWords "this", "is", "so", "sad"
   PrintWords "can", "we", "get", "five", "likes"
@@ -179,11 +179,11 @@ Public Sub MyPublicSub()
 ...
 End Sub
 
-Public Sub MyPrivateSub()
+Private Sub MyPrivateSub()
 ...
 End Sub
 
-Public Sub MyFriendSub()
+Friend Sub MyFriendSub()
 ...
 End Sub
 ```
