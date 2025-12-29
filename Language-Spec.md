@@ -150,11 +150,11 @@ Public Sub MyPublicSub()
 ...
 End Sub
 
-Public Sub MyPrivateSub()
+Private Sub MyPrivateSub()
 ...
 End Sub
 
-Public Sub MyFriendSub()
+Friend Sub MyFriendSub()
 ...
 End Sub
 ```
