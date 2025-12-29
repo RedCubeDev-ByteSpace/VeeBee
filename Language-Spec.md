@@ -8,6 +8,35 @@ Visual Basic, by default, is not case sensitive. This means keywords as well as 
 2. Function and Sub names are written in PascalCase
 3. Local variable names are written in camelCase and are prefixed with a type specifying letter, eg. `iSomeInt`, `fSomeFloat`, `sSomeString`, `aSomeArray`, `oSomeObject` 
 
+# Modules
+Modules are the core organisational unit in VBA. They can generally be thought of as namespaces or classes.
+
+In VBA modules are created inside the Visual Basic Editor and essentially work like different source files.
+![VBE Interface with module tree](https://www.vba-tutorial.de/images/editor1.gif)
+(Image taken from [vba-tutorial.de](https://www.vba-tutorial.de/editor/module.htm))
+
+In VeeBee modules actually are different source file. At the beginning of a file a module can be declared using the `Module` keyword. If no module is declared the compiler will create a module called `Default`. The default entry point for a program is a sub called `Main` in the module named `Default`.
+
+Modules cannot be redefined or ammended over different files. If file A is a module also called `A` then file B is not allowed to also be a module called `A`. These same rules also apply to the `Default` module.
+
+## Standard Modules
+Standard modules can be thought of as namespaces. They are created by placing a `Module` statement at the beginning of a source file.
+
+```vba
+Module Default
+' the contents of this file will be sorted into a module called 'Default'
+
+Sub Main()
+
+End Sub
+
+```
+
+## Class Modules
+Class modules are VBAs equivilant to classes.
+(TODO(/ds))
+
+
 # Functions and Subroutines
 In VB, there are different kinds of user defined procedures. The first one of these is called a subroutine. These very simple procedures can take in arguments but generally arent able to return anything. Alternatively, there are also functions, just like subroutines they can take in arguments but can also give back a return value.
 
@@ -342,7 +371,19 @@ Dim iCalender(1 To 12, 1 To 31) As String ' will create a 2D array with the give
 
 # Sources
 (some of them are german and i dont care)  
-- https://learn.microsoft.com/en-us/office/vba/language/concepts/getting-started/calling-sub-and-function-procedures
-- https://learn.microsoft.com/en-us/office/vba/language/reference/user-interface-help/data-type-summary
-- https://learn.microsoft.com/en-us/office/vba/language/how-to/user-defined-data-type
-- https://learn.microsoft.com/de-de/office/vba/language/concepts/getting-started/using-arrays
+- Modules
+  - https://www.vba-tutorial.de/editor/module.htm
+
+- Functions and Subs
+  - https://learn.microsoft.com/en-us/office/vba/language/reference/user-interface-help/sub-statement
+  - https://learn.microsoft.com/en-us/office/vba/language/reference/user-interface-help/function-statement
+  - https://learn.microsoft.com/de-de/office/vba/language/concepts/getting-started/understanding-parameter-arrays
+  - https://learn.microsoft.com/en-us/office/vba/language/concepts/getting-started/calling-sub-and-function-procedures
+
+- Data types
+  - https://learn.microsoft.com/en-us/office/vba/language/reference/user-interface-help/data-type-summary
+  - https://learn.microsoft.com/en-us/office/vba/language/how-to/user-defined-data-type
+
+- Variables and Arrays
+  - https://learn.microsoft.com/de-de/office/vba/language/reference/user-interface-help/dim-statement
+  - https://learn.microsoft.com/de-de/office/vba/language/concepts/getting-started/using-arrays
