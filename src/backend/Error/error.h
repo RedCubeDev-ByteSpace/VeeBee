@@ -8,6 +8,7 @@
 // ---------------------------------------------------------------------------------------------------------------------
 // Define all VeeBee subsystems
 # define FOREACH_SUBSYSTEM(GEN) \
+    GEN(SUB_CLI)                \
     GEN(SUB_LEXER)              \
 
 #define GEN_ENUM(ENUM) ENUM,
@@ -28,6 +29,9 @@ static const char *SUBSYSTEM_NAMES[] = {
 // Define all VeeBee error codes
 # define FOREACH_ERROR_TYPE(GEN)                      \
     GEN(ERR_INTERNAL)                                 \
+    GEN(ERR_CL_NO_SOURCES_GIVEN)                      \
+    GEN(ERR_CL_TOO_MANY_SOURCES)                      \
+    GEN(ERR_CL_SOURCE_DOESNT_EXIST)                   \
     GEN(ERR_LX_SOURCE_TEXT_NULL)                      \
     GEN(ERR_LX_PATH_NULL)                             \
     GEN(ERR_LX_PATH_TOO_LONG)                         \

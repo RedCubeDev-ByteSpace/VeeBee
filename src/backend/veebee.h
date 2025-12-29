@@ -5,6 +5,6 @@
 #ifndef VEEBEE_H
 #define VEEBEE_H
 
-void test();
+const char *VEEBEE_Version = "0.1";
 
 #endif //VEEBEE_H

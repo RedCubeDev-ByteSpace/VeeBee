@@ -27,6 +27,7 @@ add_library(veebee_backend
         backend/Debug/pretty_print.h
         backend/Debug/pretty_print.c
         backend/Debug/ansi.h
+        backend/AST/ast.h
 )
 
 target_include_directories(veebee_backend
@@ -37,6 +38,7 @@ target_include_directories(veebee_backend
 # veebee frontend executable
 add_executable(veebee
         frontend/main.c
+        frontend/cli.h
 )
 
 target_link_libraries(veebee
