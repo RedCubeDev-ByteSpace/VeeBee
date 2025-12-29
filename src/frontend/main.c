@@ -157,6 +157,13 @@ int CLI_doBusiness() {
         }
     }
 
+    if (CLI_PrintDebugInfo) {
+        printf("\nList of sources: \n");
+        for (int i = 0; i < CLI_NumSourceFiles; ++i) {
+            printf("- \"%s\"\n", CLI_SourceFiles[i]);
+        }
+    }
+
     // load the source
     source_t source = SOURCE_Init_FromFile(CLI_SourceFiles[0]);
 
@@ -166,8 +173,10 @@ int CLI_doBusiness() {
 
     // if debug output is enabled, output the token list
     if (CLI_PrintDebugInfo) {
+        printf("\n");
         DBG_PRETTY_PRINT_Print_TokenList(lexer->tokens);
-        DBG_PRETTY_PRINT_Print_TokenList_AsSource(lexer->tokens);
+        //printf("\n");
+        //DBG_PRETTY_PRINT_Print_TokenList_AsSource(lexer->tokens);
     }
 
     // unload everything

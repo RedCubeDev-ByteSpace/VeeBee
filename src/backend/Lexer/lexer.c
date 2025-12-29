@@ -89,8 +89,8 @@ void LEXER_Lex(lexer_t *me) {
             continue;
         }
 
-        // is this a comment?
-        if (current == '\'') {
+        // is this a comment? (also allow shebangs)
+        if (current == '\'' || (current == '#' && PEEK(1) == '!')) {
             LEXER_lexComment(me);
             continue;
         }

@@ -18,6 +18,7 @@ By default, VeeBee begins execution at a subroutine called `Main`. Theres no pro
 > This part of the language specification is not currently implemented
 
 Subroutines can be defined using the `Sub`-keyword. When calling a subroutines, no parenthesis are used when listing its arguments. Alternatively, the `Call`-statement can be used, this does require the use of parenthesis.
+
 ```vba
 Sub Main()
   SomeOtherSub "some text"
@@ -52,6 +53,121 @@ Function Say(text)
   Say = text 
 End Function
 ```
+
+The type of a functions return value can be set by using an `As` clause when defining a function.
+
+```vba
+Function Add(a, b) As Integer
+  Add = a + b
+End Function
+```
+
+## Parameters for Subroutines and Functions
+When declaring a subroutine or function parameters can be specified which must be provided by the subroutine or function caller.
+
+### Optional parameters
+Parameters can be made optional using the `Optional` keyword. If used in a list of parameters, all subsequent parameters must also be marked as optional.
+
+Optional parameters can be of any type other than user defined structures, but it is recommended that they are of type `Variant` as the function to check for optional arguments `IsMissing` only works on variants. All variables of other types will be filled in with their default value.
+
+```vba
+Function Add(a, b, Optional c) 
+
+  If IsMissing(c) Then
+    Add = a + b
+  Else
+    Add = a + b + c
+  End If
+
+End Function
+```
+
+If a parameter is optional it can also be given a default value. These default values are only allowed to be constant expressions. Parameters of type `Object` can only default to `Nothing`.
+
+Function Add(a, b, Optional c = 0) 
+  Add = a + b + c
+End Function
+
+### Parameter passing type
+By default, VBA passes all arguments by reference. This means that variables given to a sub or function can be modified by it. Alternatively, arguments can be passed by value. This can be controlled by using the `ByRef` and `ByVal` keywords respectively. 
+
+```vba
+Sub Increment(ByRef iMyCounter)
+  iMyCounter = iMyCounter + 1
+End Sub
+
+Function AddOne(ByVal iMyCounter)
+  AddOne = iMyCounter + 1
+End Function
+```
+
+### Parameter data types
+Parameters can be given a specific data type. The subroutine or function will then only accept an argument of the specified type. A type can be added by using an `As` clause.
+
+When passing an array type a pair of parentheses is placed after the argument name.
+
+```vba
+Sub MySub(iMyNumber As Integer)
+...
+End Sub
+
+Sub MyArrayTakingSub (aMyNumberList() As Integer)
+...
+End Sub
+```
+
+### Variadic arguments
+A subroutine or function can also support variadic arguments. A variadic parameter can be defined by using the `ParamArray` keyword. The `ParamArray` parameter must be the last parameter in a sub or function definition.
+
+Variadic arguments are not compatible with optional parameters. A sub or function declaration can only contain one of the two. 
+
+The array created by the variadic parameter is required to be of type `Variant` array.
+
+```
+Sub Main()
+  PrintWords "this", "is", "so", "sad"
+  PrintWords "can", "we", "get", "five", "likes"
+End Sub
+
+Sub PrintWords(ParamArray aWordsToPrint() As Variant)
+  For i = 0 To UBound(aWordsToPrint)
+    MessageBox aWordsToPrint(i)
+  Next
+End Sub
+```
+
+## Visibility of Subroutines and Functions
+The visibility of a subroutine or function can be either `Public`, `Private` or `Friend`. By default all subroutines and functions are assumed to be public.
+
+To be public means the function is visible to all modules in the project.
+
+To be private means the function is only visible to the module it is defined in.
+
+A subroutine or function can only be friend when its a member of a class module. To be friended means that the function is visible only to other members of the function but not the outside. Someone whos only using an instance of this class is not able to call it.
+
+```vba
+Public Sub MyPublicSub()
+...
+End Sub
+
+Public Sub MyPrivateSub()
+...
+End Sub
+
+Public Sub MyFriendSub()
+...
+End Sub
+```
+
+## Static Subroutines and Functions
+Subroutines and functions can be made static using the `Static` keyword. Being static means that the functions local variables are preserved between calls. This only effects variables that have been declared inside of the function.
+
+```vba
+Static Sub MyStaticSub()
+...
+End Sub
+```
+
 ## Types
 ## Base types
 > [!WARNING]
