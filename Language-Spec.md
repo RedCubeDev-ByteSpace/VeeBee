@@ -15,7 +15,7 @@ In VBA modules are created inside the Visual Basic Editor and essentially work l
 ![VBE Interface with module tree](https://www.vba-tutorial.de/images/editor1.gif)
 (Image taken from [vba-tutorial.de](https://www.vba-tutorial.de/editor/module.htm))
 
-In VeeBee modules actually are different source file. At the beginning of a file a module can be declared using the `Module` keyword. If no module is declared the compiler will create a module called `Default`. The default entry point for a program is a sub called `Main` in the module named `Default`.
+In VeeBee modules actually are different source files. At the beginning of a file a module can be declared using the `Module` keyword. If no module is declared the compiler will create a module called `Default`. The default entry point for a program is a sub called `Main` in the module named `Default`.
 
 Modules cannot be redefined or ammended over different files. If file A is a module also called `A` then file B is not allowed to also be a module called `A`. These same rules also apply to the `Default` module.
 
