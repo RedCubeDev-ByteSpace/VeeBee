@@ -231,7 +231,7 @@ VeeBee also allows for user defined structures, the same way as VBA does. Types 
 Type Employee
   Name As String ' Name of the employee
   Age As Integer ' Age of the employee
-End Employee
+End Type
 ```
 
 # Literals
