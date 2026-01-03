@@ -639,7 +639,7 @@ ls_parameter_clause_node_t *PARSER_parseParameterClause(parser_t *me) {
         opEquals = PARSER_consume(me, TK_OP_EQUALS);
         expDefaultValue = PARSER_parseExpression(me);
     }
-    RETURN_ON_ERROR(
+    RETURN_NULL_ON_ERROR(
         UNLOAD_IF_NOT_NULL(clsType);
         UNLOAD_IF_NOT_NULL(expDefaultValue);
     )
