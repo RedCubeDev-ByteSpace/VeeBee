@@ -38,6 +38,10 @@ add_library(veebee_backend
         backend/AST/Loose/Members/sub_member.h
         backend/Parser/parser.h
         backend/Parser/parser.c
+        backend/AST/Loose/Clauses/arr_range_clause.h
+        backend/AST/Loose/Statements/dim_statement.h
+        backend/AST/Loose/Clauses/dim_field_clause.h
+        backend/AST/Loose/Statements/empty_statement.h
 )
 
 target_include_directories(veebee_backend

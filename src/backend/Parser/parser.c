@@ -4,7 +4,10 @@
 #include <stdlib.h>
 #include "parser.h"
 
+#include "AST/Loose/Clauses/arr_range_clause.h"
 #include "AST/Loose/Clauses/type_field_clause.h"
+#include "AST/Loose/Clauses/dim_field_clause.h"
+#include "AST/Loose/Statements/dim_statement.h"
 #include "AST/Loose/Members/function_member.h"
 #include "AST/Loose/Members/sub_member.h"
 #include "Error/error.h"
@@ -177,7 +180,7 @@ bool PARSER_parseTypeMember(parser_t *me) {
         BREAK_ON_ERROR()
 
         // consume the type as an 'As' clause
-        ls_as_clause_node_t *clsFieldType = PARSER_parseAsClause(me, false);
+        ls_as_clause_node_t *clsFieldType = PARSER_parseAsClause(me, false, false);
         BREAK_ON_ERROR(
             UNLOAD_IF_NOT_NULL(clsFieldType)
         )
@@ -314,7 +317,7 @@ bool PARSER_parseFunctionMember(parser_t *me) {
     // was there a return type given?
     ls_as_clause_node_t *clsReturnType = NULL;
     if (PS_CURRENT().type == TK_KW_AS) {
-        clsReturnType = PARSER_parseAsClause(me, true);
+        clsReturnType = PARSER_parseAsClause(me, true, false);
     }
     RETURN_ON_ERROR(
         PS_LS_AST_NODE_LIST_Unload(lsParameters);
@@ -526,19 +529,86 @@ bool PARSER_parseSubMember(parser_t *me) {
 // PARSER_parseAsClause:
 // parse an as clause, used for setting the type of a variable, field, or function
 // supports function notation and non function notation
-ls_as_clause_node_t *PARSER_parseAsClause(parser_t *me, bool functionNotation) {
+ls_as_clause_node_t *PARSER_parseAsClause(parser_t *me, bool functionNotation, bool allowArrayRanges) {
     token_t *pcOpenParenthesis   = NULL;
     token_t *pcClosedParenthesis = NULL;
+
+    ls_ast_node_list_t lsArrayRanges = PS_LS_AST_NODE_LIST_Init();
 
     // when this is not sub or function notation the array parentheses follow the identifier
     // Dim XXXX() As Integer
     //         ^^
     if (!functionNotation && PS_CURRENT().type == TK_PC_OPEN_PARENTHESIS) {
         pcOpenParenthesis   = PARSER_consume(me, TK_PC_OPEN_PARENTHESIS);
+
+        // when array ranges are allowed, parse as many as we can
+        // ] (10 To 100, 10, 20 To 30, ...)
+        if (allowArrayRanges) {
+            while (PS_CURRENT().type != TK_PC_CLOSED_PARENTHESIS) {
+
+                // read in a first number literal
+                token_t *bound = PARSER_consume(me, TK_LT_NUMBER);
+                RETURN_NULL_ON_ERROR(
+                    PS_LS_AST_NODE_LIST_Unload(lsArrayRanges);
+                )
+
+                // when theres a 'To' keyword -> there are two bounds
+                if (PS_CURRENT().type == TK_KW_TO) {
+
+                    // read in the 'To' keyword
+                    token_t *kwTo = PARSER_consume(me, TK_KW_TO);
+
+                    // also read in the ending literal
+                    token_t *ubound = PARSER_consume(me, TK_LT_NUMBER);
+
+                    // bail when shit goes wrong
+                    RETURN_NULL_ON_ERROR(
+                        PS_LS_AST_NODE_LIST_Unload(lsArrayRanges);
+                    )
+
+                    // if we got the full
+                    // <Number> To <Number>
+                    // sequence, add a full lower and upper bound array range node
+                    ls_arr_range_clause_node_t *rangeNode = malloc(sizeof(ls_arr_range_clause_node_t));
+                    rangeNode->base.type = LS_ARR_RANGE_CLAUSE;
+                    rangeNode->ltLBound = bound;
+                    rangeNode->kwTo = kwTo;
+                    rangeNode->ltUBound = ubound;
+
+                    // add it to the range list
+                    PS_LS_AST_NODE_LIST_Add(&lsArrayRanges, (ls_ast_node_t*)rangeNode);
+                }
+                else {
+                    // otherwise, we only have an upper bound
+                    // <Number>
+                    // as in: Dim aMyArray(10)
+                    ls_arr_range_clause_node_t *rangeNode = malloc(sizeof(ls_arr_range_clause_node_t));
+                    rangeNode->base.type = LS_ARR_RANGE_CLAUSE;
+                    rangeNode->ltLBound = NULL;
+                    rangeNode->kwTo     = NULL;
+                    rangeNode->ltUBound = bound;
+
+                    // add it to the range list
+                    PS_LS_AST_NODE_LIST_Add(&lsArrayRanges, (ls_ast_node_t*)rangeNode);
+                }
+
+                // consume a comma if we're not at the end of the list yet
+                if (PS_CURRENT().type != TK_PC_CLOSED_PARENTHESIS) {
+                    // commation
+                    PARSER_consume(me, TK_PC_COMMA);
+                    RETURN_NULL_ON_ERROR(
+                        PS_LS_AST_NODE_LIST_Unload(lsArrayRanges);
+                    )
+                }
+            }
+        }
+
         pcClosedParenthesis = PARSER_consume(me, TK_PC_CLOSED_PARENTHESIS);
 
         // return if we didnt get what we expected
-        RETURN_NULL_ON_ERROR()
+        RETURN_NULL_ON_ERROR(
+            PS_LS_AST_NODE_LIST_Unload(lsArrayRanges);
+        )
 
         // if the next token is not an 'As' keyword, then this is a shortend, implicit as clause
         if (PS_CURRENT().type != TK_KW_AS) {
@@ -550,6 +620,7 @@ ls_as_clause_node_t *PARSER_parseAsClause(parser_t *me, bool functionNotation) {
             node->idType = NULL;
             node->pcOpenParenthesis   = pcOpenParenthesis;
             node->pcClosedParenthesis = pcClosedParenthesis;
+            node->lsArrRanges         = lsArrayRanges;
 
             return node;
         }
@@ -558,11 +629,15 @@ ls_as_clause_node_t *PARSER_parseAsClause(parser_t *me, bool functionNotation) {
 
     // consume the 'As' keyword
     token_t *kwAs = PARSER_consume(me, TK_KW_AS);
-    RETURN_NULL_ON_ERROR()
+    RETURN_NULL_ON_ERROR(
+        PS_LS_AST_NODE_LIST_Unload(lsArrayRanges);
+    )
 
     // consume the type identifier
     token_t *idTypeName = PARSER_consume(me, TK_IDENTIFIER);
-    RETURN_NULL_ON_ERROR()
+    RETURN_NULL_ON_ERROR(
+        PS_LS_AST_NODE_LIST_Unload(lsArrayRanges);
+    )
 
     // when this is sub or function notation the array parentheses follow the type name
     // Function Test() As Integer()
@@ -572,7 +647,9 @@ ls_as_clause_node_t *PARSER_parseAsClause(parser_t *me, bool functionNotation) {
         pcClosedParenthesis = PARSER_consume(me, TK_PC_CLOSED_PARENTHESIS);
 
         // same as above :)
-        RETURN_NULL_ON_ERROR()
+        RETURN_NULL_ON_ERROR(
+            PS_LS_AST_NODE_LIST_Unload(lsArrayRanges);
+        )
     }
 
     // allocate a new clause node and bring over its values
@@ -582,6 +659,7 @@ ls_as_clause_node_t *PARSER_parseAsClause(parser_t *me, bool functionNotation) {
     node->idType = idTypeName;
     node->pcOpenParenthesis   = pcOpenParenthesis;
     node->pcClosedParenthesis = pcClosedParenthesis;
+    node->lsArrRanges         = lsArrayRanges;
 
     return node;
 }
@@ -624,7 +702,7 @@ ls_parameter_clause_node_t *PARSER_parseParameterClause(parser_t *me) {
     ls_as_clause_node_t *clsType = NULL;
     if (PS_CURRENT().type == TK_PC_OPEN_PARENTHESIS ||
         PS_CURRENT().type == TK_KW_AS) {
-        clsType = PARSER_parseAsClause(me, false);
+        clsType = PARSER_parseAsClause(me, false, false);
     }
     RETURN_NULL_ON_ERROR(
         UNLOAD_IF_NOT_NULL(clsType);
@@ -671,6 +749,10 @@ void PARSER_parseBlockOfStatements(parser_t *me, ls_ast_node_list_t *lsBody, tok
     // parse statements for as long as we havent reached our terminator character
     while (PS_CURRENT().type != until) {
 
+        // skip any EOS-es in front
+        while (PS_CURRENT().type == TK_EOS) { PS_STEP() }
+        if (PS_CURRENT().type == until) break;
+
         // parse this statement
         ls_ast_node_t *stmt = PARSER_parseStatement(me);
 
@@ -682,12 +764,85 @@ void PARSER_parseBlockOfStatements(parser_t *me, ls_ast_node_list_t *lsBody, tok
 
         // if everything is fine we add it to the list and go to the next statement
         PS_LS_AST_NODE_LIST_Add(lsBody, stmt);
+
+        // skip any EOS-es in the back
+        //while (PS_CURRENT().type == TK_EOS) { PS_STEP() }
     }
 }
 
 ls_ast_node_t *PARSER_parseStatement(parser_t *me) {
-    PARSER_consume(me, TK_EOS);
-    return malloc(0);
+    ls_ast_node_t *stmt = NULL;
+
+    // STATEMENTS :O
+    switch (PS_CURRENT().type) {
+
+        case TK_KW_DIM:
+            stmt = PARSER_parseDimStatement(me);
+        break;
+
+        default:;
+    }
+    RETURN_NULL_ON_ERROR(
+        UNLOAD_IF_NOT_NULL(stmt)
+    )
+
+    // totally require an EOS after every statement
+    PARSER_ffwToEOS(me);
+    return stmt;
+}
+
+ls_ast_node_t *PARSER_parseDimStatement(parser_t *me) {
+    // consume the 'Dim' keyword
+    token_t *kwDim = PARSER_consume(me, TK_KW_DIM);
+    RETURN_NULL_ON_ERROR()
+
+    // initialize a list for all our dimmed variables
+    ls_ast_node_list_t lsDimFields = PS_LS_AST_NODE_LIST_Init();
+
+    // until we hit the EOS, consume fields
+    while (PS_CURRENT().type != TK_EOS) {
+
+        // consume the identifier
+        token_t *idName = PARSER_consume(me, TK_IDENTIFIER);
+        BREAK_ON_ERROR()
+
+        // create an empty as clause for the type of this field
+        ls_as_clause_node_t *clsType = NULL;
+
+        // if theres a type clause, consume it
+        if (PS_CURRENT().type == TK_PC_OPEN_PARENTHESIS || PS_CURRENT().type == TK_KW_AS) {
+            clsType = PARSER_parseAsClause(me, false, true);
+        }
+        BREAK_ON_ERROR(
+            UNLOAD_IF_NOT_NULL(clsType)
+        )
+
+        // create a node for this field
+        ls_dim_field_clause_node_t *clsDimField = malloc(sizeof(ls_dim_field_clause_node_t));
+        clsDimField->base.type = LS_DIM_FIELD_CLAUSE;
+        clsDimField->idName  = idName;
+        clsDimField->clsType = clsType;
+
+        // add it to the list
+        PS_LS_AST_NODE_LIST_Add(&lsDimFields, (ls_ast_node_t*)clsDimField);
+
+        // if we're not at the EOS yet, expect a comma
+        if (PS_CURRENT().type != TK_EOS) {
+            PARSER_consume(me, TK_PC_COMMA);
+            BREAK_ON_ERROR()
+        }
+    }
+    RETURN_NULL_ON_ERROR(
+        PS_LS_AST_NODE_LIST_Unload(lsDimFields);
+    )
+
+    // create a new node for this statement
+    ls_dim_statement_node_t *node = malloc(sizeof(ls_dim_statement_node_t));
+    node->base.type = LS_DIM_STATEMENT;
+    node->kwDim       = kwDim;
+    node->lsDimFields = lsDimFields;
+
+    return (ls_ast_node_t*)node;
 }
 
 // =====================================================================================================================

@@ -4,12 +4,14 @@
 #include <stdlib.h>
 #include "ls_ast.h"
 #include "../../Error/error.h"
+#include "Clauses/dim_field_clause.h"
 
 #include "Members/function_member.h"
 #include "Members/sub_member.h"
 #include "Members/type_member.h"
 #include "Clauses/parameter_clause.h"
 #include "Clauses/type_field_clause.h"
+#include "Statements/dim_statement.h"
 
 // ---------------------------------------------------------------------------------------------------------------------
 // Universal recursive node destructor
@@ -40,6 +42,18 @@ void PS_LS_Node_Unload(ls_ast_node_t *me) {
 
         case LS_TYPE_FIELD_CLAUSE:
             PS_LS_Node_Unload((ls_ast_node_t*)((ls_type_field_clause_node_t*)me)->clsType);
+        break;
+
+        case LS_AS_CLAUSE:
+            PS_LS_AST_NODE_LIST_Unload(((ls_as_clause_node_t*)me)->lsArrRanges);
+        break;
+
+        case LS_DIM_STATEMENT:
+            PS_LS_AST_NODE_LIST_Unload(((ls_dim_statement_node_t*)me)->lsDimFields);
+        break;
+
+        case LS_DIM_FIELD_CLAUSE:
+            PS_LS_Node_Unload((ls_ast_node_t*)((ls_dim_field_clause_node_t*)me)->clsType);
         break;
 
         default:;

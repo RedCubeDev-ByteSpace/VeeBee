@@ -48,10 +48,11 @@ bool PARSER_parseSubMember(parser_t *me);
 
 void PARSER_parseBlockOfStatements(parser_t *me, ls_ast_node_list_t *lsBody, token_type_t until);
 ls_ast_node_t *PARSER_parseStatement(parser_t *me);
+ls_ast_node_t *PARSER_parseDimStatement(parser_t *me);
 
 ls_ast_node_t *PARSER_parseExpression(parser_t *me);
 
-ls_as_clause_node_t *PARSER_parseAsClause(parser_t *me, bool functionNotation);
+ls_as_clause_node_t *PARSER_parseAsClause(parser_t *me, bool functionNotation, bool allowArrayRanges);
 ls_parameter_clause_node_t *PARSER_parseParameterClause(parser_t *me);
 
 // ---------------------------------------------------------------------------------------------------------------------

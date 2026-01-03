@@ -7,12 +7,18 @@
 #include <stdio.h>
 
 #include "AST/Loose/ls_ast.h"
+#include "AST/Loose/Clauses/arr_range_clause.h"
+#include "AST/Loose/Clauses/dim_field_clause.h"
 #include "AST/Loose/Clauses/parameter_clause.h"
 #include "AST/Loose/Clauses/type_field_clause.h"
 #include "AST/Loose/Members/function_member.h"
 #include "AST/Loose/Members/module_member.h"
 #include "AST/Loose/Members/sub_member.h"
 #include "AST/Loose/Members/type_member.h"
+#include "AST/Loose/Statements/dim_statement.h"
+
+char DBG_INDENT_BUFFER[256];
+int DBG_INDENT_LENGTH;
 
 void DBG_PRETTY_PRINT_Print_TokenList(token_list_t tokens) {
     printf("List of tokens:\n");
@@ -151,9 +157,8 @@ void DBG_PRETTY_PRINT_Print_TokenList_AsSource(token_list_t tokens) {
     }
 }
 
-void DBG_PRETTY_PRINT_Print_LSAstNode(ls_ast_node_t *me, int indent) {
-    INDENT(indent)
-    printf("- ");
+void DBG_PRETTY_PRINT_Print_LSAstNode(ls_ast_node_t *me, bool finalEntry) {
+    INDENT()
 
     switch (me->type) {
         NODE(LS_FUNCTION_MEMBER)
@@ -173,15 +178,14 @@ void DBG_PRETTY_PRINT_Print_LSAstNode(ls_ast_node_t *me, int indent) {
             VALUE(((ls_function_member_node_t*)me)->idName)
 
             FIELD("Parameters")
-            SUBNODES(((ls_function_member_node_t*)me)->lsParameters)
+            SUBNODES(((ls_function_member_node_t*)me)->lsParameters, false)
 
             FIELD("Return Type")
-            SUBNODE(((ls_function_member_node_t*)me)->clsReturnType)
+            SUBNODE(((ls_function_member_node_t*)me)->clsReturnType, false)
 
-            FIELD("Body")
-            SUBNODES(((ls_function_member_node_t*)me)->lsFunctionBody)
-
-        break;
+            FIELD_FINAL("Body")
+            SUBNODES(((ls_function_member_node_t*)me)->lsFunctionBody, true)
+        END_NODE()
 
         NODE(LS_SUBROUTINE_MEMBER)
             FIELD("Public")
@@ -200,46 +204,54 @@ void DBG_PRETTY_PRINT_Print_LSAstNode(ls_ast_node_t *me, int indent) {
             VALUE(((ls_sub_member_node_t*)me)->idName)
 
             FIELD("Parameters")
-            SUBNODES(((ls_sub_member_node_t*)me)->lsParameters)
+            SUBNODES(((ls_sub_member_node_t*)me)->lsParameters, false)
 
-            FIELD("Body")
-            SUBNODES(((ls_sub_member_node_t*)me)->lsSubBody)
-
-        break;
+            FIELD_FINAL("Body")
+            SUBNODES(((ls_sub_member_node_t*)me)->lsSubBody, true)
+        END_NODE()
 
         NODE(LS_MODULE_MEMBER)
-            FIELD("Name")
+            FIELD_FINAL("Name")
             VALUE(((ls_module_member_node_t*)me)->idModuleName)
-
-        break;
+        END_NODE()
 
         NODE(LS_TYPE_MEMBER)
             FIELD("Name")
             VALUE(((ls_type_member_node_t*)me)->idTypeName)
 
-            FIELD("Fields")
-            SUBNODES(((ls_type_member_node_t*)me)->lsFields)
-
-        break;
+            FIELD_FINAL("Fields")
+            SUBNODES(((ls_type_member_node_t*)me)->lsFields, true)
+        END_NODE()
 
         NODE(LS_TYPE_FIELD_CLAUSE)
             FIELD("Name")
             VALUE(((ls_type_field_clause_node_t*)me)->idFieldName)
 
-            FIELD("Type")
-            SUBNODE(((ls_type_field_clause_node_t*)me)->clsType)
-        break;
+            FIELD_FINAL("Type")
+            SUBNODE(((ls_type_field_clause_node_t*)me)->clsType, true)
+        END_NODE()
 
         NODE(LS_AS_CLAUSE)
             FIELD("OpenParenthesis")
             VALUE_SET(((ls_as_clause_node_t*)me)->pcOpenParenthesis)
 
+            FIELD("Ranges")
+            SUBNODES(((ls_as_clause_node_t*)me)->lsArrRanges, false)
+
             FIELD("ClosedParenthesis")
             VALUE_SET(((ls_as_clause_node_t*)me)->pcClosedParenthesis)
 
-            FIELD("Type")
+            FIELD_FINAL("Type")
             VALUE(((ls_as_clause_node_t*)me)->idType)
-        break;
+        END_NODE()
+
+        NODE(LS_ARR_RANGE_CLAUSE)
+            FIELD("Lower Bound")
+            VALUE_INT(((ls_arr_range_clause_node_t*)me)->ltLBound)
+
+            FIELD_FINAL("Upper Bound")
+            VALUE_INT(((ls_arr_range_clause_node_t*)me)->ltUBound)
+        END_NODE()
 
         NODE(LS_PARAMETER_CLAUSE)
             FIELD("Optional")
@@ -258,18 +270,31 @@ void DBG_PRETTY_PRINT_Print_LSAstNode(ls_ast_node_t *me, int indent) {
             VALUE(((ls_parameter_clause_node_t*)me)->idParamName)
 
             FIELD("Type")
-            SUBNODE(((ls_parameter_clause_node_t*)me)->clsType)
+            SUBNODE(((ls_parameter_clause_node_t*)me)->clsType, false)
 
-            FIELD("Default Value")
-            SUBNODE(((ls_parameter_clause_node_t*)me)->expDefaultValue)
-        break;
+            FIELD_FINAL("Default Value")
+            SUBNODE(((ls_parameter_clause_node_t*)me)->expDefaultValue, true)
+        END_NODE()
+
+        NODE(LS_DIM_STATEMENT)
+            FIELD_FINAL("Fields")
+            SUBNODES(((ls_dim_statement_node_t*)me)->lsDimFields, true)
+        END_NODE()
+
+        NODE(LS_DIM_FIELD_CLAUSE)
+            FIELD("Name")
+            VALUE(((ls_dim_field_clause_node_t*)me)->idName)
+
+            FIELD_FINAL("Type")
+            SUBNODE(((ls_dim_field_clause_node_t*)me)->clsType, true)
+        END_NODE()
 
         default:;
     }
 }
 
-void DBG_PRETTY_PRINT_Print_LSAstNode_List(ls_ast_node_list_t me, int indent) {
+void DBG_PRETTY_PRINT_Print_LSAstNode_List(ls_ast_node_list_t me) {
     for (int i = 0; i < me.length; ++i) {
-        DBG_PRETTY_PRINT_Print_LSAstNode(me.nodes[i], indent);
+        DBG_PRETTY_PRINT_Print_LSAstNode(me.nodes[i], i == me.length - 1);
     }
 }

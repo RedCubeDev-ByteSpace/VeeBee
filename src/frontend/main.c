@@ -191,7 +191,8 @@ int CLI_doBusiness() {
 
     if (CLI_PrintDebugInfo) {
         printf("\nList of parsed members:\n");
-        DBG_PRETTY_PRINT_Print_LSAstNode_List(parser->members, 0);
+        DBG_INIT_INDENT();
+        DBG_PRETTY_PRINT_Print_LSAstNode_List(parser->members);
     }
 
 

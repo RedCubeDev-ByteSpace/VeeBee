@@ -19,6 +19,7 @@
 #define MAG "\033[0;35m"
 #define CYN "\033[0;36m"
 #define WHT "\033[0;37m"
+#define GRY "\033[0;90m"
 
 //Regular bold text
 #define BBLK "\033[1;30m"

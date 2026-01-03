@@ -18,6 +18,7 @@ typedef struct LS_AS_CLAUSE_NODE {
     ls_ast_node_t base;
 
     token_t *pcOpenParenthesis;
+    ls_ast_node_list_t lsArrRanges;
     token_t *pcClosedParenthesis;
 
     token_t *kwAs;
