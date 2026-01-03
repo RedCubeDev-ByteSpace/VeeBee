@@ -76,9 +76,9 @@ BEGIN_TEST(TEST_LX_LEX_all_keywords)
     // run through the lexing
     LEXER_Lex(lexer);
 
-    TEST_ASSERT(lexer->tokens.length == NUM_KEYWORDS + 1);
+    TEST_ASSERT(lexer->tokens.length == NUM_KEYWORDS + 2);
 
-    for (int i = 0; i < lexer->tokens.length-1; ++i) {
+    for (int i = 0; i < lexer->tokens.length-2; ++i) {
         TEST_ASSERT(lexer->tokens.tokens[i].type == TK_KW_BEGIN + i);
     }
 
@@ -124,9 +124,9 @@ BEGIN_TEST(TEST_LX_LEX_all_keywords_upper)
     // run through the lexing
     LEXER_Lex(lexer);
 
-    TEST_ASSERT(lexer->tokens.length == NUM_KEYWORDS + 1);
+    TEST_ASSERT(lexer->tokens.length == NUM_KEYWORDS + 2);
 
-    for (int i = 0; i < lexer->tokens.length-1; ++i) {
+    for (int i = 0; i < lexer->tokens.length-2; ++i) {
         TEST_ASSERT(lexer->tokens.tokens[i].type == TK_KW_BEGIN + i);
     }
 
@@ -164,9 +164,9 @@ BEGIN_TEST(TEST_LX_LEX_all_punctuation)
     // run through the lexing
     LEXER_Lex(lexer);
 
-    TEST_ASSERT(lexer->tokens.length == NUM_PUNC_AND_OPS + 1);
+    TEST_ASSERT(lexer->tokens.length == NUM_PUNC_AND_OPS + 2);
 
-    for (int i = 0; i < lexer->tokens.length-1; ++i) {
+    for (int i = 0; i < lexer->tokens.length-2; ++i) {
         TEST_ASSERT(lexer->tokens.tokens[i].type == TK_PC_OPEN_PARENTHESIS + i);
     }
 
@@ -183,8 +183,8 @@ BEGIN_TEST(TEST_LX_LEX_identifier)
 
     LEXER_Lex(lexer);
 
-    // we expect three tokens as well as an end-of-statement
-    TEST_ASSERT(lexer->tokens.length == 4)
+    // we expect three tokens as well as an end-of-statement and end-of-file
+    TEST_ASSERT(lexer->tokens.length == 5)
 
     TEST_ASSERT(lexer->tokens.tokens[0].type == TK_IDENTIFIER);
     TEST_ASSERT(strcmp(lexer->tokens.tokens[0].strValue, "very") == 0);
@@ -196,6 +196,7 @@ BEGIN_TEST(TEST_LX_LEX_identifier)
     TEST_ASSERT(strcmp(lexer->tokens.tokens[2].strValue, "i_dentifiers") == 0);
 
     TEST_ASSERT(lexer->tokens.tokens[3].type == TK_EOS);
+    TEST_ASSERT(lexer->tokens.tokens[4].type == TK_EOF);
 
     LX_TOKEN_LIST_Unload(lexer->tokens);
     LEXER_Unload(lexer);
@@ -210,8 +211,8 @@ BEGIN_TEST(TEST_LX_LEX_identifier_toolong)
 
     LEXER_Lex(lexer);
 
-    // we expect two tokens as well as an end-of-statement
-    TEST_ASSERT(lexer->tokens.length == 3)
+    // we expect two tokens as well as an end-of-statement and end-of-file
+    TEST_ASSERT(lexer->tokens.length == 4)
 
     TEST_ASSERT(lexer->tokens.tokens[0].type == TK_IDENTIFIER);
     TEST_ASSERT(strcmp(lexer->tokens.tokens[0].strValue, "abc") == 0);
@@ -222,6 +223,7 @@ BEGIN_TEST(TEST_LX_LEX_identifier_toolong)
     TEST_ASSERT(strcmp(lexer->tokens.tokens[1].strValue, "this_is_a_very_long_identifier_name_that_should_be_rejected_by_the_lexer_and_should_be_truncated_to_fit_into_255_characters_because_its_against_the_laguage_spec_but_like_seriously_why_would_an_identifier_ever_be_this_long_like_what_the_fuck_but_like_ok_ma") == 0);
 
     TEST_ASSERT(lexer->tokens.tokens[2].type == TK_EOS);
+    TEST_ASSERT(lexer->tokens.tokens[3].type == TK_EOF);
 
     LX_TOKEN_LIST_Unload(lexer->tokens);
     LEXER_Unload(lexer);
@@ -236,8 +238,8 @@ BEGIN_TEST(TEST_LX_LEX_string)
 
     LEXER_Lex(lexer);
 
-    // we expect three tokens as well as an end-of-statement
-    TEST_ASSERT(lexer->tokens.length == 4)
+    // we expect three tokens as well as an end-of-statement and end-of-file
+    TEST_ASSERT(lexer->tokens.length == 5)
 
     TEST_ASSERT(lexer->tokens.tokens[0].type == TK_LT_STRING);
     TEST_ASSERT(strcmp(lexer->tokens.tokens[0].strValue, "very") == 0);
@@ -249,6 +251,7 @@ BEGIN_TEST(TEST_LX_LEX_string)
     TEST_ASSERT(strcmp(lexer->tokens.tokens[2].strValue, "s_TRings") == 0);
 
     TEST_ASSERT(lexer->tokens.tokens[3].type == TK_EOS);
+    TEST_ASSERT(lexer->tokens.tokens[4].type == TK_EOF);
 
     LX_TOKEN_LIST_Unload(lexer->tokens);
     LEXER_Unload(lexer);
@@ -274,13 +277,14 @@ BEGIN_TEST(TEST_LX_LEX_string_toolong)
 
     LEXER_Lex(lexer);
 
-    // we expect one token as well as an end-of-statement
-    TEST_ASSERT(lexer->tokens.length == 2)
+    // we expect one token as well as an end-of-statement and end-of-file
+    TEST_ASSERT(lexer->tokens.length == 3)
 
     TEST_ASSERT(lexer->tokens.tokens[0].type == TK_LT_STRING);
     TEST_ASSERT(strlen(lexer->tokens.tokens[0].strValue) == 2000);
 
     TEST_ASSERT(lexer->tokens.tokens[1].type == TK_EOS);
+    TEST_ASSERT(lexer->tokens.tokens[2].type == TK_EOF);
 
     LX_TOKEN_LIST_Unload(lexer->tokens);
     LEXER_Unload(lexer);
@@ -296,8 +300,8 @@ BEGIN_TEST(TEST_LX_LEX_string_unterminated)
 
     LEXER_Lex(lexer);
 
-    // we expect three tokens as well as an end-of-statement
-    TEST_ASSERT(lexer->tokens.length == 4)
+    // we expect three tokens as well as an end-of-statement and end-of-file
+    TEST_ASSERT(lexer->tokens.length == 5)
 
     TEST_ASSERT(lexer->tokens.tokens[0].type == TK_KW_BEGIN);
     TEST_ASSERT(lexer->tokens.tokens[1].type == TK_KW_SUB);
@@ -306,6 +310,7 @@ BEGIN_TEST(TEST_LX_LEX_string_unterminated)
     TEST_ASSERT(strcmp(lexer->tokens.tokens[2].strValue, "not exactly closed string End Sub") == 0);
 
     TEST_ASSERT(lexer->tokens.tokens[3].type == TK_EOS);
+    TEST_ASSERT(lexer->tokens.tokens[4].type == TK_EOF);
 
     LX_TOKEN_LIST_Unload(lexer->tokens);
     LEXER_Unload(lexer);
@@ -338,8 +343,8 @@ BEGIN_TEST(TEST_LX_LEX_number_decimal)
     lexer_t *lexer = LEXER_Init(source);
     LEXER_Lex(lexer);
 
-    // 17 numbers + one EOS
-    TEST_ASSERT(lexer->tokens.length == 17)
+    // 17 numbers + one EOS + one EOF
+    TEST_ASSERT(lexer->tokens.length == 18)
 
     TEST_ASSERT(lexer->tokens.tokens[0].type == TK_LT_NUMBER);
     TEST_ASSERT(lexer->tokens.tokens[0].numberValueType == NUMBER_VALUE_INT);
@@ -425,8 +430,8 @@ BEGIN_TEST(TEST_LX_LEX_number_hex_oct_bin)
     lexer_t *lexer = LEXER_Init(source);
     LEXER_Lex(lexer);
 
-    // 6 numbers + one EOS
-    TEST_ASSERT(lexer->tokens.length == 6)
+    // 6 numbers + one EOS + one EOF
+    TEST_ASSERT(lexer->tokens.length == 7)
 
     TEST_ASSERT(lexer->tokens.tokens[0].type == TK_LT_NUMBER);
     TEST_ASSERT(lexer->tokens.tokens[0].numberValueType == NUMBER_VALUE_LONG);
