@@ -146,6 +146,11 @@ void LEXER_Lex(lexer_t *me) {
             LEXER_createToken(me, TK_EOS, me->pos, me->pos+1)
         );
     }
+
+    // always add an end of file at the end of a token list
+    LX_TOKEN_LIST_Add(&me->tokens,
+        LEXER_createToken(me, TK_EOF, me->pos, me->pos+1)
+    );
 }
 
 // =====================================================================================================================
@@ -713,7 +718,7 @@ bool LEXER_convertIntoNumber(lexer_t *me, token_t *token, number_literal_type_t 
                 CHECK_DATA_TYPE_COMPATABILITY(NUMBER_VALUE_LONG     , MAX_VALUE_SIGNED_LONG     , "Long")
                 CHECK_DATA_TYPE_COMPATABILITY(NUMBER_VALUE_LONG_LONG, MAX_VALUE_SIGNED_LONG_LONG, "LongLong")
                 CHECK_DATA_TYPE_COMPATABILITY(NUMBER_VALUE_SINGLE   , MAX_VALUE_SINGLE          , "Single")
-                CHECK_DATA_TYPE_COMPATABILITY(NUMBER_VALUE_DOUBLE   , MAX_VALUE_DOUBLE          , "Double")
+                //_CHECK_DATA_TYPE_COMPATABILITY(NUMBER_VALUE_DOUBLE   , MAX_VALUE_DOUBLE          , "Double")
                 CHECK_DATA_TYPE_COMPATABILITY(NUMBER_VALUE_CURRENCY , MAX_VALUE_CURRENCY_WHOLE  , "Currency")
             }
 

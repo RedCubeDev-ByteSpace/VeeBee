@@ -27,7 +27,17 @@ add_library(veebee_backend
         backend/Debug/pretty_print.h
         backend/Debug/pretty_print.c
         backend/Debug/ansi.h
-        backend/AST/Loose/ast.h
+        backend/AST/Loose/ls_ast.h
+        backend/AST/Loose/ls_ast.c
+        backend/AST/Loose/Members/module_member.h
+        backend/AST/Loose/Members/type_member.h
+        backend/AST/Loose/Members/function_member.h
+        backend/AST/Loose/Clauses/as_clause.h
+        backend/AST/Loose/Clauses/type_field_clause.h
+        backend/AST/Loose/Clauses/parameter_clause.h
+        backend/AST/Loose/Members/sub_member.h
+        backend/Parser/parser.h
+        backend/Parser/parser.c
 )
 
 target_include_directories(veebee_backend

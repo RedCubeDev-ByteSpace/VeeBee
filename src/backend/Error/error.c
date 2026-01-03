@@ -2,11 +2,11 @@
 // Created by ds on 12/21/25.
 //
 #include <stdio.h>
+#include <string.h>
+#include "Debug/ansi.h"
 #include "error.h"
 
-#include <string.h>
-
-#include "Debug/ansi.h"
+char ERR_MSG_BUFFER[ERR_MSG_BUFFER_LEN];
 
 void error(err_subsystem_t subsystem, error_type_t type, const char *msg) {
     printf(RED "[" BRED "%s" RED "](" BRED "%s" RED "): %s\n\n" CRESET, SUBSYSTEM_NAMES[subsystem], ERROR_TYPE_NAMES[type], msg);

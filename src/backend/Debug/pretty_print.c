@@ -6,6 +6,14 @@
 
 #include <stdio.h>
 
+#include "AST/Loose/ls_ast.h"
+#include "AST/Loose/Clauses/parameter_clause.h"
+#include "AST/Loose/Clauses/type_field_clause.h"
+#include "AST/Loose/Members/function_member.h"
+#include "AST/Loose/Members/module_member.h"
+#include "AST/Loose/Members/sub_member.h"
+#include "AST/Loose/Members/type_member.h"
+
 void DBG_PRETTY_PRINT_Print_TokenList(token_list_t tokens) {
     printf("List of tokens:\n");
 
@@ -140,5 +148,128 @@ void DBG_PRETTY_PRINT_Print_TokenList_AsSource(token_list_t tokens) {
             printf(CRESET "= ");
             continue;
         }
+    }
+}
+
+void DBG_PRETTY_PRINT_Print_LSAstNode(ls_ast_node_t *me, int indent) {
+    INDENT(indent)
+    printf("- ");
+
+    switch (me->type) {
+        NODE(LS_FUNCTION_MEMBER)
+            FIELD("Public")
+            VALUE_SET(((ls_function_member_node_t*)me)->kwPublic)
+
+            FIELD("Private")
+            VALUE_SET(((ls_function_member_node_t*)me)->kwPrivate)
+
+            FIELD("Friend")
+            VALUE_SET(((ls_function_member_node_t*)me)->kwFriend)
+
+            FIELD("Static")
+            VALUE_SET(((ls_function_member_node_t*)me)->kwStatic)
+
+            FIELD("Name")
+            VALUE(((ls_function_member_node_t*)me)->idName)
+
+            FIELD("Parameters")
+            SUBNODES(((ls_function_member_node_t*)me)->lsParameters)
+
+            FIELD("Return Type")
+            SUBNODE(((ls_function_member_node_t*)me)->clsReturnType)
+
+            FIELD("Body")
+            SUBNODES(((ls_function_member_node_t*)me)->lsFunctionBody)
+
+        break;
+
+        NODE(LS_SUBROUTINE_MEMBER)
+            FIELD("Public")
+            VALUE_SET(((ls_sub_member_node_t*)me)->kwPublic)
+
+            FIELD("Private")
+            VALUE_SET(((ls_sub_member_node_t*)me)->kwPrivate)
+
+            FIELD("Friend")
+            VALUE_SET(((ls_sub_member_node_t*)me)->kwFriend)
+
+            FIELD("Static")
+            VALUE_SET(((ls_sub_member_node_t*)me)->kwStatic)
+
+            FIELD("Name")
+            VALUE(((ls_sub_member_node_t*)me)->idName)
+
+            FIELD("Parameters")
+            SUBNODES(((ls_sub_member_node_t*)me)->lsParameters)
+
+            FIELD("Body")
+            SUBNODES(((ls_sub_member_node_t*)me)->lsSubBody)
+
+        break;
+
+        NODE(LS_MODULE_MEMBER)
+            FIELD("Name")
+            VALUE(((ls_module_member_node_t*)me)->idModuleName)
+
+        break;
+
+        NODE(LS_TYPE_MEMBER)
+            FIELD("Name")
+            VALUE(((ls_type_member_node_t*)me)->idTypeName)
+
+            FIELD("Fields")
+            SUBNODES(((ls_type_member_node_t*)me)->lsFields)
+
+        break;
+
+        NODE(LS_TYPE_FIELD_CLAUSE)
+            FIELD("Name")
+            VALUE(((ls_type_field_clause_node_t*)me)->idFieldName)
+
+            FIELD("Type")
+            SUBNODE(((ls_type_field_clause_node_t*)me)->clsType)
+        break;
+
+        NODE(LS_AS_CLAUSE)
+            FIELD("OpenParenthesis")
+            VALUE_SET(((ls_as_clause_node_t*)me)->pcOpenParenthesis)
+
+            FIELD("ClosedParenthesis")
+            VALUE_SET(((ls_as_clause_node_t*)me)->pcClosedParenthesis)
+
+            FIELD("Type")
+            VALUE(((ls_as_clause_node_t*)me)->idType)
+        break;
+
+        NODE(LS_PARAMETER_CLAUSE)
+            FIELD("Optional")
+            VALUE_SET(((ls_parameter_clause_node_t*)me)->kwOptional)
+
+            FIELD("ByVal")
+            VALUE_SET(((ls_parameter_clause_node_t*)me)->kwByVal)
+
+            FIELD("ByRef")
+            VALUE_SET(((ls_parameter_clause_node_t*)me)->kwByRef)
+
+            FIELD("ParamArray")
+            VALUE_SET(((ls_parameter_clause_node_t*)me)->kwParamArray)
+
+            FIELD("Name")
+            VALUE(((ls_parameter_clause_node_t*)me)->idParamName)
+
+            FIELD("Type")
+            SUBNODE(((ls_parameter_clause_node_t*)me)->clsType)
+
+            FIELD("Default Value")
+            SUBNODE(((ls_parameter_clause_node_t*)me)->expDefaultValue)
+        break;
+
+        default:;
+    }
+}
+
+void DBG_PRETTY_PRINT_Print_LSAstNode_List(ls_ast_node_list_t me, int indent) {
+    for (int i = 0; i < me.length; ++i) {
+        DBG_PRETTY_PRINT_Print_LSAstNode(me.nodes[i], indent);
     }
 }

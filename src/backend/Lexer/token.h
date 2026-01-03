@@ -16,7 +16,7 @@
 #define MAX_VALUE_SIGNED_LONG 2'147'483'647
 #define MAX_VALUE_UNSIGNED_LONG 4'294'967'295
 #define MAX_VALUE_SIGNED_LONG_LONG 9'223'372'036'854'775'807
-#define MAX_VALUE_UNSIGNED_LONG_LONG 18'446'744'073'709'551'615
+#define MAX_VALUE_UNSIGNED_LONG_LONG 18'446'744'073'709'551'615UL
 
 #define MAX_VALUE_SINGLE 3.402823E38
 #define MAX_VALUE_DOUBLE 1.79769313486232E308
@@ -37,6 +37,17 @@
     GEN(TK_KW_SUB)                \
     GEN(TK_KW_FUNCTION)           \
     GEN(TK_KW_TYPE)               \
+    GEN(TK_KW_MODULE)             \
+                                  \
+    GEN(TK_KW_PUBLIC)             \
+    GEN(TK_KW_PRIVATE)            \
+    GEN(TK_KW_FRIEND)             \
+    GEN(TK_KW_STATIC)             \
+                                  \
+    GEN(TK_KW_OPTIONAL)           \
+    GEN(TK_KW_BYVAL)              \
+    GEN(TK_KW_BYREF)              \
+    GEN(TK_KW_PARAMARRAY)         \
                                   \
     GEN(TK_KW_CALL)               \
     GEN(TK_KW_EXIT)               \
@@ -51,9 +62,15 @@
     GEN(TK_KW_STEP)               \
     GEN(TK_KW_NEXT)               \
                                   \
+    GEN(TK_KW_WHILE)              \
+    GEN(TK_KW_WEND)               \
+                                  \
+    GEN(TK_KW_GOTO)               \
+                                  \
     GEN(TK_PC_OPEN_PARENTHESIS)   \
     GEN(TK_PC_CLOSED_PARENTHESIS) \
     GEN(TK_PC_COMMA)              \
+    GEN(TK_PC_COLON)              \
                                   \
     GEN(TK_OP_PLUS)               \
     GEN(TK_OP_MINUS)              \
@@ -136,6 +153,15 @@ static const char *KEYWORDS[] = {
     "sub",
     "function",
     "type",
+    "module",
+    "public",
+    "private",
+    "friend",
+    "static",
+    "optional",
+    "byval",
+    "byref",
+    "paramarray",
     "call",
     "exit",
     "dim",
@@ -146,16 +172,19 @@ static const char *KEYWORDS[] = {
     "for",
     "step",
     "next",
+    "while",
+    "wend",
+    "goto",
 };
-#define NUM_KEYWORDS 15
+#define NUM_KEYWORDS (sizeof(KEYWORDS) / sizeof(KEYWORDS[0]))
 
 // ---------------------------------------------------------------------------------------------------------------------
 // List of all punctuation marks and operators in the order they are listed in above
 static const char PUNCTUATION_AND_OPERATORS[] = {
-    '(', ')', ',',
+    '(', ')', ',', ':',
     '+', '-', '*', '/', '=', '&'
 };
-#define NUM_PUNC_AND_OPS 9
+#define NUM_PUNC_AND_OPS (sizeof(PUNCTUATION_AND_OPERATORS) / sizeof(PUNCTUATION_AND_OPERATORS[0]))
 
 // ---------------------------------------------------------------------------------------------------------------------
 // Struct for our lexed tokens

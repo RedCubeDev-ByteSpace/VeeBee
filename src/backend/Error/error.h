@@ -5,11 +5,14 @@
 #ifndef ERROR_H
 #define ERROR_H
 
+#include<stdio.h>
+
 // ---------------------------------------------------------------------------------------------------------------------
 // Define all VeeBee subsystems
 # define FOREACH_SUBSYSTEM(GEN) \
     GEN(SUB_CLI)                \
     GEN(SUB_LEXER)              \
+    GEN(SUB_PARSER)             \
 
 #define GEN_ENUM(ENUM) ENUM,
 #define GEN_STRING(STRING) #STRING,
@@ -29,9 +32,11 @@ static const char *SUBSYSTEM_NAMES[] = {
 // Define all VeeBee error codes
 # define FOREACH_ERROR_TYPE(GEN)                      \
     GEN(ERR_INTERNAL)                                 \
+                                                      \
     GEN(ERR_CL_NO_SOURCES_GIVEN)                      \
     GEN(ERR_CL_TOO_MANY_SOURCES)                      \
     GEN(ERR_CL_SOURCE_DOESNT_EXIST)                   \
+                                                      \
     GEN(ERR_LX_SOURCE_TEXT_NULL)                      \
     GEN(ERR_LX_PATH_NULL)                             \
     GEN(ERR_LX_PATH_TOO_LONG)                         \
@@ -44,6 +49,9 @@ static const char *SUBSYSTEM_NAMES[] = {
     GEN(ERR_LX_UNEXPECTED_CHAR_IN_NUMERIC_LITERAL)    \
     GEN(ERR_LX_INCOMPATIBLE_NUMERIC_TYPE_AND_LITERAL) \
     GEN(ERR_LX_INCOMPATIBLE_VALUE_FOR_NUMERIC_TYPE)   \
+                                                      \
+    GEN(ERR_PS_UNEXPECTED_TOKEN)                      \
+    GEN(ERR_PS_UNEXPECTED_NON_MEMBER)                 \
 
 // Error type enum
 typedef enum ERR_ERROR_TYPE {
@@ -61,10 +69,20 @@ static const char *ERROR_TYPE_NAMES[] = {
 #ifndef TESTING
 #define ERROR(SUBSYSTEM, TYPE, MSG) error(SUBSYSTEM, TYPE, MSG);
 #define ERROR_AT(SUBSYSTEM, TYPE, SOURCE, SPAN, MSG) error_at(SUBSYSTEM, TYPE, SOURCE, SPAN, MSG);
+#define ERROR_SPLICE_AT(SUBSYSTEM, TYPE, SOURCE, SPAN, MSG, ...) \
+    MSG_SPLICE(MSG, __VA_ARGS__)                                 \
+    error_at(SUBSYSTEM, TYPE, SOURCE, SPAN, ERR_MSG_BUFFER);     \
+
 #else
 #define ERROR(SUBSYSTEM, TYPE, MSG)
 #define ERROR_AT(SUBSYSTEM, TYPE, SOURCE, SPAN, MSG)
+#define ERROR_SPLICE_AT(SUBSYSTEM, TYPE, SOURCE, SPAN, MSG, ...)
 #endif
+
+// global error message buffer, used for splicing
+#define ERR_MSG_BUFFER_LEN 1024
+extern char ERR_MSG_BUFFER[ERR_MSG_BUFFER_LEN];
+#define MSG_SPLICE(MSG, ...) sprintf(ERR_MSG_BUFFER, MSG, __VA_ARGS__);
 
 void error(err_subsystem_t subsystem, error_type_t type, const char *msg);
 void error_at(err_subsystem_t subsystem, error_type_t type, source_t source, span_t span, const char *msg);

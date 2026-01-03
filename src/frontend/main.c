@@ -8,6 +8,7 @@
 #include "Debug/pretty_print.h"
 #include "Error/error.h"
 #include "Lexer/lexer.h"
+#include "Parser/parser.h"
 
 // ---------------------------------------------------------------------------------------------------------------------
 // define all static variables
@@ -179,8 +180,27 @@ int CLI_doBusiness() {
         //DBG_PRETTY_PRINT_Print_TokenList_AsSource(lexer->tokens);
     }
 
+    // parse!
+    parser_t *parser = PARSER_Init(source, &lexer->tokens);
+    PARSER_Parse(parser);
+
+    // have there been errors?
+    if (parser->hasError) {
+        return 1;
+    }
+
+    if (CLI_PrintDebugInfo) {
+        printf("\nList of parsed members:\n");
+        DBG_PRETTY_PRINT_Print_LSAstNode_List(parser->members, 0);
+    }
+
+
     // unload everything
+    PS_LS_AST_NODE_LIST_Unload(parser->members);
     LX_TOKEN_LIST_Unload(lexer->tokens);
+    PARSER_Unload(parser);
     LEXER_Unload(lexer);
     SOURCE_Unload(source);
+
+    return 0;
 }
