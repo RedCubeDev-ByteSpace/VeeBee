@@ -16,9 +16,9 @@
 typedef struct LS_ARR_RANGE_CLAUSE_NODE {
     ls_ast_node_t base;
 
-    token_t *ltLBound;
+    ls_ast_node_t *ltLBound;
     token_t *kwTo;
-    token_t *ltUBound;
+    ls_ast_node_t *ltUBound;
 
 } ls_arr_range_clause_node_t;
 

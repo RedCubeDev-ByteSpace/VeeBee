@@ -12,6 +12,8 @@
 #include "../AST/Loose/Members/type_member.h"
 #include "../AST/Loose/Clauses/as_clause.h"
 #include "AST/Loose/Clauses/parameter_clause.h"
+#include "AST/Loose/Expressions/literal_expression.h"
+#include "AST/Loose/Expressions/reference_expression.h"
 
 // ---------------------------------------------------------------------------------------------------------------------
 // Struct for our parser instance
@@ -31,6 +33,9 @@ typedef struct PARSER {
     // have we hit an error while parsing?
     bool hasError;
 
+    // have we turned on error message suppression for this section?
+    uint8_t suppressError;
+
 } parser_t;
 
 parser_t *PARSER_Init(source_t source, token_list_t *tokens);
@@ -49,11 +54,16 @@ bool PARSER_parseSubMember(parser_t *me);
 void PARSER_parseBlockOfStatements(parser_t *me, ls_ast_node_list_t *lsBody, token_type_t until);
 ls_ast_node_t *PARSER_parseStatement(parser_t *me);
 ls_ast_node_t *PARSER_parseDimStatement(parser_t *me);
-
-ls_ast_node_t *PARSER_parseExpression(parser_t *me);
+ls_ast_node_t *PARSER_parseReDimStatement(parser_t *me);
+ls_ast_node_t *PARSER_parseExpressionStatement(parser_t *me);
 
 ls_as_clause_node_t *PARSER_parseAsClause(parser_t *me, bool functionNotation, bool allowArrayRanges);
 ls_parameter_clause_node_t *PARSER_parseParameterClause(parser_t *me);
+
+ls_ast_node_t *PARSER_parseExpression(parser_t *me);
+ls_ast_node_t *PARSER_parsePrimaryExpression(parser_t *me);
+ls_literal_expression_node_t *PARSER_parseLiteralExpression(parser_t *me);
+ls_reference_expression_node_t *PARSER_parseReferenceExpression(parser_t *me, ls_ast_node_t *exprBase);
 
 // ---------------------------------------------------------------------------------------------------------------------
 // Lil helpers
@@ -84,5 +94,19 @@ extern token_t PARSER_EOL_Placeholder;
 
 #define UNLOAD_IF_NOT_NULL(MEMBER)      \
     if (MEMBER != NULL) PS_LS_Node_Unload((ls_ast_node_t*)(MEMBER)); \
+
+#define SNAPSHOT(ID)       \
+    uint64_t ID = me->pos; \
+    me->suppressError++;   \
+
+#define ROLLBACK(ID)     \
+    me->pos = ID;        \
+    me->suppressError--; \
+
+#define PS_ERROR_AT(...)                               \
+    if (me->suppressError == 0) ERROR_AT(__VA_ARGS__); \
+
+#define PS_ERROR_SPLICE_AT(...)                               \
+    if (me->suppressError == 0) ERROR_SPLICE_AT(__VA_ARGS__); \
 
 #endif //PARSER_H

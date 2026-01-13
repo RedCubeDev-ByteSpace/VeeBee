@@ -64,6 +64,26 @@ void LEXER_Lex(lexer_t *me) {
             continue;
         }
 
+        // is this a colon? this is also an end-of-statement but will be marked for the parser
+        if (current == ':') {
+
+            // only add an EOS if we didnt already add one
+            if (PREV_TOKEN().type != TK_EOS) {
+                STEP()
+                token_t tok = LEXER_createToken(me, TK_EOS, me->pos, me->pos+1);
+
+                // allocate this tokens strvalue buffer
+                tok.strValue = malloc(2);
+                tok.strValue[0] = ':';
+                tok.strValue[1] = 0;
+
+                // add it to the list
+                LX_TOKEN_LIST_Add(&me->tokens, tok);
+            }
+
+            continue;
+        }
+
         // is this a random underscore?
         // if its followed by a newline it allowes the current statement to continue on the next line
         if (current == '_' && PEEK(1) == '\n') {
@@ -124,8 +144,8 @@ void LEXER_Lex(lexer_t *me) {
         bool ok = false;
         for (int i = 0; i < NUM_PUNC_AND_OPS; ++i) {
             if (current == PUNCTUATION_AND_OPERATORS[i]) {
-                LX_TOKEN_LIST_Add(&me->tokens, LEXER_createToken(me, TK_PC_OPEN_PARENTHESIS + i, me->pos, me->pos+1));
                 STEP()
+                LX_TOKEN_LIST_Add(&me->tokens, LEXER_createToken(me, TK_PC_OPEN_PARENTHESIS + i, me->pos, me->pos+1));
 
                 ok = true;
                 break;

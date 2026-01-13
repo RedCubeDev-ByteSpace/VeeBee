@@ -70,7 +70,7 @@
     GEN(TK_PC_OPEN_PARENTHESIS)   \
     GEN(TK_PC_CLOSED_PARENTHESIS) \
     GEN(TK_PC_COMMA)              \
-    GEN(TK_PC_COLON)              \
+    GEN(TK_PC_PERIOD)             \
                                   \
     GEN(TK_OP_PLUS)               \
     GEN(TK_OP_MINUS)              \
@@ -181,7 +181,7 @@ static const char *KEYWORDS[] = {
 // ---------------------------------------------------------------------------------------------------------------------
 // List of all punctuation marks and operators in the order they are listed in above
 static const char PUNCTUATION_AND_OPERATORS[] = {
-    '(', ')', ',', ':',
+    '(', ')', ',', '.',
     '+', '-', '*', '/', '=', '&'
 };
 #define NUM_PUNC_AND_OPS (sizeof(PUNCTUATION_AND_OPERATORS) / sizeof(PUNCTUATION_AND_OPERATORS[0]))

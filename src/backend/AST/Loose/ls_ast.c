@@ -11,7 +11,10 @@
 #include "Members/type_member.h"
 #include "Clauses/parameter_clause.h"
 #include "Clauses/type_field_clause.h"
+#include "Expressions/reference_expression.h"
 #include "Statements/dim_statement.h"
+#include "Statements/expression_statement.h"
+#include "Statements/redim_statement.h"
 
 // ---------------------------------------------------------------------------------------------------------------------
 // Universal recursive node destructor
@@ -52,8 +55,21 @@ void PS_LS_Node_Unload(ls_ast_node_t *me) {
             PS_LS_AST_NODE_LIST_Unload(((ls_dim_statement_node_t*)me)->lsDimFields);
         break;
 
+        case LS_REDIM_STATEMENT:
+            PS_LS_AST_NODE_LIST_Unload(((ls_redim_statement_node_t*)me)->lsDimFields);
+        break;
+
         case LS_DIM_FIELD_CLAUSE:
             PS_LS_Node_Unload((ls_ast_node_t*)((ls_dim_field_clause_node_t*)me)->clsType);
+        break;
+
+        case LS_REFERENCE_EXPRESSION:
+            PS_LS_Node_Unload(((ls_reference_expression_node_t*)me)->exprBase);
+            PS_LS_AST_NODE_LIST_Unload(((ls_reference_expression_node_t*)me)->lsArguments);
+        break;
+
+        case LS_EXPRESSION_STATEMENT:
+            PS_LS_Node_Unload(((ls_expression_statement_node_t*)me)->exprExpression);
         break;
 
         default:;

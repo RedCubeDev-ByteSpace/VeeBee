@@ -11,11 +11,14 @@
 #include "AST/Loose/Clauses/dim_field_clause.h"
 #include "AST/Loose/Clauses/parameter_clause.h"
 #include "AST/Loose/Clauses/type_field_clause.h"
+#include "AST/Loose/Expressions/reference_expression.h"
 #include "AST/Loose/Members/function_member.h"
 #include "AST/Loose/Members/module_member.h"
 #include "AST/Loose/Members/sub_member.h"
 #include "AST/Loose/Members/type_member.h"
 #include "AST/Loose/Statements/dim_statement.h"
+#include "AST/Loose/Statements/expression_statement.h"
+#include "AST/Loose/Statements/redim_statement.h"
 
 char DBG_INDENT_BUFFER[256];
 int DBG_INDENT_LENGTH;
@@ -44,6 +47,12 @@ void DBG_PRETTY_PRINT_Print_TokenList(token_list_t tokens) {
             else if (tokens.tokens[i].numberValueType == NUMBER_VALUE_CURRENCY)
                 printf("[%d]: " BYEL "%s," CYN " '%s'" GRN " NUMBER_VALUE_CURRENCY %ld" CRESET " (L: %d, C: %d)\n", i, TOKEN_TYPE_STRING[tokens.tokens[i].type], tokens.tokens[i].strValue, *((int64_t*)tokens.tokens[i].value), tokens.tokens[i].line, tokens.tokens[i].column);
 
+        }
+        else if (tokens.tokens[i].type == TK_EOS) {
+            if (tokens.tokens[i].strValue == NULL)
+                printf("[%d]: " BYEL "%s " CRESET "(L: %d, C: %d)\n", i, TOKEN_TYPE_STRING[tokens.tokens[i].type], tokens.tokens[i].line, tokens.tokens[i].column);
+            else
+                printf("[%d]: " BYEL "%s" CYN " '%s' " CRESET "(L: %d, C: %d)\n", i, TOKEN_TYPE_STRING[tokens.tokens[i].type], tokens.tokens[i].strValue, tokens.tokens[i].line, tokens.tokens[i].column);
         }
         else {
             printf("[%d]: " BYEL "%s " CRESET "(L: %d, C: %d)\n", i, TOKEN_TYPE_STRING[tokens.tokens[i].type], tokens.tokens[i].line, tokens.tokens[i].column);
@@ -247,10 +256,10 @@ void DBG_PRETTY_PRINT_Print_LSAstNode(ls_ast_node_t *me, bool finalEntry) {
 
         NODE(LS_ARR_RANGE_CLAUSE)
             FIELD("Lower Bound")
-            VALUE_INT(((ls_arr_range_clause_node_t*)me)->ltLBound)
+            SUBNODE(((ls_arr_range_clause_node_t*)me)->ltLBound, false)
 
             FIELD_FINAL("Upper Bound")
-            VALUE_INT(((ls_arr_range_clause_node_t*)me)->ltUBound)
+            SUBNODE(((ls_arr_range_clause_node_t*)me)->ltUBound, true)
         END_NODE()
 
         NODE(LS_PARAMETER_CLAUSE)
@@ -281,12 +290,42 @@ void DBG_PRETTY_PRINT_Print_LSAstNode(ls_ast_node_t *me, bool finalEntry) {
             SUBNODES(((ls_dim_statement_node_t*)me)->lsDimFields, true)
         END_NODE()
 
+        NODE(LS_REDIM_STATEMENT)
+            FIELD("Preserve")
+            VALUE_SET(((ls_redim_statement_node_t*)me)->kwPreserve)
+
+            FIELD_FINAL("Fields")
+            SUBNODES(((ls_redim_statement_node_t*)me)->lsDimFields, true)
+        END_NODE()
+
         NODE(LS_DIM_FIELD_CLAUSE)
             FIELD("Name")
             VALUE(((ls_dim_field_clause_node_t*)me)->idName)
 
             FIELD_FINAL("Type")
             SUBNODE(((ls_dim_field_clause_node_t*)me)->clsType, true)
+        END_NODE()
+
+        NODE(LS_REFERENCE_EXPRESSION)
+            FIELD("Base")
+            SUBNODE(((ls_reference_expression_node_t*)me)->exprBase, false)
+
+            FIELD("LinkName")
+            VALUE(((ls_reference_expression_node_t*)me)->idName)
+
+            FIELD("OpenParenthesis")
+            VALUE_SET(((ls_reference_expression_node_t*)me)->pcOpenParenthesis)
+
+            FIELD("ClosedParenthesis")
+            VALUE_SET(((ls_reference_expression_node_t*)me)->pcClosedParenthesis)
+
+            FIELD_FINAL("Arguments")
+            SUBNODES(((ls_reference_expression_node_t*)me)->lsArguments, true)
+        END_NODE()
+
+        NODE(LS_EXPRESSION_STATEMENT)
+            FIELD_FINAL("Expression")
+            SUBNODE(((ls_expression_statement_node_t*)me)->exprExpression, true);
         END_NODE()
 
         default:;

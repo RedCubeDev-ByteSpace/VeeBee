@@ -4,10 +4,14 @@
 #include <stdlib.h>
 #include "parser.h"
 
+#include <assert.h>
+
 #include "AST/Loose/Clauses/arr_range_clause.h"
 #include "AST/Loose/Clauses/type_field_clause.h"
 #include "AST/Loose/Clauses/dim_field_clause.h"
 #include "AST/Loose/Statements/dim_statement.h"
+#include "AST/Loose/Statements/redim_statement.h"
+#include "AST/Loose/Statements/expression_statement.h"
 #include "AST/Loose/Members/function_member.h"
 #include "AST/Loose/Members/sub_member.h"
 #include "Error/error.h"
@@ -34,6 +38,7 @@ parser_t *PARSER_Init(source_t source, token_list_t *tokens) {
     parser->members.length = 0;
     parser->members.capacity = 0;
     parser->hasError = false;
+    parser->suppressError = 0;
 
     // also make sure our constant placeholder token is configured correctly
     PARSER_EOL_Placeholder.type = TK_EOF;
@@ -92,7 +97,7 @@ bool PARSER_parseMember(parser_t *me) {
             }
 
             // everything else is illegal !!!!
-            ERROR_AT(SUB_PARSER, ERR_PS_UNEXPECTED_TOKEN, me->source, SPAN_FromToken(*PS_PEEK(1)), "Unexpected token, expected function or subroutine keywords")
+            PS_ERROR_AT(SUB_PARSER, ERR_PS_UNEXPECTED_TOKEN, me->source, SPAN_FromToken(*PS_PEEK(1)), "Unexpected token, expected function or subroutine keywords")
             me->hasError = true;
             return false;
 
@@ -119,7 +124,7 @@ bool PARSER_parseMember(parser_t *me) {
 
         default:
             // found non member
-            ERROR_AT(SUB_PARSER, ERR_PS_UNEXPECTED_NON_MEMBER, me->source, SPAN_FromToken(PS_CURRENT()), "Global scope only allows for Module, Type, Function or Subroutine members")
+            PS_ERROR_AT(SUB_PARSER, ERR_PS_UNEXPECTED_NON_MEMBER, me->source, SPAN_FromToken(PS_CURRENT()), "Global scope only allows for Module, Type, Function or Subroutine members")
             me->hasError = true;
             return false;
     }
@@ -547,9 +552,10 @@ ls_as_clause_node_t *PARSER_parseAsClause(parser_t *me, bool functionNotation, b
             while (PS_CURRENT().type != TK_PC_CLOSED_PARENTHESIS) {
 
                 // read in a first number literal
-                token_t *bound = PARSER_consume(me, TK_LT_NUMBER);
+                ls_ast_node_t *bound = PARSER_parseExpression(me);
                 RETURN_NULL_ON_ERROR(
                     PS_LS_AST_NODE_LIST_Unload(lsArrayRanges);
+                    UNLOAD_IF_NOT_NULL(bound)
                 )
 
                 // when theres a 'To' keyword -> there are two bounds
@@ -559,11 +565,13 @@ ls_as_clause_node_t *PARSER_parseAsClause(parser_t *me, bool functionNotation, b
                     token_t *kwTo = PARSER_consume(me, TK_KW_TO);
 
                     // also read in the ending literal
-                    token_t *ubound = PARSER_consume(me, TK_LT_NUMBER);
+                    ls_ast_node_t *ubound = PARSER_parseExpression(me);
 
                     // bail when shit goes wrong
                     RETURN_NULL_ON_ERROR(
                         PS_LS_AST_NODE_LIST_Unload(lsArrayRanges);
+                        UNLOAD_IF_NOT_NULL(bound)
+                        UNLOAD_IF_NOT_NULL(ubound)
                     )
 
                     // if we got the full
@@ -770,6 +778,9 @@ void PARSER_parseBlockOfStatements(parser_t *me, ls_ast_node_list_t *lsBody, tok
     }
 }
 
+// ---------------------------------------------------------------------------------------------------------------------
+// PARSER_parseStatement:
+// parse a generic statement, any statement we come across
 ls_ast_node_t *PARSER_parseStatement(parser_t *me) {
     ls_ast_node_t *stmt = NULL;
 
@@ -780,7 +791,13 @@ ls_ast_node_t *PARSER_parseStatement(parser_t *me) {
             stmt = PARSER_parseDimStatement(me);
         break;
 
-        default:;
+        case TK_KW_REDIM:
+            stmt = PARSER_parseReDimStatement(me);
+        break;
+
+        default:
+            // if we didnt get any of these, try parsing an expression statement
+            stmt = PARSER_parseExpressionStatement(me);
     }
     RETURN_NULL_ON_ERROR(
         UNLOAD_IF_NOT_NULL(stmt)
@@ -791,6 +808,9 @@ ls_ast_node_t *PARSER_parseStatement(parser_t *me) {
     return stmt;
 }
 
+// ---------------------------------------------------------------------------------------------------------------------
+// PARSER_parseDimStatement:
+// literally parse a 'Dim' statement, these comments are crazy helpful
 ls_ast_node_t *PARSER_parseDimStatement(parser_t *me) {
     // consume the 'Dim' keyword
     token_t *kwDim = PARSER_consume(me, TK_KW_DIM);
@@ -845,12 +865,298 @@ ls_ast_node_t *PARSER_parseDimStatement(parser_t *me) {
     return (ls_ast_node_t*)node;
 }
 
+// ---------------------------------------------------------------------------------------------------------------------
+// PARSER_parseReDimStatement:
+// parse a 'ReDim' statement
+ls_ast_node_t *PARSER_parseReDimStatement(parser_t *me) {
+    // consume the 'ReDim' keyword
+    token_t *kwReDim = PARSER_consume(me, TK_KW_REDIM);
+    RETURN_NULL_ON_ERROR()
+
+    // consume a 'Preserve' keyword if there is one
+    token_t *kwPreserve = NULL;
+    if (PS_CURRENT().type == TK_KW_PRESERVE) {
+        kwPreserve = PARSER_consume(me, TK_KW_PRESERVE);
+    }
+
+    // initialize a list for all our dimmed variables
+    ls_ast_node_list_t lsDimFields = PS_LS_AST_NODE_LIST_Init();
+
+    // until we hit the EOS, consume fields
+    while (PS_CURRENT().type != TK_EOS) {
+
+        // consume the identifier
+        token_t *idName = PARSER_consume(me, TK_IDENTIFIER);
+        BREAK_ON_ERROR()
+
+        // make sure to enforce an open parenthesis here
+        PARSER_consume(me, TK_PC_OPEN_PARENTHESIS);
+        BREAK_ON_ERROR()
+        me->pos--;
+
+        // consume an 'As' clause for the redim
+        ls_as_clause_node_t *clsType = PARSER_parseAsClause(me, false, true);
+        BREAK_ON_ERROR(
+            UNLOAD_IF_NOT_NULL(clsType)
+        )
+
+        // because the 'As' clause is fairly liberal, make sure its valid for this purpose
+
+        // make sure this is an array type 'as' clause
+        if (clsType->pcOpenParenthesis == NULL) {
+            PS_ERROR_AT(SUB_PARSER, ERR_PS_UNEXPECTED_AS_CLAUSE, me->source, SPAN_FromToken(*idName), "ReDim expects an 'As' clause of type array")
+            me->hasError = true;
+        }
+        BREAK_ON_ERROR(
+            UNLOAD_IF_NOT_NULL(clsType)
+        )
+
+        // make sure it has at least one range
+        if (clsType->lsArrRanges.length == 0) {
+            PS_ERROR_AT(SUB_PARSER, ERR_PS_UNEXPECTED_AS_CLAUSE, me->source, SPAN_FromToken(*clsType->pcOpenParenthesis), "ReDim expects an array type of a specified size")
+            me->hasError = true;
+        }
+        BREAK_ON_ERROR(
+            UNLOAD_IF_NOT_NULL(clsType)
+        )
+
+        // make sure theres no retyping going on
+        if (clsType->kwAs != NULL) {
+            PS_ERROR_AT(SUB_PARSER, ERR_PS_UNEXPECTED_AS_CLAUSE, me->source, SPAN_FromToken(*clsType->kwAs), "ReDim does not allow for retyping")
+            me->hasError = true;
+        }
+        BREAK_ON_ERROR(
+            UNLOAD_IF_NOT_NULL(clsType)
+        )
+
+
+        // create a node for this field
+        ls_dim_field_clause_node_t *clsDimField = malloc(sizeof(ls_dim_field_clause_node_t));
+        clsDimField->base.type = LS_DIM_FIELD_CLAUSE;
+        clsDimField->idName  = idName;
+        clsDimField->clsType = clsType;
+
+        // add it to the list
+        PS_LS_AST_NODE_LIST_Add(&lsDimFields, (ls_ast_node_t*)clsDimField);
+
+        // if we're not at the EOS yet, expect a comma
+        if (PS_CURRENT().type != TK_EOS) {
+            PARSER_consume(me, TK_PC_COMMA);
+            BREAK_ON_ERROR()
+        }
+    }
+    RETURN_NULL_ON_ERROR(
+        PS_LS_AST_NODE_LIST_Unload(lsDimFields);
+    )
+
+    // create a new node for this statement
+    ls_redim_statement_node_t *node = malloc(sizeof(ls_redim_statement_node_t));
+    node->base.type = LS_REDIM_STATEMENT;
+    node->kwReDim     = kwReDim;
+    node->kwPreserve  = kwPreserve;
+    node->lsDimFields = lsDimFields;
+
+    return (ls_ast_node_t*)node;
+}
+
+ls_ast_node_t *PARSER_parseExpressionStatement(parser_t *me) {
+    // parse an expression
+    ls_ast_node_t *exprExpression = PARSER_parseExpression(me);
+    RETURN_NULL_ON_ERROR()
+
+    // wrap it in an expression statement and return it
+    ls_expression_statement_node_t *node = malloc(sizeof(ls_expression_statement_node_t));
+    node->base.type = LS_EXPRESSION_STATEMENT;
+    node->exprExpression = exprExpression;
+    return (ls_ast_node_t*)node;
+}
+
 // =====================================================================================================================
 // EXPRESSIONS
 // =====================================================================================================================
 
 ls_ast_node_t *PARSER_parseExpression(parser_t *me) {
+    return PARSER_parsePrimaryExpression(me);
+}
+
+// ---------------------------------------------------------------------------------------------------------------------
+// PARSER_parsePrimaryExpression:
+// a primary expression is a sort of expression "atom", it can be something like a number, string, variables, etc
+// they can then be combined to form more complex expressions
+ls_ast_node_t *PARSER_parsePrimaryExpression(parser_t *me) {
+    switch (PS_CURRENT().type) {
+
+        // All literal expressions
+        case TK_LT_STRING:
+        case TK_LT_NUMBER:
+        case TK_LT_BOOLEAN:
+            return (ls_ast_node_t*)PARSER_parseLiteralExpression(me);
+
+        // Name or call expressions  are being parsed as reference expressions
+        // reference expressions are made out of chains of name and call expressions
+        // e.g.: myObject.myField.cry()
+        case TK_IDENTIFIER:
+            ls_ast_node_t *base = (ls_ast_node_t*)PARSER_parseReferenceExpression(me, NULL);
+            RETURN_NULL_ON_ERROR(
+                PS_LS_Node_Unload(base);
+            )
+
+            // as long as we find a chaining period, parse more reference chain links
+            while (PS_CURRENT().type == TK_PC_PERIOD) {
+                ls_ast_node_t *newBase = (ls_ast_node_t*)PARSER_parseReferenceExpression(me, base);
+                RETURN_NULL_ON_ERROR(
+                    PS_LS_Node_Unload(base);
+                )
+
+                // the newly parsed reference expression will be the
+                base = newBase;
+            }
+
+            return base;
+
+        default:;
+    }
+
+    // otherwise, we didnt get an expression -> womp, womp
+    PS_ERROR_AT(SUB_PARSER, ERR_PS_UNEXPECTED_NON_EXPRESSION, me->source, SPAN_FromToken(PS_CURRENT()), "Expected an expression")
+    me->hasError = true;
     return NULL;
+}
+
+// ---------------------------------------------------------------------------------------------------------------------
+// PARSER_parseLiteralExpression:
+// parse a literal like a double quoted string, number, or boolean keyword
+ls_literal_expression_node_t *PARSER_parseLiteralExpression(parser_t *me) {
+
+    // our actual literal token
+    token_t *ltLiteral = NULL;
+
+    // consume the literal token based on its token type
+    switch (PS_CURRENT().type) {
+        case TK_LT_STRING:
+            ltLiteral = PARSER_consume(me, TK_LT_STRING);
+        break;
+        case TK_LT_NUMBER:
+            ltLiteral = PARSER_consume(me, TK_LT_NUMBER);
+        break;
+        case TK_LT_BOOLEAN:
+            ltLiteral = PARSER_consume(me, TK_LT_BOOLEAN);
+        break;
+        default:;
+    }
+
+    // this should never be null after this!
+    assert(ltLiteral != NULL);
+
+    // create a new node and return it
+    ls_literal_expression_node_t *node = malloc(sizeof(ls_literal_expression_node_t));
+    node->base.type = LS_LITERAL_EXPRESSION;
+    node->ltLiteral = ltLiteral;
+    return node;
+}
+
+// ---------------------------------------------------------------------------------------------------------------------
+// PARSER_parseReferenceExpression:
+// parse a part of a reference chain, may be a variable access or function call
+ls_reference_expression_node_t *PARSER_parseReferenceExpression(parser_t *me, ls_ast_node_t *exprBase) {
+    // if theres a period -> consume it
+    if (PS_CURRENT().type == TK_PC_PERIOD) {
+        PARSER_consume(me, TK_PC_PERIOD);
+    }
+
+    // parse the name of this reference chain member
+    token_t *idName = PARSER_consume(me, TK_IDENTIFIER);
+    RETURN_NULL_ON_ERROR()
+
+    // initialize placeholders for our argument list
+    token_t *pcOpenParenthesis = NULL;
+    ls_ast_node_list_t lsArguments = PS_LS_AST_NODE_LIST_Init();
+    token_t *pcClosedParenthesis = NULL;
+
+    // -----------------------------------------------------------------------------------------------------------------
+    // Function call
+
+    // if this is a call expression -> parse the parentheses and the arguments
+    if (PS_CURRENT().type == TK_PC_OPEN_PARENTHESIS) {
+        pcOpenParenthesis = PARSER_consume(me, TK_PC_OPEN_PARENTHESIS);
+
+        // as long as we are not at the end of the argument list
+        while (PS_CURRENT().type != TK_PC_CLOSED_PARENTHESIS) {
+            // parse this expression
+            ls_ast_node_t *exprArg = PARSER_parseExpression(me);
+            RETURN_NULL_ON_ERROR(
+                PS_LS_AST_NODE_LIST_Unload(lsArguments);
+            )
+
+            // if we're not at the end -> expect a comma
+            if (PS_CURRENT().type != TK_PC_CLOSED_PARENTHESIS) {
+                PARSER_consume(me, TK_PC_COMMA);
+            }
+            RETURN_NULL_ON_ERROR(
+                PS_LS_AST_NODE_LIST_Unload(lsArguments);
+            )
+
+            // add this argument to the list
+            PS_LS_AST_NODE_LIST_Add(&lsArguments, exprArg);
+        }
+
+        // consume the closing parenthesis
+        pcClosedParenthesis = PARSER_consume(me, TK_PC_CLOSED_PARENTHESIS);
+    }
+
+    // -----------------------------------------------------------------------------------------------------------------
+    // Subroutine call
+    else {
+        // try parsing an expression after this, if we get one, its probably an argument
+        SNAPSHOT(SUB_TRY_ARG)
+        ls_ast_node_t *exprArg = PARSER_parseExpression(me);
+        ROLLBACK(SUB_TRY_ARG)
+
+        // has this worked?
+        if (!me->hasError) {
+            PS_LS_Node_Unload(exprArg);
+
+            // as long as we are not at the end of the argument list
+            while (PS_CURRENT().type != TK_EOS) {
+                // parse this expression
+                exprArg = PARSER_parseExpression(me);
+                RETURN_NULL_ON_ERROR(
+                    PS_LS_AST_NODE_LIST_Unload(lsArguments);
+                )
+
+                // if we're not at the end -> expect a comma
+                if (PS_CURRENT().type != TK_EOS) {
+                    PARSER_consume(me, TK_PC_COMMA);
+                }
+                RETURN_NULL_ON_ERROR(
+                    PS_LS_AST_NODE_LIST_Unload(lsArguments);
+                )
+
+                // add this argument to the list
+                PS_LS_AST_NODE_LIST_Add(&lsArguments, exprArg);
+            }
+        }
+
+        //otherwise -> no sub call
+        else {
+            me->hasError = false;
+        }
+    }
+
+
+    RETURN_NULL_ON_ERROR(
+        PS_LS_AST_NODE_LIST_Unload(lsArguments);
+    )
+
+    // of we've reached this point -> allocate a new node and return it
+    ls_reference_expression_node_t *node = malloc(sizeof(ls_reference_expression_node_t));
+    node->base.type = LS_REFERENCE_EXPRESSION;
+    node->exprBase = exprBase;
+    node->idName = idName;
+    node->pcOpenParenthesis = pcOpenParenthesis;
+    node->lsArguments = lsArguments;
+    node->pcClosedParenthesis = pcClosedParenthesis;
+    return node;
 }
 
 // =====================================================================================================================
