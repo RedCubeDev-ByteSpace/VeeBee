@@ -11,6 +11,7 @@
 #include "AST/Loose/Clauses/dim_field_clause.h"
 #include "AST/Loose/Statements/dim_statement.h"
 #include "AST/Loose/Statements/redim_statement.h"
+#include "AST/Loose/Statements/assignment_statement.h"
 #include "AST/Loose/Statements/expression_statement.h"
 #include "AST/Loose/Members/function_member.h"
 #include "AST/Loose/Members/sub_member.h"
@@ -795,6 +796,11 @@ ls_ast_node_t *PARSER_parseStatement(parser_t *me) {
             stmt = PARSER_parseReDimStatement(me);
         break;
 
+        case TK_KW_LET:
+        case TK_KW_SET:
+            stmt = PARSER_parseAssignmentStatement(me, NULL);
+        break;
+
         default:
             // if we didnt get any of these, try parsing an expression statement
             stmt = PARSER_parseExpressionStatement(me);
@@ -802,6 +808,27 @@ ls_ast_node_t *PARSER_parseStatement(parser_t *me) {
     RETURN_NULL_ON_ERROR(
         UNLOAD_IF_NOT_NULL(stmt)
     )
+
+    // if the expression we parsed was a reference expression and we've encountered an equals
+    // -> this is actually an implicit assigment expression
+    if (stmt->type == LS_EXPRESSION_STATEMENT) {
+        if (PS_CURRENT().type == TK_OP_EQUALS
+            && ((ls_expression_statement_node_t*)stmt)->exprExpression->type == LS_REFERENCE_EXPRESSION) {
+
+            // parse this as an assignment statement
+            ls_ast_node_t *newStmt = PARSER_parseAssignmentStatement(me, ((ls_expression_statement_node_t*)stmt)->exprExpression);
+            RETURN_NULL_ON_ERROR(
+                UNLOAD_IF_NOT_NULL(stmt)
+                UNLOAD_IF_NOT_NULL(newStmt)
+            )
+
+            // free the old statement node
+            free(stmt);
+
+            // replace it with a new statement
+            stmt = newStmt;
+        }
+    }
 
     // totally require an EOS after every statement
     PARSER_ffwToEOS(me);
@@ -959,6 +986,56 @@ ls_ast_node_t *PARSER_parseReDimStatement(parser_t *me) {
     return (ls_ast_node_t*)node;
 }
 
+// ---------------------------------------------------------------------------------------------------------------------
+// PARSER_parseAssignmentStatement:
+// parse a Let or a Set statement
+ls_ast_node_t *PARSER_parseAssignmentStatement(parser_t *me, ls_ast_node_t *target) {
+
+    // define placeholders for both the set and the let keyword
+    token_t *kwLet = NULL;
+    token_t *kwSet = NULL;
+
+    // if we dont have a target already, allow for a let or set keyword
+    if (target == NULL) {
+
+        // if theres a let keyword -> consume it
+        if (PS_CURRENT().type == TK_KW_LET) {
+            kwLet = PARSER_consume(me, TK_KW_LET);
+        }
+
+        // if theres a set keyword -> consume it
+        if (PS_CURRENT().type == TK_KW_SET) {
+            kwSet = PARSER_consume(me, TK_KW_SET);
+        }
+
+        // then, parse a target
+        target = PARSER_parseExpression(me);
+        RETURN_NULL_ON_ERROR()
+    }
+
+    // in any case, parse an equals sign
+    token_t *opEquals = PARSER_consume(me, TK_OP_EQUALS);
+    RETURN_NULL_ON_ERROR()
+
+    // then parse the assignment value
+    ls_ast_node_t *exprValue = PARSER_parseExpression(me);
+    RETURN_NULL_ON_ERROR()
+
+    // allocate this node and return it
+    ls_assignment_statement_node_t *node = malloc(sizeof(ls_assignment_statement_node_t));
+    node->base.type = LS_ASSIGNMENT_STATEMENT;
+    node->kwLet      = kwLet;
+    node->kwSet      = kwSet;
+    node->opEquals   = opEquals;
+    node->exprTarget = target;
+    node->exprValue  = exprValue;
+
+    return (ls_ast_node_t*)node;
+}
+
+// ---------------------------------------------------------------------------------------------------------------------
+// PARSER_parseExpressionStatement:
+// some expressions are allowed to be used as statements, like function calls
 ls_ast_node_t *PARSER_parseExpressionStatement(parser_t *me) {
     // parse an expression
     ls_ast_node_t *exprExpression = PARSER_parseExpression(me);

@@ -12,6 +12,7 @@
 #include "Clauses/parameter_clause.h"
 #include "Clauses/type_field_clause.h"
 #include "Expressions/reference_expression.h"
+#include "Statements/assignment_statement.h"
 #include "Statements/dim_statement.h"
 #include "Statements/expression_statement.h"
 #include "Statements/redim_statement.h"
@@ -70,6 +71,11 @@ void PS_LS_Node_Unload(ls_ast_node_t *me) {
 
         case LS_EXPRESSION_STATEMENT:
             PS_LS_Node_Unload(((ls_expression_statement_node_t*)me)->exprExpression);
+        break;
+
+        case LS_ASSIGNMENT_STATEMENT:
+            PS_LS_Node_Unload(((ls_assignment_statement_node_t*)me)->exprTarget);
+            PS_LS_Node_Unload(((ls_assignment_statement_node_t*)me)->exprValue);
         break;
 
         default:;

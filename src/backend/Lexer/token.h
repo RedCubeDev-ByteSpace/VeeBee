@@ -58,6 +58,9 @@
     GEN(TK_KW_TO)                 \
     GEN(TK_KW_AS)                 \
                                   \
+    GEN(TK_KW_LET)                \
+    GEN(TK_KW_SET)                \
+                                  \
     GEN(TK_KW_FOR)                \
     GEN(TK_KW_STEP)               \
     GEN(TK_KW_NEXT)               \
@@ -169,6 +172,8 @@ static const char *KEYWORDS[] = {
     "preserve",
     "to",
     "as",
+    "let",
+    "set",
     "for",
     "step",
     "next",

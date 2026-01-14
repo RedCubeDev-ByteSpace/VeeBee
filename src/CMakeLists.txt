@@ -45,6 +45,7 @@ add_library(veebee_backend
         backend/AST/Loose/Expressions/literal_expression.h
         backend/AST/Loose/Expressions/reference_expression.h
         backend/AST/Loose/Statements/expression_statement.h
+        backend/AST/Loose/Statements/assignment_statement.h
 )
 
 target_include_directories(veebee_backend

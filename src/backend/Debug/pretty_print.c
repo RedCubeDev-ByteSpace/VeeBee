@@ -11,11 +11,13 @@
 #include "AST/Loose/Clauses/dim_field_clause.h"
 #include "AST/Loose/Clauses/parameter_clause.h"
 #include "AST/Loose/Clauses/type_field_clause.h"
+#include "AST/Loose/Expressions/literal_expression.h"
 #include "AST/Loose/Expressions/reference_expression.h"
 #include "AST/Loose/Members/function_member.h"
 #include "AST/Loose/Members/module_member.h"
 #include "AST/Loose/Members/sub_member.h"
 #include "AST/Loose/Members/type_member.h"
+#include "AST/Loose/Statements/assignment_statement.h"
 #include "AST/Loose/Statements/dim_statement.h"
 #include "AST/Loose/Statements/expression_statement.h"
 #include "AST/Loose/Statements/redim_statement.h"
@@ -326,6 +328,25 @@ void DBG_PRETTY_PRINT_Print_LSAstNode(ls_ast_node_t *me, bool finalEntry) {
         NODE(LS_EXPRESSION_STATEMENT)
             FIELD_FINAL("Expression")
             SUBNODE(((ls_expression_statement_node_t*)me)->exprExpression, true);
+        END_NODE()
+
+        NODE(LS_ASSIGNMENT_STATEMENT)
+            FIELD("Let")
+            VALUE_SET(((ls_assignment_statement_node_t*)me)->kwLet)
+
+            FIELD("Set")
+            VALUE_SET(((ls_assignment_statement_node_t*)me)->kwSet)
+
+            FIELD("Target")
+            SUBNODE(((ls_assignment_statement_node_t*)me)->exprTarget, false)
+
+            FIELD_FINAL("Value")
+            SUBNODE(((ls_assignment_statement_node_t*)me)->exprValue, true)
+        END_NODE()
+
+        NODE(LS_LITERAL_EXPRESSION)
+            FIELD_FINAL("Literal")
+            VALUE(((ls_literal_expression_node_t*)me)->ltLiteral)
         END_NODE()
 
         default:;

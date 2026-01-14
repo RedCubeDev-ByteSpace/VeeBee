@@ -55,6 +55,7 @@ void PARSER_parseBlockOfStatements(parser_t *me, ls_ast_node_list_t *lsBody, tok
 ls_ast_node_t *PARSER_parseStatement(parser_t *me);
 ls_ast_node_t *PARSER_parseDimStatement(parser_t *me);
 ls_ast_node_t *PARSER_parseReDimStatement(parser_t *me);
+ls_ast_node_t *PARSER_parseAssignmentStatement(parser_t *me, ls_ast_node_t *target);
 ls_ast_node_t *PARSER_parseExpressionStatement(parser_t *me);
 
 ls_as_clause_node_t *PARSER_parseAsClause(parser_t *me, bool functionNotation, bool allowArrayRanges);
