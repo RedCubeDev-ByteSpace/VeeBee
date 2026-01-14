@@ -8,6 +8,7 @@
 
 #include "AST/Loose/ls_ast.h"
 #include "AST/Loose/Clauses/arr_range_clause.h"
+#include "AST/Loose/Clauses/conditional_clause.h"
 #include "AST/Loose/Clauses/dim_field_clause.h"
 #include "AST/Loose/Clauses/parameter_clause.h"
 #include "AST/Loose/Clauses/type_field_clause.h"
@@ -20,6 +21,7 @@
 #include "AST/Loose/Statements/assignment_statement.h"
 #include "AST/Loose/Statements/dim_statement.h"
 #include "AST/Loose/Statements/expression_statement.h"
+#include "AST/Loose/Statements/if_statement.h"
 #include "AST/Loose/Statements/redim_statement.h"
 
 char DBG_INDENT_BUFFER[256];
@@ -347,6 +349,30 @@ void DBG_PRETTY_PRINT_Print_LSAstNode(ls_ast_node_t *me, bool finalEntry) {
         NODE(LS_LITERAL_EXPRESSION)
             FIELD_FINAL("Literal")
             VALUE(((ls_literal_expression_node_t*)me)->ltLiteral)
+        END_NODE()
+
+        NODE(LS_IF_STATEMENT)
+            FIELD("Conditionals")
+            SUBNODES(((ls_if_statement_node_t*)me)->lsConditionals, false)
+
+            FIELD_FINAL("Else")
+            SUBNODE(((ls_if_statement_node_t*)me)->clsElse, true)
+        END_NODE()
+
+        NODE(LS_CONDITIONAL_CLAUSE)
+            FIELD("ConditionalStyle")
+            VALUE(((ls_conditional_clause_node_t*)me)->kwConditional)
+
+            FIELD("Condition")
+            SUBNODE(((ls_conditional_clause_node_t*)me)->exprCondition, false)
+
+            FIELD_FINAL("Statements")
+            SUBNODES(((ls_conditional_clause_node_t*)me)->lsStatements, true)
+        END_NODE()
+
+        NODE(LS_ELSE_CLAUSE)
+            FIELD_FINAL("Statements")
+            SUBNODES(((ls_else_clause_node_t*)me)->lsStatements, true)
         END_NODE()
 
         default:;

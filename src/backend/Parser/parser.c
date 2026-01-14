@@ -12,6 +12,7 @@
 #include "AST/Loose/Statements/dim_statement.h"
 #include "AST/Loose/Statements/redim_statement.h"
 #include "AST/Loose/Statements/assignment_statement.h"
+#include "AST/Loose/Statements/if_statement.h"
 #include "AST/Loose/Statements/expression_statement.h"
 #include "AST/Loose/Members/function_member.h"
 #include "AST/Loose/Members/sub_member.h"
@@ -341,7 +342,8 @@ bool PARSER_parseFunctionMember(parser_t *me) {
     ls_ast_node_list_t lsBody = PS_LS_AST_NODE_LIST_Init();
 
     // parse the function body until we reach an 'End' keyword
-    PARSER_parseBlockOfStatements(me, &lsBody, TK_KW_END);
+    token_type_t terminator = TK_KW_END;
+    PARSER_parseBlockOfStatements(me, &lsBody, &terminator, 1);
     RETURN_ON_ERROR(
         PS_LS_AST_NODE_LIST_Unload(lsParameters);
         PS_LS_AST_NODE_LIST_Unload(lsBody);
@@ -479,7 +481,8 @@ bool PARSER_parseSubMember(parser_t *me) {
     ls_ast_node_list_t lsBody = PS_LS_AST_NODE_LIST_Init();
 
     // parse the function body until we reach an 'End' keyword
-    PARSER_parseBlockOfStatements(me, &lsBody, TK_KW_END);
+    token_type_t terminator = TK_KW_END;
+    PARSER_parseBlockOfStatements(me, &lsBody, &terminator, 1);
     RETURN_ON_ERROR(
         PS_LS_AST_NODE_LIST_Unload(lsParameters);
         PS_LS_AST_NODE_LIST_Unload(lsBody);
@@ -746,6 +749,93 @@ ls_parameter_clause_node_t *PARSER_parseParameterClause(parser_t *me) {
     return node;
 }
 
+// ---------------------------------------------------------------------------------------------------------------------
+// PARSER_parseConditionalClause:
+// parse conditional clause like an if or an elseif block
+ls_conditional_clause_node_t *PARSER_parseConditionalClause(parser_t *me) {
+    token_t *kwConditional = NULL;
+
+    // parse an ElseIf keyword if there is one
+    if (PS_CURRENT().type == TK_KW_ELSEIF) {
+        kwConditional = PARSER_consume(me, TK_KW_ELSEIF);
+    }
+
+    // if theres no ElseIf keyword, parse an If keyword
+    else {
+        kwConditional = PARSER_consume(me, TK_KW_IF);
+    }
+    RETURN_NULL_ON_ERROR()
+
+    // parse the condition
+    ls_ast_node_t *exprCondition = PARSER_parseExpression(me);
+    RETURN_NULL_ON_ERROR(
+        UNLOAD_IF_NOT_NULL(exprCondition);
+    )
+
+    // expect a Then keyword
+    token_t *kwThen = PARSER_consume(me, TK_KW_THEN);
+    RETURN_NULL_ON_ERROR(
+        UNLOAD_IF_NOT_NULL(exprCondition);
+    )
+
+    // expect an EOS
+    PARSER_ffwToEOS(me);
+    RETURN_NULL_ON_ERROR(
+        UNLOAD_IF_NOT_NULL(exprCondition);
+    )
+
+    // parse a block of statements until we either hit an ElseIf, Else, or End keyword
+    token_type_t terminators[3] = {
+        TK_KW_ELSEIF,
+        TK_KW_ELSE,
+        TK_KW_END,
+    };
+    ls_ast_node_list_t lsStatements = PS_LS_AST_NODE_LIST_Init();
+    PARSER_parseBlockOfStatements(me, &lsStatements, terminators, 3);
+    RETURN_NULL_ON_ERROR(
+        UNLOAD_IF_NOT_NULL(exprCondition);
+        PS_LS_AST_NODE_LIST_Unload(lsStatements);
+    )
+
+    // if everything went alright, allocate a new node and return it
+    ls_conditional_clause_node_t *node = malloc(sizeof(ls_conditional_clause_node_t));
+    node->base.type = LS_CONDITIONAL_CLAUSE;
+    node->kwConditional = kwConditional;
+    node->exprCondition = exprCondition;
+    node->kwThen = kwThen;
+    node->lsStatements = lsStatements;
+    return node;
+}
+
+// ---------------------------------------------------------------------------------------------------------------------
+// PARSER_parseElseClause:
+// parse the else block of an if statement
+ls_else_clause_node_t *PARSER_parseElseClause(parser_t *me) {
+
+    // expect an Else keyword
+    token_t *kwElse = PARSER_consume(me, TK_KW_ELSE);
+    RETURN_NULL_ON_ERROR()
+
+    // expect an EOS
+    PARSER_ffwToEOS(me);
+    RETURN_NULL_ON_ERROR()
+
+    // parse a block of statements until we hit an End keyword
+    token_type_t terminator = TK_KW_END;
+    ls_ast_node_list_t lsStatements = PS_LS_AST_NODE_LIST_Init();
+    PARSER_parseBlockOfStatements(me, &lsStatements, &terminator, 1);
+    RETURN_NULL_ON_ERROR(
+        PS_LS_AST_NODE_LIST_Unload(lsStatements);
+    )
+
+    // if we did it, allocate a new node and return it
+    ls_else_clause_node_t *node = malloc(sizeof(ls_else_clause_node_t));
+    node->base.type = LS_ELSE_CLAUSE;
+    node->kwElse = kwElse;
+    node->lsStatements = lsStatements;
+    return node;
+}
+
 // =====================================================================================================================
 // STATEMENTS
 // =====================================================================================================================
@@ -753,14 +843,23 @@ ls_parameter_clause_node_t *PARSER_parseParameterClause(parser_t *me) {
 // ---------------------------------------------------------------------------------------------------------------------
 // PARSER_parseBlockOfStatements:
 // parse a list or 'block' of statements until a terminator token is reached, abort on error
-void PARSER_parseBlockOfStatements(parser_t *me, ls_ast_node_list_t *lsBody, token_type_t until) {
+void PARSER_parseBlockOfStatements(parser_t *me, ls_ast_node_list_t *lsBody, token_type_t *until, uint8_t untilCount) {
 
     // parse statements for as long as we havent reached our terminator character
-    while (PS_CURRENT().type != until) {
+    while (true) {
+
+        // have we encountered one of the terminators
+        for (int i = 0; i < untilCount; ++i) {
+            if (PS_CURRENT().type == until[i]) return;
+        }
 
         // skip any EOS-es in front
         while (PS_CURRENT().type == TK_EOS) { PS_STEP() }
-        if (PS_CURRENT().type == until) break;
+
+        // check again if we have encountered one of the terminators
+        for (int i = 0; i < untilCount; ++i) {
+            if (PS_CURRENT().type == until[i]) return;
+        }
 
         // parse this statement
         ls_ast_node_t *stmt = PARSER_parseStatement(me);
@@ -801,9 +900,30 @@ ls_ast_node_t *PARSER_parseStatement(parser_t *me) {
             stmt = PARSER_parseAssignmentStatement(me, NULL);
         break;
 
+        case TK_KW_IF:
+            stmt = PARSER_parseIfStatement(me);
+        break;
+
         default:
             // if we didnt get any of these, try parsing an expression statement
+            SNAPSHOT(TRY_EXPRESSION_STATEMENT)
             stmt = PARSER_parseExpressionStatement(me);
+            ROLLBACK(TRY_EXPRESSION_STATEMENT)
+
+            // did it work?
+            if (!me->hasError) {
+                // parse it again because we rolled back the parser
+                // not great performance wise but theres nothing else i can do with the current error system
+                // this will have to be refactored in the future
+                UNLOAD_IF_NOT_NULL(stmt);
+                stmt = PARSER_parseExpressionStatement(me);
+            }
+
+            // otherwise, throw an error
+            else {
+                me->hasError = true;
+                ERROR_AT(SUB_PARSER, ERR_PS_UNEXPECTED_NON_STATEMENT, me->source, SPAN_FromToken(PS_CURRENT()), "Expected a Statement")
+            }
     }
     RETURN_NULL_ON_ERROR(
         UNLOAD_IF_NOT_NULL(stmt)
@@ -983,6 +1103,78 @@ ls_ast_node_t *PARSER_parseReDimStatement(parser_t *me) {
     node->kwPreserve  = kwPreserve;
     node->lsDimFields = lsDimFields;
 
+    return (ls_ast_node_t*)node;
+}
+
+// ---------------------------------------------------------------------------------------------------------------------
+// PARSER_parseIfStatement:
+// parse an if statement with all its elseifs and an else block
+ls_ast_node_t *PARSER_parseIfStatement(parser_t *me) {
+
+    // expect this statement to begin with an if
+    PARSER_consume(me, TK_KW_IF);
+    RETURN_NULL_ON_ERROR()
+
+    // roll this back, because the keyword will actually be parsed by a conditional clause
+    PS_STEP_BACK();
+
+    // create a list for our conditionals
+    ls_ast_node_list_t lsConditionals = PS_LS_AST_NODE_LIST_Init();
+
+    // parse the If block conditional
+    ls_conditional_clause_node_t *clsIf = PARSER_parseConditionalClause(me);
+    RETURN_NULL_ON_ERROR(
+        PS_LS_AST_NODE_LIST_Unload(lsConditionals);
+    )
+
+    // add it as the first conditional in our list
+    PS_LS_AST_NODE_LIST_Add(&lsConditionals, (ls_ast_node_t*)clsIf);
+
+    // parse ElseIf conditionals for as long as we encounter ElseIf keywords
+    while (PS_CURRENT().type == TK_KW_ELSEIF) {
+
+        // parse the ElseIf clause
+        ls_conditional_clause_node_t *clsElseIf = PARSER_parseConditionalClause(me);
+        RETURN_NULL_ON_ERROR(
+            UNLOAD_IF_NOT_NULL(clsElseIf)
+            PS_LS_AST_NODE_LIST_Unload(lsConditionals);
+        )
+
+        // add it to the list
+        PS_LS_AST_NODE_LIST_Add(&lsConditionals, (ls_ast_node_t*)clsElseIf);
+    }
+
+
+    // if theres an Else clause, parse it as well
+    ls_else_clause_node_t *clsElse = NULL;
+    if (PS_CURRENT().type == TK_KW_ELSE) {
+        clsElse = PARSER_parseElseClause(me);
+    }
+    RETURN_NULL_ON_ERROR(
+        PS_LS_AST_NODE_LIST_Unload(lsConditionals);
+        UNLOAD_IF_NOT_NULL(clsElse);
+    )
+
+    // consume the End If marker
+    token_t *kwEnd = PARSER_consume(me, TK_KW_END);
+    RETURN_NULL_ON_ERROR(
+        PS_LS_AST_NODE_LIST_Unload(lsConditionals);
+        UNLOAD_IF_NOT_NULL(clsElse);
+    )
+
+    token_t *kwEndIf = PARSER_consume(me, TK_KW_IF);
+    RETURN_NULL_ON_ERROR(
+        PS_LS_AST_NODE_LIST_Unload(lsConditionals);
+        UNLOAD_IF_NOT_NULL(clsElse);
+    )
+
+    // if we did it -> allocate and return a new node
+    ls_if_statement_node_t *node = malloc(sizeof(ls_if_statement_node_t));
+    node->base.type = LS_IF_STATEMENT;
+    node->lsConditionals = lsConditionals;
+    node->clsElse = clsElse;
+    node->kwEnd   = kwEnd;
+    node->kwEndIf = kwEndIf;
     return (ls_ast_node_t*)node;
 }
 

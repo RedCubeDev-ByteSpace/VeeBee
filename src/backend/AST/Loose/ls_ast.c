@@ -4,6 +4,7 @@
 #include <stdlib.h>
 #include "ls_ast.h"
 #include "../../Error/error.h"
+#include "Clauses/conditional_clause.h"
 #include "Clauses/dim_field_clause.h"
 
 #include "Members/function_member.h"
@@ -15,6 +16,7 @@
 #include "Statements/assignment_statement.h"
 #include "Statements/dim_statement.h"
 #include "Statements/expression_statement.h"
+#include "Statements/if_statement.h"
 #include "Statements/redim_statement.h"
 
 // ---------------------------------------------------------------------------------------------------------------------
@@ -76,6 +78,20 @@ void PS_LS_Node_Unload(ls_ast_node_t *me) {
         case LS_ASSIGNMENT_STATEMENT:
             PS_LS_Node_Unload(((ls_assignment_statement_node_t*)me)->exprTarget);
             PS_LS_Node_Unload(((ls_assignment_statement_node_t*)me)->exprValue);
+        break;
+
+        case LS_IF_STATEMENT:
+            PS_LS_AST_NODE_LIST_Unload(((ls_if_statement_node_t*)me)->lsConditionals);
+            PS_LS_Node_Unload((ls_ast_node_t*)((ls_if_statement_node_t*)me)->clsElse);
+        break;
+
+        case LS_CONDITIONAL_CLAUSE:
+            PS_LS_Node_Unload(((ls_conditional_clause_node_t*)me)->exprCondition);
+            PS_LS_AST_NODE_LIST_Unload(((ls_conditional_clause_node_t*)me)->lsStatements);
+        break;
+
+        case LS_ELSE_CLAUSE:
+            PS_LS_AST_NODE_LIST_Unload(((ls_else_clause_node_t*)me)->lsStatements);
         break;
 
         default:;

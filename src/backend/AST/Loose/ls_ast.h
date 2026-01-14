@@ -25,7 +25,7 @@ typedef enum LOOSE_NODE_TYPE {
     LS_DIM_STATEMENT           = 0x010 | 0b0000'0010,
     LS_REDIM_STATEMENT         = 0x020 | 0b0000'0010,
     LS_ASSIGNMENT_STATEMENT    = 0x030 | 0b0000'0010,
-    LS_IF_STATEMENT            = 0x040 | 0b0000'0010, // TODO
+    LS_IF_STATEMENT            = 0x040 | 0b0000'0010,
     LS_SELECT_STATEMENT        = 0x050 | 0b0000'0010, // TODO
     LS_FOR_STATEMENT           = 0x060 | 0b0000'0010, // TODO
     LS_FOR_EACH_STATEMENT      = 0x070 | 0b0000'0010, // TODO
@@ -51,6 +51,8 @@ typedef enum LOOSE_NODE_TYPE {
     LS_TYPE_FIELD_CLAUSE        = 0x30 | 0b0000'1000,
     LS_PARAMETER_CLAUSE         = 0x40 | 0b0000'1000,
     LS_DIM_FIELD_CLAUSE         = 0x50 | 0b0000'1000,
+    LS_CONDITIONAL_CLAUSE       = 0x60 | 0b0000'1000,
+    LS_ELSE_CLAUSE              = 0x70 | 0b0000'1000,
 } ls_node_type_t;
 
 #define LS_MEMBER 0b0000'0001

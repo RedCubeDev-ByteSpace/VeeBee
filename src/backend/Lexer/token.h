@@ -68,6 +68,11 @@
     GEN(TK_KW_WHILE)              \
     GEN(TK_KW_WEND)               \
                                   \
+    GEN(TK_KW_IF)                 \
+    GEN(TK_KW_ELSEIF)             \
+    GEN(TK_KW_THEN)               \
+    GEN(TK_KW_ELSE)               \
+                                  \
     GEN(TK_KW_GOTO)               \
                                   \
     GEN(TK_PC_OPEN_PARENTHESIS)   \
@@ -179,6 +184,10 @@ static const char *KEYWORDS[] = {
     "next",
     "while",
     "wend",
+    "if",
+    "elseif",
+    "then",
+    "else",
     "goto",
 };
 #define NUM_KEYWORDS (sizeof(KEYWORDS) / sizeof(KEYWORDS[0]))

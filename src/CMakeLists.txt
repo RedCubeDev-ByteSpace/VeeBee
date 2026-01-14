@@ -2,7 +2,8 @@ cmake_minimum_required(VERSION 3.30)
 project(veebee C)
 
 set(CMAKE_C_STANDARD 23)
-set(CMAKE_C_FLAGS -fsanitize=address)
+#set(CMAKE_C_FLAGS -fsanitize=address)
+#SET(CMAKE_BUILD_TYPE Debug)
 
 if (DEFINED ENV{TESTING})
     add_compile_definitions(TESTING)
@@ -46,6 +47,9 @@ add_library(veebee_backend
         backend/AST/Loose/Expressions/reference_expression.h
         backend/AST/Loose/Statements/expression_statement.h
         backend/AST/Loose/Statements/assignment_statement.h
+        backend/AST/Loose/Clauses/conditional_clause.h
+        backend/AST/Loose/Clauses/else_clause.h
+        backend/AST/Loose/Statements/if_statement.h
 )
 
 target_include_directories(veebee_backend

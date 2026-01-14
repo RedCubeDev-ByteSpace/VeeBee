@@ -12,6 +12,8 @@
 #include "../AST/Loose/Members/type_member.h"
 #include "../AST/Loose/Clauses/as_clause.h"
 #include "AST/Loose/Clauses/parameter_clause.h"
+#include "AST/Loose/Clauses/conditional_clause.h"
+#include "AST/Loose/Clauses/else_clause.h"
 #include "AST/Loose/Expressions/literal_expression.h"
 #include "AST/Loose/Expressions/reference_expression.h"
 
@@ -51,15 +53,18 @@ bool PARSER_parseTypeMember(parser_t *me);
 bool PARSER_parseFunctionMember(parser_t *me);
 bool PARSER_parseSubMember(parser_t *me);
 
-void PARSER_parseBlockOfStatements(parser_t *me, ls_ast_node_list_t *lsBody, token_type_t until);
+void PARSER_parseBlockOfStatements(parser_t *me, ls_ast_node_list_t *lsBody, token_type_t *until, uint8_t untilCount);
 ls_ast_node_t *PARSER_parseStatement(parser_t *me);
 ls_ast_node_t *PARSER_parseDimStatement(parser_t *me);
 ls_ast_node_t *PARSER_parseReDimStatement(parser_t *me);
+ls_ast_node_t *PARSER_parseIfStatement(parser_t *me);
 ls_ast_node_t *PARSER_parseAssignmentStatement(parser_t *me, ls_ast_node_t *target);
 ls_ast_node_t *PARSER_parseExpressionStatement(parser_t *me);
 
 ls_as_clause_node_t *PARSER_parseAsClause(parser_t *me, bool functionNotation, bool allowArrayRanges);
 ls_parameter_clause_node_t *PARSER_parseParameterClause(parser_t *me);
+ls_conditional_clause_node_t *PARSER_parseConditionalClause(parser_t *me);
+ls_else_clause_node_t *PARSER_parseElseClause(parser_t *me);
 
 ls_ast_node_t *PARSER_parseExpression(parser_t *me);
 ls_ast_node_t *PARSER_parsePrimaryExpression(parser_t *me);
@@ -74,6 +79,7 @@ extern token_t PARSER_EOL_Placeholder;
 #define PS_CURRENT() (me->tokens->tokens[me->pos])
 #define PS_PEEK(OFFSET) (((me->pos + OFFSET) < me->tokens->length) ? &me->tokens->tokens[me->pos + OFFSET] : &PARSER_EOL_Placeholder)
 #define PS_STEP() if (!AT_EOL()) { me->pos++; }
+#define PS_STEP_BACK() if (me->pos > 0) { me->pos--; }
 
 #define RETURN_ON_ERROR(FREE_ACTION) \
     if (me->hasError) {              \
