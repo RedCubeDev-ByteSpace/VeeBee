@@ -58,12 +58,13 @@ ls_ast_node_t *PARSER_parseStatement(parser_t *me);
 ls_ast_node_t *PARSER_parseDimStatement(parser_t *me);
 ls_ast_node_t *PARSER_parseReDimStatement(parser_t *me);
 ls_ast_node_t *PARSER_parseIfStatement(parser_t *me);
+ls_ast_node_t *PARSER_parseSelectStatement(parser_t *me);
 ls_ast_node_t *PARSER_parseAssignmentStatement(parser_t *me, ls_ast_node_t *target);
 ls_ast_node_t *PARSER_parseExpressionStatement(parser_t *me);
 
 ls_as_clause_node_t *PARSER_parseAsClause(parser_t *me, bool functionNotation, bool allowArrayRanges);
 ls_parameter_clause_node_t *PARSER_parseParameterClause(parser_t *me);
-ls_conditional_clause_node_t *PARSER_parseConditionalClause(parser_t *me);
+ls_conditional_clause_node_t *PARSER_parseConditionalClause(parser_t *me, token_type_t expectedConditionalKeyword);
 ls_else_clause_node_t *PARSER_parseElseClause(parser_t *me);
 
 ls_ast_node_t *PARSER_parseExpression(parser_t *me);

@@ -13,6 +13,7 @@
 #include "AST/Loose/Statements/redim_statement.h"
 #include "AST/Loose/Statements/assignment_statement.h"
 #include "AST/Loose/Statements/if_statement.h"
+#include "AST/Loose/Statements/select_statement.h"
 #include "AST/Loose/Statements/expression_statement.h"
 #include "AST/Loose/Members/function_member.h"
 #include "AST/Loose/Members/sub_member.h"
@@ -752,18 +753,11 @@ ls_parameter_clause_node_t *PARSER_parseParameterClause(parser_t *me) {
 // ---------------------------------------------------------------------------------------------------------------------
 // PARSER_parseConditionalClause:
 // parse conditional clause like an if or an elseif block
-ls_conditional_clause_node_t *PARSER_parseConditionalClause(parser_t *me) {
-    token_t *kwConditional = NULL;
+ls_conditional_clause_node_t *PARSER_parseConditionalClause(parser_t *me, token_type_t expectedConditionalKeyword) {
 
-    // parse an ElseIf keyword if there is one
-    if (PS_CURRENT().type == TK_KW_ELSEIF) {
-        kwConditional = PARSER_consume(me, TK_KW_ELSEIF);
-    }
-
-    // if theres no ElseIf keyword, parse an If keyword
-    else {
-        kwConditional = PARSER_consume(me, TK_KW_IF);
-    }
+    // parse the expected conditional keyword for this clause
+    // based on the context it may be If, ElseIf, or Case
+    token_t *kwConditional = PARSER_consume(me, expectedConditionalKeyword);
     RETURN_NULL_ON_ERROR()
 
     // parse the condition
@@ -772,8 +766,11 @@ ls_conditional_clause_node_t *PARSER_parseConditionalClause(parser_t *me) {
         UNLOAD_IF_NOT_NULL(exprCondition);
     )
 
-    // expect a Then keyword
-    token_t *kwThen = PARSER_consume(me, TK_KW_THEN);
+    // if this is not a case statement, expect a Then keyword
+    token_t *kwThen = NULL;
+    if (expectedConditionalKeyword != TK_KW_CASE) {
+        kwThen = PARSER_consume(me, TK_KW_THEN);
+    }
     RETURN_NULL_ON_ERROR(
         UNLOAD_IF_NOT_NULL(exprCondition);
     )
@@ -784,14 +781,15 @@ ls_conditional_clause_node_t *PARSER_parseConditionalClause(parser_t *me) {
         UNLOAD_IF_NOT_NULL(exprCondition);
     )
 
-    // parse a block of statements until we either hit an ElseIf, Else, or End keyword
-    token_type_t terminators[3] = {
+    // parse a block of statements until we either hit an ElseIf, Else, Case, or End keyword
+    token_type_t terminators[4] = {
         TK_KW_ELSEIF,
         TK_KW_ELSE,
+        TK_KW_CASE,
         TK_KW_END,
     };
     ls_ast_node_list_t lsStatements = PS_LS_AST_NODE_LIST_Init();
-    PARSER_parseBlockOfStatements(me, &lsStatements, terminators, 3);
+    PARSER_parseBlockOfStatements(me, &lsStatements, terminators, 4);
     RETURN_NULL_ON_ERROR(
         UNLOAD_IF_NOT_NULL(exprCondition);
         PS_LS_AST_NODE_LIST_Unload(lsStatements);
@@ -811,6 +809,12 @@ ls_conditional_clause_node_t *PARSER_parseConditionalClause(parser_t *me) {
 // PARSER_parseElseClause:
 // parse the else block of an if statement
 ls_else_clause_node_t *PARSER_parseElseClause(parser_t *me) {
+
+    // if theres a Case keyword, consume it
+    token_t *kwCase = NULL;
+    if (PS_CURRENT().type == TK_KW_CASE) {
+        kwCase = PARSER_consume(me, TK_KW_CASE);
+    }
 
     // expect an Else keyword
     token_t *kwElse = PARSER_consume(me, TK_KW_ELSE);
@@ -902,6 +906,10 @@ ls_ast_node_t *PARSER_parseStatement(parser_t *me) {
 
         case TK_KW_IF:
             stmt = PARSER_parseIfStatement(me);
+        break;
+
+        case TK_KW_SELECT:
+            stmt = PARSER_parseSelectStatement(me);
         break;
 
         default:
@@ -1122,7 +1130,7 @@ ls_ast_node_t *PARSER_parseIfStatement(parser_t *me) {
     ls_ast_node_list_t lsConditionals = PS_LS_AST_NODE_LIST_Init();
 
     // parse the If block conditional
-    ls_conditional_clause_node_t *clsIf = PARSER_parseConditionalClause(me);
+    ls_conditional_clause_node_t *clsIf = PARSER_parseConditionalClause(me, TK_KW_IF);
     RETURN_NULL_ON_ERROR(
         PS_LS_AST_NODE_LIST_Unload(lsConditionals);
     )
@@ -1134,7 +1142,7 @@ ls_ast_node_t *PARSER_parseIfStatement(parser_t *me) {
     while (PS_CURRENT().type == TK_KW_ELSEIF) {
 
         // parse the ElseIf clause
-        ls_conditional_clause_node_t *clsElseIf = PARSER_parseConditionalClause(me);
+        ls_conditional_clause_node_t *clsElseIf = PARSER_parseConditionalClause(me, TK_KW_ELSEIF);
         RETURN_NULL_ON_ERROR(
             UNLOAD_IF_NOT_NULL(clsElseIf)
             PS_LS_AST_NODE_LIST_Unload(lsConditionals);
@@ -1175,6 +1183,99 @@ ls_ast_node_t *PARSER_parseIfStatement(parser_t *me) {
     node->clsElse = clsElse;
     node->kwEnd   = kwEnd;
     node->kwEndIf = kwEndIf;
+    return (ls_ast_node_t*)node;
+}
+
+// ---------------------------------------------------------------------------------------------------------------------
+// PARSER_parseSelectStatement:
+// parse VBAs equivilant to a switch statement
+ls_ast_node_t *PARSER_parseSelectStatement(parser_t *me) {
+
+    // expect a Select keyword
+    token_t *kwSelect = PARSER_consume(me, TK_KW_SELECT);
+    RETURN_NULL_ON_ERROR()
+
+    // expect a Case keyword
+    token_t *kwCase = PARSER_consume(me, TK_KW_CASE);
+    RETURN_NULL_ON_ERROR()
+
+    // parse the expression we are going to select on
+    ls_ast_node_t *exprTest = PARSER_parseExpression(me);
+    RETURN_NULL_ON_ERROR(
+        UNLOAD_IF_NOT_NULL(exprTest)
+    )
+
+    // expect an EOS
+    PARSER_ffwToEOS(me);
+    RETURN_NULL_ON_ERROR(
+        UNLOAD_IF_NOT_NULL(exprTest)
+    )
+
+    // create a list for our case conditionals
+    ls_ast_node_list_t lsConditionals = PS_LS_AST_NODE_LIST_Init();
+
+    // and a placeholder for our potential else case
+    ls_else_clause_node_t *clsElse = NULL;
+
+    // parse select cases until we reach an End keyword
+    while (PS_CURRENT().type != TK_KW_END) {
+
+        // is this a Case Else branch?
+        if (PS_PEEK(1)->type != TK_KW_ELSE) {
+
+            // nope -> parse a case conditional
+            ls_conditional_clause_node_t *clsCase = PARSER_parseConditionalClause(me, TK_KW_CASE);
+            RETURN_NULL_ON_ERROR(
+                UNLOAD_IF_NOT_NULL(exprTest)
+                UNLOAD_IF_NOT_NULL(clsCase)
+                PS_LS_AST_NODE_LIST_Unload(lsConditionals);
+            )
+
+            // add it to the list
+            PS_LS_AST_NODE_LIST_Add(&lsConditionals, (ls_ast_node_t*)clsCase);
+        }
+
+        // otherwise, if this is an else case
+        else {
+
+            // parse a Case Else block
+            clsElse = PARSER_parseElseClause(me);
+            RETURN_NULL_ON_ERROR(
+                UNLOAD_IF_NOT_NULL(exprTest)
+                UNLOAD_IF_NOT_NULL(clsElse)
+                PS_LS_AST_NODE_LIST_Unload(lsConditionals);
+            )
+
+            // break out of this loop, the else case is always the last one in a select
+            break;
+        }
+    }
+
+    // expect an End Select marker
+    token_t *kwEnd = PARSER_consume(me, TK_KW_END);
+    RETURN_NULL_ON_ERROR(
+        UNLOAD_IF_NOT_NULL(exprTest)
+        UNLOAD_IF_NOT_NULL(clsElse)
+        PS_LS_AST_NODE_LIST_Unload(lsConditionals);
+    )
+
+    token_t *kwEndSelect = PARSER_consume(me, TK_KW_SELECT);
+    RETURN_NULL_ON_ERROR(
+        UNLOAD_IF_NOT_NULL(exprTest)
+        UNLOAD_IF_NOT_NULL(clsElse)
+        PS_LS_AST_NODE_LIST_Unload(lsConditionals);
+    )
+
+    // if everything's ok, allocate and return this node
+    ls_select_statement_node_t *node = malloc(sizeof(ls_select_statement_node_t));
+    node->base.type = LS_SELECT_STATEMENT;
+    node->kwSelect       = kwSelect;
+    node->kwCase         = kwCase;
+    node->exprTest       = exprTest;
+    node->lsConditionals = lsConditionals;
+    node->clsElse        = clsElse;
+    node->kwEnd          = kwEnd;
+    node->kwEndSelect    = kwEndSelect;
     return (ls_ast_node_t*)node;
 }
 

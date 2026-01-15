@@ -23,6 +23,7 @@
 #include "AST/Loose/Statements/expression_statement.h"
 #include "AST/Loose/Statements/if_statement.h"
 #include "AST/Loose/Statements/redim_statement.h"
+#include "AST/Loose/Statements/select_statement.h"
 
 char DBG_INDENT_BUFFER[256];
 int DBG_INDENT_LENGTH;
@@ -373,6 +374,17 @@ void DBG_PRETTY_PRINT_Print_LSAstNode(ls_ast_node_t *me, bool finalEntry) {
         NODE(LS_ELSE_CLAUSE)
             FIELD_FINAL("Statements")
             SUBNODES(((ls_else_clause_node_t*)me)->lsStatements, true)
+        END_NODE()
+
+        NODE(LS_SELECT_STATEMENT)
+            FIELD("Test")
+            SUBNODE(((ls_select_statement_node_t*)me)->exprTest, false)
+
+            FIELD("Cases")
+            SUBNODES(((ls_select_statement_node_t*)me)->lsConditionals, false)
+
+            FIELD_FINAL("Case Else")
+            SUBNODE(((ls_select_statement_node_t*)me)->clsElse, true)
         END_NODE()
 
         default:;

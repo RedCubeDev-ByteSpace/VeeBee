@@ -18,6 +18,7 @@
 typedef struct LS_ELSE_CLAUSE_NODE {
     ls_ast_node_t base;
 
+    token_t *kwCase;
     token_t *kwElse;
     ls_ast_node_list_t lsStatements;
 

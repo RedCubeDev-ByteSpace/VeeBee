@@ -73,6 +73,9 @@
     GEN(TK_KW_THEN)               \
     GEN(TK_KW_ELSE)               \
                                   \
+    GEN(TK_KW_SELECT)             \
+    GEN(TK_KW_CASE)               \
+                                  \
     GEN(TK_KW_GOTO)               \
                                   \
     GEN(TK_PC_OPEN_PARENTHESIS)   \
@@ -188,6 +191,8 @@ static const char *KEYWORDS[] = {
     "elseif",
     "then",
     "else",
+    "select",
+    "case",
     "goto",
 };
 #define NUM_KEYWORDS (sizeof(KEYWORDS) / sizeof(KEYWORDS[0]))
