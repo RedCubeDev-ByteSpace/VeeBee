@@ -57,6 +57,8 @@ void PARSER_parseBlockOfStatements(parser_t *me, ls_ast_node_list_t *lsBody, tok
 ls_ast_node_t *PARSER_parseStatement(parser_t *me);
 ls_ast_node_t *PARSER_parseDimStatement(parser_t *me);
 ls_ast_node_t *PARSER_parseReDimStatement(parser_t *me);
+ls_ast_node_t *PARSER_parseGotoStatement(parser_t *me);
+ls_ast_node_t *PARSER_parseLabelStatement(parser_t *me);
 ls_ast_node_t *PARSER_parseIfStatement(parser_t *me);
 ls_ast_node_t *PARSER_parseSelectStatement(parser_t *me);
 ls_ast_node_t *PARSER_parseAssignmentStatement(parser_t *me, ls_ast_node_t *target);

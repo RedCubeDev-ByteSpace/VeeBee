@@ -12,6 +12,8 @@
 #include "AST/Loose/Statements/dim_statement.h"
 #include "AST/Loose/Statements/redim_statement.h"
 #include "AST/Loose/Statements/assignment_statement.h"
+#include "AST/Loose/Statements/goto_statement.h"
+#include "AST/Loose/Statements/label_statement.h"
 #include "AST/Loose/Statements/if_statement.h"
 #include "AST/Loose/Statements/select_statement.h"
 #include "AST/Loose/Statements/expression_statement.h"
@@ -912,6 +914,16 @@ ls_ast_node_t *PARSER_parseStatement(parser_t *me) {
             stmt = PARSER_parseSelectStatement(me);
         break;
 
+        case TK_KW_GOTO:
+            stmt = PARSER_parseGotoStatement(me);
+        break;
+
+        case TK_IDENTIFIER:
+            if (PS_PEEK(1)->type == TK_EOS && PS_PEEK(1)->strValue != NULL) {
+                stmt = PARSER_parseLabelStatement(me);
+                break;
+            }
+
         default:
             // if we didnt get any of these, try parsing an expression statement
             SNAPSHOT(TRY_EXPRESSION_STATEMENT)
@@ -1111,6 +1123,43 @@ ls_ast_node_t *PARSER_parseReDimStatement(parser_t *me) {
     node->kwPreserve  = kwPreserve;
     node->lsDimFields = lsDimFields;
 
+    return (ls_ast_node_t*)node;
+}
+
+// ---------------------------------------------------------------------------------------------------------------------
+// PARSER_parseGotoStatement:
+// parse a classic good old goto statement :)
+ls_ast_node_t *PARSER_parseGotoStatement(parser_t *me) {
+
+    // consume the goto keyword
+    token_t *kwGoto = PARSER_consume(me, TK_KW_GOTO);
+    RETURN_NULL_ON_ERROR()
+
+    // consume the label we're jumping to
+    token_t *idLabel = PARSER_consume(me, TK_IDENTIFIER);
+    RETURN_NULL_ON_ERROR()
+
+    // allocate and return a new node
+    ls_goto_statement_node_t *node = malloc(sizeof(ls_goto_statement_node_t));
+    node->base.type = LS_GOTO_STATEMENT;
+    node->kwGoto    = kwGoto;
+    node->idLabel   = idLabel;
+    return (ls_ast_node_t*)node;
+}
+
+// ---------------------------------------------------------------------------------------------------------------------
+// PARSER_parseLabelStatement:
+// parse a lil label
+ls_ast_node_t *PARSER_parseLabelStatement(parser_t *me) {
+
+    // parse the labels identfier
+    token_t *idLabel = PARSER_consume(me, TK_IDENTIFIER);
+    RETURN_NULL_ON_ERROR()
+
+    // allocate and return this node
+    ls_label_statement_node_t *node = malloc(sizeof(ls_label_statement_node_t));
+    node->base.type = LS_LABEL_STATEMENT;
+    node->idLabel   = idLabel;
     return (ls_ast_node_t*)node;
 }
 

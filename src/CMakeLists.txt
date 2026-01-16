@@ -51,6 +51,8 @@ add_library(veebee_backend
         backend/AST/Loose/Clauses/else_clause.h
         backend/AST/Loose/Statements/if_statement.h
         backend/AST/Loose/Statements/select_statement.h
+        backend/AST/Loose/Statements/goto_statement.h
+        backend/AST/Loose/Statements/label_statement.h
 )
 
 target_include_directories(veebee_backend

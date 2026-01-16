@@ -21,7 +21,9 @@
 #include "AST/Loose/Statements/assignment_statement.h"
 #include "AST/Loose/Statements/dim_statement.h"
 #include "AST/Loose/Statements/expression_statement.h"
+#include "AST/Loose/Statements/goto_statement.h"
 #include "AST/Loose/Statements/if_statement.h"
+#include "AST/Loose/Statements/label_statement.h"
 #include "AST/Loose/Statements/redim_statement.h"
 #include "AST/Loose/Statements/select_statement.h"
 
@@ -385,6 +387,16 @@ void DBG_PRETTY_PRINT_Print_LSAstNode(ls_ast_node_t *me, bool finalEntry) {
 
             FIELD_FINAL("Case Else")
             SUBNODE(((ls_select_statement_node_t*)me)->clsElse, true)
+        END_NODE()
+
+        NODE(LS_GOTO_STATEMENT)
+            FIELD_FINAL("Label")
+            VALUE(((ls_goto_statement_node_t*)me)->idLabel)
+        END_NODE()
+
+        NODE(LS_LABEL_STATEMENT)
+            FIELD_FINAL("Label")
+            VALUE(((ls_label_statement_node_t*)me)->idLabel)
         END_NODE()
 
         default:;
