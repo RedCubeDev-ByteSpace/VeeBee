@@ -55,6 +55,8 @@ static const char *SUBSYSTEM_NAMES[] = {
     GEN(ERR_PS_UNEXPECTED_NON_EXPRESSION)             \
     GEN(ERR_PS_UNEXPECTED_NON_STATEMENT)              \
     GEN(ERR_PS_UNEXPECTED_AS_CLAUSE)                  \
+    GEN(ERR_PS_EXPECTED_UNARY_OPERATOR)               \
+    GEN(ERR_PS_EXPECTED_BINARY_OPERATOR)              \
 
 // Error type enum
 typedef enum ERR_ERROR_TYPE {

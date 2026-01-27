@@ -21,6 +21,9 @@
 #include "AST/Loose/Statements/while_statement.h"
 #include "AST/Loose/Statements/do_statement.h"
 #include "AST/Loose/Statements/expression_statement.h"
+#include "AST/Loose/Expressions/unary_expression.h"
+#include "AST/Loose/Expressions/binary_expression.h"
+#include "AST/Loose/Expressions/parenthesized_expression.h"
 #include "AST/Loose/Members/function_member.h"
 #include "AST/Loose/Members/sub_member.h"
 #include "Error/error.h"
@@ -1668,8 +1671,8 @@ ls_ast_node_t *PARSER_parseAssignmentStatement(parser_t *me, ls_ast_node_t *targ
 // PARSER_parseExpressionStatement:
 // some expressions are allowed to be used as statements, like function calls
 ls_ast_node_t *PARSER_parseExpressionStatement(parser_t *me) {
-    // parse an expression
-    ls_ast_node_t *exprExpression = PARSER_parseExpression(me);
+    // parse a reference expression, only expression currently allowed to be used like a statement
+    ls_ast_node_t *exprExpression = (ls_ast_node_t*)PARSER_parseReferenceExpression(me, NULL, false);
     RETURN_NULL_ON_ERROR()
 
     // wrap it in an expression statement and return it
@@ -1684,7 +1687,87 @@ ls_ast_node_t *PARSER_parseExpressionStatement(parser_t *me) {
 // =====================================================================================================================
 
 ls_ast_node_t *PARSER_parseExpression(parser_t *me) {
-    return PARSER_parsePrimaryExpression(me);
+    return PARSER_parseBinaryExpression(me, 0);
+}
+
+ls_ast_node_t *PARSER_parseBinaryExpression(parser_t *me, int parentPrecedence) {
+
+    // is this actually a unary expression?
+    int unaryPrecendence = LX_TOKEN_GetUnaryOperatorPrecedence(PS_CURRENT().type);
+    if (unaryPrecendence > 0) {
+        return PARSER_parseUnaryExpression(me, parentPrecedence);
+    }
+
+    // otherwise, start by parsing our left side
+    ls_ast_node_t *exprLeft = PARSER_parsePrimaryExpression(me);
+    RETURN_NULL_ON_ERROR();
+
+    // parse binary expressions until our precedence forces us to return control back to the caller
+    while (true) {
+
+        // get the precedence of the current token
+        int binaryPrecedence = LX_TOKEN_GetBinaryOperatorPrecedence(PS_CURRENT().type);
+        RETURN_NULL_ON_ERROR(
+            UNLOAD_IF_NOT_NULL(exprLeft)
+        )
+
+        // if its not an operator or of less precedence than our current operator
+        // -> hand control back to the parent
+        if (binaryPrecedence == 0 || binaryPrecedence <= parentPrecedence)
+            break;
+
+        // consume this operator
+        token_t *opOperator = PARSER_consume(me, PS_CURRENT().type);
+        RETURN_NULL_ON_ERROR(
+            UNLOAD_IF_NOT_NULL(exprLeft)
+        )
+
+        // consume the right side of this expression
+        ls_ast_node_t *exprRight = PARSER_parseBinaryExpression(me, binaryPrecedence);
+        RETURN_NULL_ON_ERROR(
+            UNLOAD_IF_NOT_NULL(exprLeft)
+            UNLOAD_IF_NOT_NULL(exprRight)
+        )
+
+        // wrap left and right up in a binary expression and continue parsing
+        ls_binary_expression_node_t *node = malloc(sizeof(ls_binary_expression_node_t));
+        node->base.type = LS_BINARY_EXPRESSION;
+        node->opOperator = opOperator;
+        node->exprLeft  = exprLeft;
+        node->exprRight = exprRight;
+
+        // use this binary expression as our new left and carry on
+        exprLeft = (ls_ast_node_t*)node;
+    }
+
+    // return whatever we have in the left expression value
+    return exprLeft;
+}
+
+ls_ast_node_t *PARSER_parseUnaryExpression(parser_t *me, int parentPrecedence) {
+
+    // make sure this is a unary operator
+    int unaryPrecedence = LX_TOKEN_GetUnaryOperatorPrecedence(PS_CURRENT().type);
+    if (unaryPrecedence == 0) {
+        PS_ERROR_SPLICE_AT(SUB_PARSER, ERR_PS_EXPECTED_UNARY_OPERATOR, me->source, SPAN_FromToken(PS_CURRENT()), "Expected a binary operator ('+', '-', 'Not'), got '%s' instead.", TOKEN_TYPE_STRING[PS_CURRENT().type])
+        me->hasError = true;
+        return NULL;
+    }
+
+    // consume the current token as an operator
+    token_t *opOperator = PARSER_consume(me, PS_CURRENT().type);
+    RETURN_NULL_ON_ERROR()
+
+    // consume the operand
+    ls_ast_node_t *exprOperand = PARSER_parseBinaryExpression(me, unaryPrecedence);
+    RETURN_NULL_ON_ERROR()
+
+    // allocate and return a new node
+    ls_unary_expression_node_t *node = malloc(sizeof(ls_unary_expression_node_t));
+    node->base.type = LS_UNARY_EXPRESSION;
+    node->opOperator  = opOperator;
+    node->exprOperand = exprOperand;
+    return (ls_ast_node_t*)node;
 }
 
 // ---------------------------------------------------------------------------------------------------------------------
@@ -1698,20 +1781,24 @@ ls_ast_node_t *PARSER_parsePrimaryExpression(parser_t *me) {
         case TK_LT_STRING:
         case TK_LT_NUMBER:
         case TK_LT_BOOLEAN:
-            return (ls_ast_node_t*)PARSER_parseLiteralExpression(me);
+            return PARSER_parseLiteralExpression(me);
+
+        // Parenthesized expressions
+        case TK_PC_OPEN_PARENTHESIS:
+            return PARSER_parseParenthesizedExpression(me);
 
         // Name or call expressions  are being parsed as reference expressions
         // reference expressions are made out of chains of name and call expressions
         // e.g.: myObject.myField.cry()
         case TK_IDENTIFIER:
-            ls_ast_node_t *base = (ls_ast_node_t*)PARSER_parseReferenceExpression(me, NULL);
+            ls_ast_node_t *base = PARSER_parseReferenceExpression(me, NULL, true);
             RETURN_NULL_ON_ERROR(
                 PS_LS_Node_Unload(base);
             )
 
             // as long as we find a chaining period, parse more reference chain links
             while (PS_CURRENT().type == TK_PC_PERIOD) {
-                ls_ast_node_t *newBase = (ls_ast_node_t*)PARSER_parseReferenceExpression(me, base);
+                ls_ast_node_t *newBase = PARSER_parseReferenceExpression(me, base, true);
                 RETURN_NULL_ON_ERROR(
                     PS_LS_Node_Unload(base);
                 )
@@ -1734,7 +1821,7 @@ ls_ast_node_t *PARSER_parsePrimaryExpression(parser_t *me) {
 // ---------------------------------------------------------------------------------------------------------------------
 // PARSER_parseLiteralExpression:
 // parse a literal like a double quoted string, number, or boolean keyword
-ls_literal_expression_node_t *PARSER_parseLiteralExpression(parser_t *me) {
+ls_ast_node_t *PARSER_parseLiteralExpression(parser_t *me) {
 
     // our actual literal token
     token_t *ltLiteral = NULL;
@@ -1760,13 +1847,43 @@ ls_literal_expression_node_t *PARSER_parseLiteralExpression(parser_t *me) {
     ls_literal_expression_node_t *node = malloc(sizeof(ls_literal_expression_node_t));
     node->base.type = LS_LITERAL_EXPRESSION;
     node->ltLiteral = ltLiteral;
-    return node;
+    return (ls_ast_node_t*)node;
+}
+
+// ---------------------------------------------------------------------------------------------------------------------
+// PARSER_parseParenthesizedExpression:
+// parse an expression wrapped in parentheses
+ls_ast_node_t *PARSER_parseParenthesizedExpression(parser_t *me) {
+
+    // consume the opening parenthesis
+    token_t *pcOpeningParenthesis = PARSER_consume(me, TK_PC_OPEN_PARENTHESIS);
+    RETURN_NULL_ON_ERROR()
+
+    // consume the inner expression
+    ls_ast_node_t *exprInner = PARSER_parseExpression(me);
+    RETURN_NULL_ON_ERROR(
+        UNLOAD_IF_NOT_NULL(exprInner)
+    )
+
+    // consume the closing parenthesis
+    token_t *pcClosingParenthesis = PARSER_consume(me, TK_PC_CLOSED_PARENTHESIS);
+    RETURN_NULL_ON_ERROR(
+        UNLOAD_IF_NOT_NULL(exprInner)
+    )
+
+    // allocate and return a new node
+    ls_parenthesized_expression_node_t *node = malloc(sizeof(ls_parenthesized_expression_node_t));
+    node->base.type = LS_PARENTHESIZED_EXPRESSION;
+    node->pcOpeningParenthesis = pcOpeningParenthesis;
+    node->exprInner = exprInner;
+    node->pcClosingParenthesis = pcClosingParenthesis;
+    return (ls_ast_node_t*)node;
 }
 
 // ---------------------------------------------------------------------------------------------------------------------
 // PARSER_parseReferenceExpression:
 // parse a part of a reference chain, may be a variable access or function call
-ls_reference_expression_node_t *PARSER_parseReferenceExpression(parser_t *me, ls_ast_node_t *exprBase) {
+ls_ast_node_t *PARSER_parseReferenceExpression(parser_t *me, ls_ast_node_t *exprBase, bool mustReturnValue) {
     // if theres a period -> consume it
     if (PS_CURRENT().type == TK_PC_PERIOD) {
         PARSER_consume(me, TK_PC_PERIOD);
@@ -1815,39 +1932,45 @@ ls_reference_expression_node_t *PARSER_parseReferenceExpression(parser_t *me, ls
     // -----------------------------------------------------------------------------------------------------------------
     // Subroutine call
     else {
-        // try parsing an expression after this, if we get one, its probably an argument
-        SNAPSHOT(SUB_TRY_ARG)
-        ls_ast_node_t *exprArg = PARSER_parseExpression(me);
-        ROLLBACK(SUB_TRY_ARG)
 
-        // has this worked?
-        if (!me->hasError) {
-            PS_LS_Node_Unload(exprArg);
+        // subroutines dont return a value
+        // if we dont need to return one -> try to parse a subroutine call
+        if (!mustReturnValue) {
 
-            // as long as we are not at the end of the argument list
-            while (PS_CURRENT().type != TK_EOS) {
-                // parse this expression
-                exprArg = PARSER_parseExpression(me);
-                RETURN_NULL_ON_ERROR(
-                    PS_LS_AST_NODE_LIST_Unload(lsArguments);
-                )
+            // try parsing an expression after this, if we get one, its probably an argument
+            SNAPSHOT(SUB_TRY_ARG)
+            ls_ast_node_t *exprArg = PARSER_parseExpression(me);
+            ROLLBACK(SUB_TRY_ARG)
 
-                // if we're not at the end -> expect a comma
-                if (PS_CURRENT().type != TK_EOS) {
-                    PARSER_consume(me, TK_PC_COMMA);
+            // has this worked?
+            if (!me->hasError) {
+                PS_LS_Node_Unload(exprArg);
+
+                // as long as we are not at the end of the argument list
+                while (PS_CURRENT().type != TK_EOS) {
+                    // parse this expression
+                    exprArg = PARSER_parseExpression(me);
+                    RETURN_NULL_ON_ERROR(
+                        PS_LS_AST_NODE_LIST_Unload(lsArguments);
+                    )
+
+                    // if we're not at the end -> expect a comma
+                    if (PS_CURRENT().type != TK_EOS) {
+                        PARSER_consume(me, TK_PC_COMMA);
+                    }
+                    RETURN_NULL_ON_ERROR(
+                        PS_LS_AST_NODE_LIST_Unload(lsArguments);
+                    )
+
+                    // add this argument to the list
+                    PS_LS_AST_NODE_LIST_Add(&lsArguments, exprArg);
                 }
-                RETURN_NULL_ON_ERROR(
-                    PS_LS_AST_NODE_LIST_Unload(lsArguments);
-                )
-
-                // add this argument to the list
-                PS_LS_AST_NODE_LIST_Add(&lsArguments, exprArg);
             }
-        }
 
-        //otherwise -> no sub call
-        else {
-            me->hasError = false;
+            //otherwise -> no sub call
+            else {
+                me->hasError = false;
+            }
         }
     }
 
@@ -1864,7 +1987,7 @@ ls_reference_expression_node_t *PARSER_parseReferenceExpression(parser_t *me, ls
     node->pcOpenParenthesis = pcOpenParenthesis;
     node->lsArguments = lsArguments;
     node->pcClosedParenthesis = pcClosedParenthesis;
-    return node;
+    return (ls_ast_node_t*)node;
 }
 
 // =====================================================================================================================

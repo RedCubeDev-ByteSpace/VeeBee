@@ -12,7 +12,10 @@
 #include "Members/type_member.h"
 #include "Clauses/parameter_clause.h"
 #include "Clauses/type_field_clause.h"
+#include "Expressions/binary_expression.h"
+#include "Expressions/parenthesized_expression.h"
 #include "Expressions/reference_expression.h"
+#include "Expressions/unary_expression.h"
 #include "Statements/assignment_statement.h"
 #include "Statements/dim_statement.h"
 #include "Statements/do_statement.h"
@@ -119,6 +122,19 @@ void PS_LS_Node_Unload(ls_ast_node_t *me) {
         case LS_DO_STATEMENT:
             PS_LS_Node_Unload(((ls_do_statement_node_t*)me)->exprCondition);
             PS_LS_AST_NODE_LIST_Unload(((ls_do_statement_node_t*)me)->lsBody);
+        break;
+
+        case LS_UNARY_EXPRESSION:
+            PS_LS_Node_Unload(((ls_unary_expression_node_t*)me)->exprOperand);
+        break;
+
+        case LS_BINARY_EXPRESSION:
+            PS_LS_Node_Unload(((ls_binary_expression_node_t*)me)->exprLeft);
+            PS_LS_Node_Unload(((ls_binary_expression_node_t*)me)->exprRight);
+        break;
+
+        case LS_PARENTHESIZED_EXPRESSION:
+            PS_LS_Node_Unload(((ls_parenthesized_expression_node_t*)me)->exprInner);
         break;
 
         default:;

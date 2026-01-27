@@ -143,11 +143,29 @@ void LEXER_Lex(lexer_t *me) {
         // ------------------
         bool ok = false;
         for (int i = 0; i < NUM_PUNC_AND_OPS; ++i) {
-            if (current == PUNCTUATION_AND_OPERATORS[i]) {
-                STEP()
-                LX_TOKEN_LIST_Add(&me->tokens, LEXER_createToken(me, TK_PC_OPEN_PARENTHESIS + i, me->pos, me->pos+1));
+            ok = true;
 
-                ok = true;
+            // check if we match this operator character by character
+            for (int c = 0; c < strlen(PUNCTUATION_AND_OPERATORS[i]); ++c) {
+                ok &= (PUNCTUATION_AND_OPERATORS[i][c] == PEEK(c));
+            }
+
+            // did we find it?
+            if (ok) {
+                uint64_t startingPos = me->pos;
+                for (int s = 0; s < strlen(PUNCTUATION_AND_OPERATORS[i]); ++s) {
+                    STEP()
+                }
+
+                // create a new token object
+                token_t newToken = LEXER_createToken(me, TK_PC_OPEN_PARENTHESIS + i, startingPos, me->pos);
+
+                // copy its string value into the token
+                LEXER_copyTokenValue(me, &newToken, startingPos, me->pos);
+
+                // add it to the global token buffer
+                LX_TOKEN_LIST_Add(&me->tokens, newToken);
+
                 break;
             }
         }

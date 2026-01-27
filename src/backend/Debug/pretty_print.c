@@ -12,8 +12,11 @@
 #include "AST/Loose/Clauses/dim_field_clause.h"
 #include "AST/Loose/Clauses/parameter_clause.h"
 #include "AST/Loose/Clauses/type_field_clause.h"
+#include "AST/Loose/Expressions/binary_expression.h"
 #include "AST/Loose/Expressions/literal_expression.h"
+#include "AST/Loose/Expressions/parenthesized_expression.h"
 #include "AST/Loose/Expressions/reference_expression.h"
+#include "AST/Loose/Expressions/unary_expression.h"
 #include "AST/Loose/Members/function_member.h"
 #include "AST/Loose/Members/module_member.h"
 #include "AST/Loose/Members/sub_member.h"
@@ -445,6 +448,30 @@ void DBG_PRETTY_PRINT_Print_LSAstNode(ls_ast_node_t *me, bool finalEntry) {
         NODE(LS_EXIT_STATEMENT)
             FIELD_FINAL("Container")
             VALUE(((ls_exit_statement_node_t*)me)->kwContainer)
+        END_NODE()
+
+        NODE(LS_UNARY_EXPRESSION)
+            FIELD("Operator")
+            VALUE(((ls_unary_expression_node_t*)me)->opOperator)
+
+            FIELD_FINAL("Operand")
+            SUBNODE(((ls_unary_expression_node_t*)me)->exprOperand, true)
+        END_NODE()
+
+        NODE(LS_BINARY_EXPRESSION)
+            FIELD("Operator")
+            VALUE(((ls_binary_expression_node_t*)me)->opOperator)
+
+            FIELD("LeftOperand")
+            SUBNODE(((ls_binary_expression_node_t*)me)->exprLeft, false)
+
+            FIELD_FINAL("RightOperand")
+            SUBNODE(((ls_binary_expression_node_t*)me)->exprRight, true)
+        END_NODE()
+
+        NODE(LS_PARENTHESIZED_EXPRESSION)
+            FIELD_FINAL("Inner")
+            SUBNODE(((ls_parenthesized_expression_node_t*)me)->exprInner, true)
         END_NODE()
 
         default:;

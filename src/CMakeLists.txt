@@ -57,6 +57,9 @@ add_library(veebee_backend
         backend/AST/Loose/Statements/while_statement.h
         backend/AST/Loose/Statements/do_statement.h
         backend/AST/Loose/Statements/exit_statement.h
+        backend/AST/Loose/Expressions/unary_expression.h
+        backend/AST/Loose/Expressions/binary_expression.h
+        backend/AST/Loose/Expressions/parenthesized_expression.h
 )
 
 target_include_directories(veebee_backend

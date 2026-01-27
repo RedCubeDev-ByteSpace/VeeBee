@@ -9,7 +9,55 @@
 
 
 // Token functions
+int LX_TOKEN_GetBinaryOperatorPrecedence(token_type_t type) {
+    switch (type) {
+        case TK_OP_HAT:
+            return 8;
 
+        case TK_OP_STAR:
+        case TK_OP_SLASH:
+        case TK_OP_BACKSLASH:
+        case TK_KW_MOD:
+            return 6;
+
+        case TK_OP_PLUS:
+        case TK_OP_MINUS:
+            return 5;
+
+        case TK_OP_AND:
+            return 4;
+
+        case TK_OP_EQUALS:
+        case TK_OP_UNEQUALS:
+        case TK_OP_LESS:
+        case TK_OP_GREATER:
+        case TK_OP_LESS_EQUALS:
+        case TK_OP_GREATER_EQUALS:
+            return 3;
+
+        case TK_KW_AND:
+            return 2;
+
+        case TK_KW_OR:
+        case TK_KW_XOR:
+            return 1;
+
+        default:
+            return 0;
+    }
+}
+
+int LX_TOKEN_GetUnaryOperatorPrecedence(token_type_t type) {
+    switch (type) {
+        case TK_OP_PLUS:
+        case TK_OP_MINUS:
+        case TK_KW_NOT:
+            return 7; // all unary operators are level 7, higher than all operators except for exponentiation
+
+        default:
+            return 0;
+    }
+}
 
 // Token List functions
 token_list_t LX_TOKEN_LIST_Init() {

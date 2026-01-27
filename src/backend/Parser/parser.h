@@ -75,8 +75,11 @@ ls_else_clause_node_t *PARSER_parseElseClause(parser_t *me);
 
 ls_ast_node_t *PARSER_parseExpression(parser_t *me);
 ls_ast_node_t *PARSER_parsePrimaryExpression(parser_t *me);
-ls_literal_expression_node_t *PARSER_parseLiteralExpression(parser_t *me);
-ls_reference_expression_node_t *PARSER_parseReferenceExpression(parser_t *me, ls_ast_node_t *exprBase);
+ls_ast_node_t *PARSER_parseUnaryExpression(parser_t *me, int parentPrecedence);
+ls_ast_node_t *PARSER_parseBinaryExpression(parser_t *me, int parentPrecedence);
+ls_ast_node_t *PARSER_parseLiteralExpression(parser_t *me);
+ls_ast_node_t *PARSER_parseParenthesizedExpression(parser_t *me);
+ls_ast_node_t *PARSER_parseReferenceExpression(parser_t *me, ls_ast_node_t *exprBase, bool mustReturnValue);
 
 // ---------------------------------------------------------------------------------------------------------------------
 // Lil helpers
@@ -117,10 +120,10 @@ extern token_t PARSER_EOL_Placeholder;
     me->pos = ID;        \
     me->suppressError--; \
 
-#define PS_ERROR_AT(...)                               \
-    if (me->suppressError == 0) ERROR_AT(__VA_ARGS__); \
+#define PS_ERROR_AT(...)                                   \
+    if (me->suppressError == 0) { ERROR_AT(__VA_ARGS__); } \
 
-#define PS_ERROR_SPLICE_AT(...)                               \
-    if (me->suppressError == 0) ERROR_SPLICE_AT(__VA_ARGS__); \
+#define PS_ERROR_SPLICE_AT(...)                                   \
+    if (me->suppressError == 0) { ERROR_SPLICE_AT(__VA_ARGS__); } \
 
 #endif //PARSER_H

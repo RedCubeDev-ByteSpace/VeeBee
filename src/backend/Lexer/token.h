@@ -82,16 +82,29 @@
                                   \
     GEN(TK_KW_GOTO)               \
                                   \
+    GEN(TK_KW_NOT)                \
+    GEN(TK_KW_MOD)                \
+    GEN(TK_KW_AND)                \
+    GEN(TK_KW_OR)                 \
+    GEN(TK_KW_XOR)                \
+                                  \
     GEN(TK_PC_OPEN_PARENTHESIS)   \
     GEN(TK_PC_CLOSED_PARENTHESIS) \
     GEN(TK_PC_COMMA)              \
     GEN(TK_PC_PERIOD)             \
                                   \
+    GEN(TK_OP_UNEQUALS)           \
+    GEN(TK_OP_LESS_EQUALS)        \
+    GEN(TK_OP_GREATER_EQUALS)     \
+    GEN(TK_OP_EQUALS)             \
+    GEN(TK_OP_LESS)               \
+    GEN(TK_OP_GREATER)            \
+    GEN(TK_OP_HAT)                \
     GEN(TK_OP_PLUS)               \
     GEN(TK_OP_MINUS)              \
     GEN(TK_OP_STAR)               \
     GEN(TK_OP_SLASH)              \
-    GEN(TK_OP_EQUALS)             \
+    GEN(TK_OP_BACKSLASH)          \
     GEN(TK_OP_AND)                \
                                   \
     GEN(TK_LT_STRING)             \
@@ -201,14 +214,24 @@ static const char *KEYWORDS[] = {
     "select",
     "case",
     "goto",
+    "not",
+    "mod",
+    "and",
+    "or",
+    "xor",
 };
 #define NUM_KEYWORDS (sizeof(KEYWORDS) / sizeof(KEYWORDS[0]))
 
 // ---------------------------------------------------------------------------------------------------------------------
 // List of all punctuation marks and operators in the order they are listed in above
-static const char PUNCTUATION_AND_OPERATORS[] = {
-    '(', ')', ',', '.',
-    '+', '-', '*', '/', '=', '&'
+static const char *PUNCTUATION_AND_OPERATORS[] = {
+    "(", ")", ",", ".",
+    "<>", "<=", ">=",
+    "=", "<", ">",
+    "^",
+    "+", "-",
+    "*", "/", "\\",
+    "&",
 };
 #define NUM_PUNC_AND_OPS (sizeof(PUNCTUATION_AND_OPERATORS) / sizeof(PUNCTUATION_AND_OPERATORS[0]))
 
@@ -240,5 +263,8 @@ token_list_t LX_TOKEN_LIST_Init();
 void LX_TOKEN_LIST_Unload(token_list_t me);
 void LX_TOKEN_LIST_Add(token_list_t *me, token_t newToken);
 bool LX_TOKEN_LIST_grow(token_list_t *me);
+
+int LX_TOKEN_GetBinaryOperatorPrecedence(token_type_t type);
+int LX_TOKEN_GetUnaryOperatorPrecedence(token_type_t type);
 
 #endif //TOKEN_H
