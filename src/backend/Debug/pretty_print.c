@@ -21,6 +21,7 @@
 #include "AST/Loose/Statements/assignment_statement.h"
 #include "AST/Loose/Statements/dim_statement.h"
 #include "AST/Loose/Statements/expression_statement.h"
+#include "AST/Loose/Statements/for_statement.h"
 #include "AST/Loose/Statements/goto_statement.h"
 #include "AST/Loose/Statements/if_statement.h"
 #include "AST/Loose/Statements/label_statement.h"
@@ -397,6 +398,23 @@ void DBG_PRETTY_PRINT_Print_LSAstNode(ls_ast_node_t *me, bool finalEntry) {
         NODE(LS_LABEL_STATEMENT)
             FIELD_FINAL("Label")
             VALUE(((ls_label_statement_node_t*)me)->idLabel)
+        END_NODE()
+
+        NODE(LS_FOR_STATEMENT)
+            FIELD("Iterator")
+            VALUE(((ls_for_statement_node_t*)me)->idIterator)
+
+            FIELD("Start")
+            SUBNODE(((ls_for_statement_node_t*)me)->exprStart, false)
+
+            FIELD("End")
+            SUBNODE(((ls_for_statement_node_t*)me)->exprEnd, false)
+
+            FIELD("Step")
+            SUBNODE(((ls_for_statement_node_t*)me)->exprStep, false)
+
+            FIELD_FINAL("Body")
+            SUBNODES(((ls_for_statement_node_t*)me)->lsBody, true)
         END_NODE()
 
         default:;

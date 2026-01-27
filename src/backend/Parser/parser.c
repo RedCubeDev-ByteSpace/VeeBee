@@ -16,6 +16,7 @@
 #include "AST/Loose/Statements/label_statement.h"
 #include "AST/Loose/Statements/if_statement.h"
 #include "AST/Loose/Statements/select_statement.h"
+#include "AST/Loose/Statements/for_statement.h"
 #include "AST/Loose/Statements/expression_statement.h"
 #include "AST/Loose/Members/function_member.h"
 #include "AST/Loose/Members/sub_member.h"
@@ -914,6 +915,10 @@ ls_ast_node_t *PARSER_parseStatement(parser_t *me) {
             stmt = PARSER_parseSelectStatement(me);
         break;
 
+        case TK_KW_FOR:
+            stmt = PARSER_parseForStatement(me);
+        break;
+
         case TK_KW_GOTO:
             stmt = PARSER_parseGotoStatement(me);
         break;
@@ -1325,6 +1330,97 @@ ls_ast_node_t *PARSER_parseSelectStatement(parser_t *me) {
     node->clsElse        = clsElse;
     node->kwEnd          = kwEnd;
     node->kwEndSelect    = kwEndSelect;
+    return (ls_ast_node_t*)node;
+}
+
+// ---------------------------------------------------------------------------------------------------------------------
+// PARSER_parseForStatement:
+// parse a For loop statement
+ls_ast_node_t *PARSER_parseForStatement(parser_t *me) {
+
+    // expect a For keyword
+    token_t *kwFor = PARSER_consume(me, TK_KW_FOR);
+    RETURN_NULL_ON_ERROR()
+
+    // consume an identifier
+    token_t *idIterator = PARSER_consume(me, TK_IDENTIFIER);
+    RETURN_NULL_ON_ERROR()
+
+    // consume an equals sign
+    token_t *opEquals = PARSER_consume(me, TK_OP_EQUALS);
+    RETURN_NULL_ON_ERROR()
+
+    // consume an expression for the starting point
+    ls_ast_node_t *exprStart = PARSER_parseExpression(me);
+    RETURN_NULL_ON_ERROR(
+        UNLOAD_IF_NOT_NULL(exprStart)
+    )
+
+    // expect a To keyword
+    token_t *kwTo = PARSER_consume(me, TK_KW_TO);
+    RETURN_NULL_ON_ERROR(
+        UNLOAD_IF_NOT_NULL(exprStart)
+    )
+
+    // consume an expression of the loops target
+    ls_ast_node_t *exprEnd =  PARSER_parseExpression(me);
+    RETURN_NULL_ON_ERROR(
+        UNLOAD_IF_NOT_NULL(exprStart)
+        UNLOAD_IF_NOT_NULL(exprEnd)
+    )
+
+    // create placeholders for a step clause
+    token_t *kwStep = NULL;
+    ls_ast_node_t *exprStep = NULL;
+
+    // is there a step clause?
+    if (PS_CURRENT().type == TK_KW_STEP) {
+
+        // consume the step keyword
+        kwStep = PARSER_consume(me, TK_KW_STEP);
+
+        // consume an expression for the step size
+        exprStep = PARSER_parseExpression(me);
+    }
+    RETURN_NULL_ON_ERROR(
+        UNLOAD_IF_NOT_NULL(exprStart)
+        UNLOAD_IF_NOT_NULL(exprEnd)
+        UNLOAD_IF_NOT_NULL(exprStep)
+    )
+
+    // parse a block of statements until we hit a Next keyword
+    token_type_t terminator = TK_KW_NEXT;
+    ls_ast_node_list_t lsBody = PS_LS_AST_NODE_LIST_Init();
+    PARSER_parseBlockOfStatements(me, &lsBody, &terminator, 1);
+    RETURN_NULL_ON_ERROR(
+        UNLOAD_IF_NOT_NULL(exprStart)
+        UNLOAD_IF_NOT_NULL(exprEnd)
+        UNLOAD_IF_NOT_NULL(exprStep)
+        PS_LS_AST_NODE_LIST_Unload(lsBody);
+    )
+
+    // consume the next keyword
+    token_t *kwNext = PARSER_consume(me, TK_KW_NEXT);
+    RETURN_NULL_ON_ERROR(
+        UNLOAD_IF_NOT_NULL(exprStart)
+        UNLOAD_IF_NOT_NULL(exprEnd)
+        UNLOAD_IF_NOT_NULL(exprStep)
+        PS_LS_AST_NODE_LIST_Unload(lsBody);
+    )
+
+    // if everything is ok, allocate and return a new node
+    ls_for_statement_node_t *node = malloc(sizeof(ls_for_statement_node_t));
+    node->base.type = LS_FOR_STATEMENT;
+    node->kwFor      = kwFor;
+    node->idIterator = idIterator;
+    node->opEquals   = opEquals;
+    node->exprStart  = exprStart;
+    node->kwTo       = kwTo;
+    node->exprEnd    = exprEnd;
+    node->kwStep     = kwStep;
+    node->exprStep   = exprStep;
+    node->lsBody     = lsBody;
+    node->kwNext     = kwNext;
     return (ls_ast_node_t*)node;
 }
 

@@ -61,6 +61,7 @@ ls_ast_node_t *PARSER_parseGotoStatement(parser_t *me);
 ls_ast_node_t *PARSER_parseLabelStatement(parser_t *me);
 ls_ast_node_t *PARSER_parseIfStatement(parser_t *me);
 ls_ast_node_t *PARSER_parseSelectStatement(parser_t *me);
+ls_ast_node_t *PARSER_parseForStatement(parser_t *me);
 ls_ast_node_t *PARSER_parseAssignmentStatement(parser_t *me, ls_ast_node_t *target);
 ls_ast_node_t *PARSER_parseExpressionStatement(parser_t *me);
 

@@ -16,6 +16,7 @@
 #include "Statements/assignment_statement.h"
 #include "Statements/dim_statement.h"
 #include "Statements/expression_statement.h"
+#include "Statements/for_statement.h"
 #include "Statements/if_statement.h"
 #include "Statements/select_statement.h"
 #include "Statements/redim_statement.h"
@@ -99,6 +100,13 @@ void PS_LS_Node_Unload(ls_ast_node_t *me) {
             PS_LS_Node_Unload(((ls_select_statement_node_t*)me)->exprTest);
             PS_LS_AST_NODE_LIST_Unload(((ls_select_statement_node_t*)me)->lsConditionals);
             PS_LS_Node_Unload((ls_ast_node_t*)((ls_select_statement_node_t*)me)->clsElse);
+        break;
+
+        case LS_FOR_STATEMENT:
+            PS_LS_Node_Unload(((ls_for_statement_node_t*)me)->exprStart);
+            PS_LS_Node_Unload(((ls_for_statement_node_t*)me)->exprEnd);
+            PS_LS_Node_Unload(((ls_for_statement_node_t*)me)->exprStep);
+            PS_LS_AST_NODE_LIST_Unload(((ls_for_statement_node_t*)me)->lsBody);
         break;
 
         default:;
