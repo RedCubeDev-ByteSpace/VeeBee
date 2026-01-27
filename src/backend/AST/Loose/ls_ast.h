@@ -29,14 +29,14 @@ typedef enum LOOSE_NODE_TYPE {
     LS_SELECT_STATEMENT        = 0x050 | 0b0000'0010,
     LS_FOR_STATEMENT           = 0x060 | 0b0000'0010,
     LS_FOR_EACH_STATEMENT      = 0x070 | 0b0000'0010, // TODO, for later
-    LS_DO_STATEMENT            = 0x080 | 0b0000'0010, // TODO
+    LS_DO_STATEMENT            = 0x080 | 0b0000'0010,
     LS_WHILE_STATEMENT         = 0x090 | 0b0000'0010,
     LS_GOTO_STATEMENT          = 0x0A0 | 0b0000'0010,
     LS_LABEL_STATEMENT         = 0x0B0 | 0b0000'0010,
     LS_ON_ERROR_STATEMENT      = 0x0C0 | 0b0000'0010, // TODO, for later
     LS_RESUME_STATEMENT        = 0x0D0 | 0b0000'0010, // TODO, for later
     LS_WITH_STATEMENT          = 0x0E0 | 0b0000'0010, // TODO, for later
-    LS_EXIT_STATEMENT          = 0x0F0 | 0b0000'0010, // TODO
+    LS_EXIT_STATEMENT          = 0x0F0 | 0b0000'0010,
     LS_EXPRESSION_STATEMENT    = 0x100 | 0b0000'0010,
 
     // Expressions
