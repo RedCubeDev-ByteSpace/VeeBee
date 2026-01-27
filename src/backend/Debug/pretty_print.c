@@ -21,6 +21,7 @@
 #include "AST/Loose/Statements/assignment_statement.h"
 #include "AST/Loose/Statements/dim_statement.h"
 #include "AST/Loose/Statements/do_statement.h"
+#include "AST/Loose/Statements/exit_statement.h"
 #include "AST/Loose/Statements/expression_statement.h"
 #include "AST/Loose/Statements/for_statement.h"
 #include "AST/Loose/Statements/goto_statement.h"
@@ -428,11 +429,8 @@ void DBG_PRETTY_PRINT_Print_LSAstNode(ls_ast_node_t *me, bool finalEntry) {
         END_NODE()
 
         NODE(LS_DO_STATEMENT)
-            FIELD("HeadWhile")
-            VALUE_SET(((ls_do_statement_node_t*)me)->kwHeadWhile)
-
-            FIELD("HeadUntil")
-            VALUE_SET(((ls_do_statement_node_t*)me)->kwHeadUntil)
+            FIELD("HeadConjunction")
+            VALUE(((ls_do_statement_node_t*)me)->kwHeadConjunction)
 
             FIELD("Condition")
             SUBNODE(((ls_do_statement_node_t*)me)->exprCondition, false)
@@ -440,11 +438,13 @@ void DBG_PRETTY_PRINT_Print_LSAstNode(ls_ast_node_t *me, bool finalEntry) {
             FIELD("Body")
             SUBNODES(((ls_do_statement_node_t*)me)->lsBody, false)
 
-            FIELD("TailWhile")
-            VALUE_SET(((ls_do_statement_node_t*)me)->kwTailWhile)
+            FIELD_FINAL("TailConjunction")
+            VALUE(((ls_do_statement_node_t*)me)->kwTailConjunction)
+        END_NODE()
 
-            FIELD_FINAL("TailUntil")
-            VALUE_SET(((ls_do_statement_node_t*)me)->kwTailUntil)
+        NODE(LS_EXIT_STATEMENT)
+            FIELD_FINAL("Container")
+            VALUE(((ls_exit_statement_node_t*)me)->kwContainer)
         END_NODE()
 
         default:;

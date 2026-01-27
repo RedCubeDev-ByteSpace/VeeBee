@@ -14,6 +14,7 @@
 #include "AST/Loose/Statements/assignment_statement.h"
 #include "AST/Loose/Statements/goto_statement.h"
 #include "AST/Loose/Statements/label_statement.h"
+#include "AST/Loose/Statements/exit_statement.h"
 #include "AST/Loose/Statements/if_statement.h"
 #include "AST/Loose/Statements/select_statement.h"
 #include "AST/Loose/Statements/for_statement.h"
@@ -933,6 +934,10 @@ ls_ast_node_t *PARSER_parseStatement(parser_t *me) {
             stmt = PARSER_parseGotoStatement(me);
         break;
 
+        case TK_KW_EXIT:
+            stmt = PARSER_parseExitStatement(me);
+        break;
+
         case TK_IDENTIFIER:
             if (PS_PEEK(1)->type == TK_EOS && PS_PEEK(1)->strValue != NULL) {
                 stmt = PARSER_parseLabelStatement(me);
@@ -1175,6 +1180,37 @@ ls_ast_node_t *PARSER_parseLabelStatement(parser_t *me) {
     ls_label_statement_node_t *node = malloc(sizeof(ls_label_statement_node_t));
     node->base.type = LS_LABEL_STATEMENT;
     node->idLabel   = idLabel;
+    return (ls_ast_node_t*)node;
+}
+
+// ---------------------------------------------------------------------------------------------------------------------
+// PARSER_parseExitStatement:
+// parse an exit statement, similar to return or break in other languages
+ls_ast_node_t *PARSER_parseExitStatement(parser_t *me) {
+
+    // consume the exit keyword
+    token_t *kwExit = PARSER_consume(me, TK_KW_EXIT);
+    RETURN_NULL_ON_ERROR()
+
+    // consume the container type we want to break out of
+    token_t *kwContainer = NULL;
+    switch (PS_CURRENT().type) {
+        case TK_KW_DO       : kwContainer = PARSER_consume(me, TK_KW_DO); break;
+        case TK_KW_FOR      : kwContainer = PARSER_consume(me, TK_KW_FOR); break;
+        case TK_KW_FUNCTION : kwContainer = PARSER_consume(me, TK_KW_FUNCTION); break;
+        //case TK_KW_PROPERTY: kwContainer = PARSER_consume(me, TK_KW_DO); break; // TODO
+        case TK_KW_SUB      : kwContainer = PARSER_consume(me, TK_KW_SUB); break;
+        default:
+            PS_ERROR_AT(SUB_PARSER, ERR_PS_UNEXPECTED_TOKEN, me->source, SPAN_FromToken(PS_CURRENT()), "Exit expects one of the container types 'Do', 'For', 'Function', 'Property', 'Sub'")
+            me->hasError = true;
+    }
+    RETURN_NULL_ON_ERROR()
+
+    // if everything is ok, allocate and return a new node
+    ls_exit_statement_node_t *node = malloc(sizeof(ls_exit_statement_node_t));
+    node->base.type = LS_EXIT_STATEMENT;
+    node->kwExit = kwExit;
+    node->kwContainer = kwContainer;
     return (ls_ast_node_t*)node;
 }
 
@@ -1496,11 +1532,10 @@ ls_ast_node_t *PARSER_parseDoStatement(parser_t *me) {
 
     // consume a while or an until keyword, if there is one
     // followed by a loop condition
-    token_t *kwHeadWhile = NULL;
-    token_t *kwHeadUntil = NULL;
+    token_t *kwHeadConjunction = NULL;
 
     if (PS_CURRENT().type == TK_KW_WHILE) {
-        kwHeadWhile = PARSER_consume(me, TK_KW_WHILE);
+        kwHeadConjunction = PARSER_consume(me, TK_KW_WHILE);
         RETURN_NULL_ON_ERROR()
 
         // parse a condition for this loop
@@ -1510,7 +1545,7 @@ ls_ast_node_t *PARSER_parseDoStatement(parser_t *me) {
 
     // consume an until keyword, if there is one
     else if (PS_CURRENT().type == TK_KW_UNTIL) {
-        kwHeadUntil = PARSER_consume(me, TK_KW_UNTIL);
+        kwHeadConjunction = PARSER_consume(me, TK_KW_UNTIL);
         RETURN_NULL_ON_ERROR()
 
         // parse a condition for this loop
@@ -1545,11 +1580,10 @@ ls_ast_node_t *PARSER_parseDoStatement(parser_t *me) {
 
     // consume a while or an until keyword, if there is one
     // followed by a loop condition
-    token_t *kwTailWhile = NULL;
-    token_t *kwTailUntil = NULL;
+    token_t *kwTailConjunction = NULL;
 
     if (PS_CURRENT().type == TK_KW_WHILE) {
-        kwTailWhile = PARSER_consume(me, TK_KW_WHILE);
+        kwTailConjunction = PARSER_consume(me, TK_KW_WHILE);
         RETURN_NULL_ON_ERROR()
 
         // parse a condition for this loop
@@ -1559,7 +1593,7 @@ ls_ast_node_t *PARSER_parseDoStatement(parser_t *me) {
 
     // consume an until keyword, if there is one
     else if (PS_CURRENT().type == TK_KW_UNTIL) {
-        kwTailUntil = PARSER_consume(me, TK_KW_UNTIL);
+        kwTailConjunction = PARSER_consume(me, TK_KW_UNTIL);
         RETURN_NULL_ON_ERROR()
 
         // parse a condition for this loop
@@ -1574,14 +1608,12 @@ ls_ast_node_t *PARSER_parseDoStatement(parser_t *me) {
     // if everything is ok, allocate and return a new node
     ls_do_statement_node_t *node = malloc(sizeof(ls_do_statement_node_t));
     node->base.type = LS_DO_STATEMENT;
-    node->kwDo          = kwDo;
-    node->kwHeadWhile   = kwHeadWhile;
-    node->kwHeadUntil   = kwHeadUntil;
-    node->exprCondition = exprCondition;
-    node->lsBody        = lsBody;
-    node->kwLoop        = kwLoop;
-    node->kwTailWhile   = kwTailWhile;
-    node->kwTailUntil   = kwTailUntil;
+    node->kwDo              = kwDo;
+    node->kwHeadConjunction = kwHeadConjunction;
+    node->exprCondition     = exprCondition;
+    node->lsBody            = lsBody;
+    node->kwLoop            = kwLoop;
+    node->kwTailConjunction = kwTailConjunction;
     return (ls_ast_node_t*)node;
 }
 

@@ -23,17 +23,15 @@ typedef struct LS_DO_STATEMENT_NODE {
     ls_ast_node_t base;
 
     token_t *kwDo;
-    token_t *kwHeadWhile;
-    token_t *kwHeadUntil;
+    token_t *kwHeadConjunction;
 
     ls_ast_node_t *exprCondition;
     ls_ast_node_list_t lsBody;
 
     token_t *kwLoop;
 
-    token_t *kwTailWhile;
-    token_t *kwTailUntil;
-    
+    token_t *kwTailConjunction;
+
 } ls_do_statement_node_t;
 
 #endif //DO_STATEMENT_H
