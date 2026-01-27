@@ -13,13 +13,13 @@ typedef enum LOOSE_NODE_TYPE {
     LS_MODULE_MEMBER           = 0x10 | 0b0000'0001,
     LS_FUNCTION_MEMBER         = 0x20 | 0b0000'0001,
     LS_SUBROUTINE_MEMBER       = 0x30 | 0b0000'0001,
-    LS_PROPERTY_GET_MEMBER     = 0x40 | 0b0000'0001, // TODO
-    LS_PROPERTY_SET_MEMBER     = 0x50 | 0b0000'0001, // TODO
-    LS_PROPERTY_LET_MEMBER     = 0x60 | 0b0000'0001, // TODO
+    LS_PROPERTY_GET_MEMBER     = 0x40 | 0b0000'0001, // TODO, for later
+    LS_PROPERTY_SET_MEMBER     = 0x50 | 0b0000'0001, // TODO, for later
+    LS_PROPERTY_LET_MEMBER     = 0x60 | 0b0000'0001, // TODO, for later
     LS_TYPE_MEMBER             = 0x70 | 0b0000'0001,
-    LS_ENUM_MEMBER             = 0x80 | 0b0000'0001, // TODO
-    LS_FIELD_MEMBER            = 0x90 | 0b0000'0001, // TODO
-    LS_CONST_MEMBER            = 0xA0 | 0b0000'0001, // TODO
+    LS_ENUM_MEMBER             = 0x80 | 0b0000'0001, // TODO, for later
+    LS_FIELD_MEMBER            = 0x90 | 0b0000'0001, // TODO, for later
+    LS_CONST_MEMBER            = 0xA0 | 0b0000'0001, // TODO, for later
 
     // Statements
     LS_DIM_STATEMENT           = 0x010 | 0b0000'0010,
@@ -28,14 +28,14 @@ typedef enum LOOSE_NODE_TYPE {
     LS_IF_STATEMENT            = 0x040 | 0b0000'0010,
     LS_SELECT_STATEMENT        = 0x050 | 0b0000'0010,
     LS_FOR_STATEMENT           = 0x060 | 0b0000'0010,
-    LS_FOR_EACH_STATEMENT      = 0x070 | 0b0000'0010, // TODO
+    LS_FOR_EACH_STATEMENT      = 0x070 | 0b0000'0010, // TODO, for later
     LS_DO_STATEMENT            = 0x080 | 0b0000'0010, // TODO
-    LS_WHILE_STATEMENT         = 0x090 | 0b0000'0010, // TODO
+    LS_WHILE_STATEMENT         = 0x090 | 0b0000'0010,
     LS_GOTO_STATEMENT          = 0x0A0 | 0b0000'0010,
     LS_LABEL_STATEMENT         = 0x0B0 | 0b0000'0010,
-    LS_ON_ERROR_STATEMENT      = 0x0C0 | 0b0000'0010, // TODO
-    LS_RESUME_STATEMENT        = 0x0D0 | 0b0000'0010, // TODO
-    LS_WITH_STATEMENT          = 0x0E0 | 0b0000'0010, // TODO
+    LS_ON_ERROR_STATEMENT      = 0x0C0 | 0b0000'0010, // TODO, for later
+    LS_RESUME_STATEMENT        = 0x0D0 | 0b0000'0010, // TODO, for later
+    LS_WITH_STATEMENT          = 0x0E0 | 0b0000'0010, // TODO, for later
     LS_EXIT_STATEMENT          = 0x0F0 | 0b0000'0010, // TODO
     LS_EXPRESSION_STATEMENT    = 0x100 | 0b0000'0010,
 

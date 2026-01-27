@@ -17,6 +17,7 @@
 #include "AST/Loose/Statements/if_statement.h"
 #include "AST/Loose/Statements/select_statement.h"
 #include "AST/Loose/Statements/for_statement.h"
+#include "AST/Loose/Statements/while_statement.h"
 #include "AST/Loose/Statements/expression_statement.h"
 #include "AST/Loose/Members/function_member.h"
 #include "AST/Loose/Members/sub_member.h"
@@ -919,6 +920,10 @@ ls_ast_node_t *PARSER_parseStatement(parser_t *me) {
             stmt = PARSER_parseForStatement(me);
         break;
 
+        case TK_KW_WHILE:
+            stmt = PARSER_parseWhileStatement(me);
+        break;
+
         case TK_KW_GOTO:
             stmt = PARSER_parseGotoStatement(me);
         break;
@@ -1388,6 +1393,14 @@ ls_ast_node_t *PARSER_parseForStatement(parser_t *me) {
         UNLOAD_IF_NOT_NULL(exprStep)
     )
 
+    // require an EOS
+    PARSER_ffwToEOS(me);
+    RETURN_NULL_ON_ERROR(
+        UNLOAD_IF_NOT_NULL(exprStart)
+        UNLOAD_IF_NOT_NULL(exprEnd)
+        UNLOAD_IF_NOT_NULL(exprStep)
+    )
+
     // parse a block of statements until we hit a Next keyword
     token_type_t terminator = TK_KW_NEXT;
     ls_ast_node_list_t lsBody = PS_LS_AST_NODE_LIST_Init();
@@ -1421,6 +1434,46 @@ ls_ast_node_t *PARSER_parseForStatement(parser_t *me) {
     node->exprStep   = exprStep;
     node->lsBody     = lsBody;
     node->kwNext     = kwNext;
+    return (ls_ast_node_t*)node;
+}
+
+// ---------------------------------------------------------------------------------------------------------------------
+// PARSER_parseWhileStatement:
+// parse an old basic style While ... Wend loop
+ls_ast_node_t *PARSER_parseWhileStatement(parser_t *me) {
+
+    // consume the while keyword
+    token_t *kwWhile = PARSER_consume(me, TK_KW_WHILE);
+    RETURN_NULL_ON_ERROR()
+
+    // consume the loop condition
+    ls_ast_node_t *exprCondition = PARSER_parseExpression(me);
+    RETURN_NULL_ON_ERROR()
+
+    // export an EOS
+    PARSER_ffwToEOS(me);
+
+    // consume a block of statements until we hit a Wend keyword
+    token_type_t terminator = TK_KW_WEND;
+    ls_ast_node_list_t lsBody = PS_LS_AST_NODE_LIST_Init();
+    PARSER_parseBlockOfStatements(me, &lsBody, &terminator, 1);
+    RETURN_NULL_ON_ERROR(
+        PS_LS_AST_NODE_LIST_Unload(lsBody);
+    )
+
+    // consume the Wend keyword
+    token_t *kwWend = PARSER_consume(me, TK_KW_WEND);
+    RETURN_NULL_ON_ERROR(
+       PS_LS_AST_NODE_LIST_Unload(lsBody);
+   )
+
+    // if everythings ok, allocate and return a new node
+    ls_while_statement_node_t *node = malloc(sizeof(ls_while_statement_node_t));
+    node->base.type = LS_WHILE_STATEMENT;
+    node->kwWhile       = kwWhile;
+    node->exprCondition = exprCondition;
+    node->lsBody        = lsBody;
+    node->kwWend        = kwWend;
     return (ls_ast_node_t*)node;
 }
 

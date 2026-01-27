@@ -27,6 +27,7 @@
 #include "AST/Loose/Statements/label_statement.h"
 #include "AST/Loose/Statements/redim_statement.h"
 #include "AST/Loose/Statements/select_statement.h"
+#include "AST/Loose/Statements/while_statement.h"
 
 char DBG_INDENT_BUFFER[256];
 int DBG_INDENT_LENGTH;
@@ -415,6 +416,14 @@ void DBG_PRETTY_PRINT_Print_LSAstNode(ls_ast_node_t *me, bool finalEntry) {
 
             FIELD_FINAL("Body")
             SUBNODES(((ls_for_statement_node_t*)me)->lsBody, true)
+        END_NODE()
+
+        NODE(LS_WHILE_STATEMENT)
+            FIELD("Condition")
+            SUBNODE(((ls_while_statement_node_t*)me)->exprCondition, false)
+
+            FIELD_FINAL("Body")
+            SUBNODES(((ls_while_statement_node_t*)me)->lsBody, true)
         END_NODE()
 
         default:;
