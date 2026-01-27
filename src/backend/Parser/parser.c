@@ -18,6 +18,7 @@
 #include "AST/Loose/Statements/select_statement.h"
 #include "AST/Loose/Statements/for_statement.h"
 #include "AST/Loose/Statements/while_statement.h"
+#include "AST/Loose/Statements/do_statement.h"
 #include "AST/Loose/Statements/expression_statement.h"
 #include "AST/Loose/Members/function_member.h"
 #include "AST/Loose/Members/sub_member.h"
@@ -924,6 +925,10 @@ ls_ast_node_t *PARSER_parseStatement(parser_t *me) {
             stmt = PARSER_parseWhileStatement(me);
         break;
 
+        case TK_KW_DO:
+            stmt = PARSER_parseDoStatement(me);
+        break;
+
         case TK_KW_GOTO:
             stmt = PARSER_parseGotoStatement(me);
         break;
@@ -1474,6 +1479,109 @@ ls_ast_node_t *PARSER_parseWhileStatement(parser_t *me) {
     node->exprCondition = exprCondition;
     node->lsBody        = lsBody;
     node->kwWend        = kwWend;
+    return (ls_ast_node_t*)node;
+}
+
+// ---------------------------------------------------------------------------------------------------------------------
+// PARSER_parseDoStatement:
+// parse a modern Do While or Do Until loop
+ls_ast_node_t *PARSER_parseDoStatement(parser_t *me) {
+
+    // consume the do keyword
+    token_t *kwDo = PARSER_consume(me, TK_KW_DO);
+    RETURN_NULL_ON_ERROR()
+
+    // a placeholder for our condition
+    ls_ast_node_t *exprCondition = NULL;
+
+    // consume a while or an until keyword, if there is one
+    // followed by a loop condition
+    token_t *kwHeadWhile = NULL;
+    token_t *kwHeadUntil = NULL;
+
+    if (PS_CURRENT().type == TK_KW_WHILE) {
+        kwHeadWhile = PARSER_consume(me, TK_KW_WHILE);
+        RETURN_NULL_ON_ERROR()
+
+        // parse a condition for this loop
+        UNLOAD_IF_NOT_NULL(exprCondition);
+        exprCondition = PARSER_parseExpression(me);
+    }
+
+    // consume an until keyword, if there is one
+    else if (PS_CURRENT().type == TK_KW_UNTIL) {
+        kwHeadUntil = PARSER_consume(me, TK_KW_UNTIL);
+        RETURN_NULL_ON_ERROR()
+
+        // parse a condition for this loop
+        UNLOAD_IF_NOT_NULL(exprCondition);
+        exprCondition = PARSER_parseExpression(me);
+    }
+    RETURN_NULL_ON_ERROR(
+        UNLOAD_IF_NOT_NULL(exprCondition)
+    )
+
+    // expect an EOS
+    PARSER_ffwToEOS(me);
+    RETURN_NULL_ON_ERROR(
+       UNLOAD_IF_NOT_NULL(exprCondition)
+    )
+
+    // parse a block of statements until we hit a Loop keyword
+    token_type_t terminator = TK_KW_LOOP;
+    ls_ast_node_list_t lsBody = PS_LS_AST_NODE_LIST_Init();
+    PARSER_parseBlockOfStatements(me, &lsBody, &terminator, 1);
+    RETURN_NULL_ON_ERROR(
+       UNLOAD_IF_NOT_NULL(exprCondition)
+       PS_LS_AST_NODE_LIST_Unload(lsBody);
+    )
+
+    // consume the loop keyword
+    token_t *kwLoop = PARSER_consume(me, TK_KW_LOOP);
+    RETURN_NULL_ON_ERROR(
+       UNLOAD_IF_NOT_NULL(exprCondition)
+       PS_LS_AST_NODE_LIST_Unload(lsBody);
+    )
+
+    // consume a while or an until keyword, if there is one
+    // followed by a loop condition
+    token_t *kwTailWhile = NULL;
+    token_t *kwTailUntil = NULL;
+
+    if (PS_CURRENT().type == TK_KW_WHILE) {
+        kwTailWhile = PARSER_consume(me, TK_KW_WHILE);
+        RETURN_NULL_ON_ERROR()
+
+        // parse a condition for this loop
+        UNLOAD_IF_NOT_NULL(exprCondition);
+        exprCondition = PARSER_parseExpression(me);
+    }
+
+    // consume an until keyword, if there is one
+    else if (PS_CURRENT().type == TK_KW_UNTIL) {
+        kwTailUntil = PARSER_consume(me, TK_KW_UNTIL);
+        RETURN_NULL_ON_ERROR()
+
+        // parse a condition for this loop
+        UNLOAD_IF_NOT_NULL(exprCondition);
+        exprCondition = PARSER_parseExpression(me);
+    }
+    RETURN_NULL_ON_ERROR(
+       UNLOAD_IF_NOT_NULL(exprCondition)
+       PS_LS_AST_NODE_LIST_Unload(lsBody);
+    )
+
+    // if everything is ok, allocate and return a new node
+    ls_do_statement_node_t *node = malloc(sizeof(ls_do_statement_node_t));
+    node->base.type = LS_DO_STATEMENT;
+    node->kwDo          = kwDo;
+    node->kwHeadWhile   = kwHeadWhile;
+    node->kwHeadUntil   = kwHeadUntil;
+    node->exprCondition = exprCondition;
+    node->lsBody        = lsBody;
+    node->kwLoop        = kwLoop;
+    node->kwTailWhile   = kwTailWhile;
+    node->kwTailUntil   = kwTailUntil;
     return (ls_ast_node_t*)node;
 }
 

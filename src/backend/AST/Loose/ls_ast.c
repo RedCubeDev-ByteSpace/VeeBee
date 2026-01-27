@@ -15,6 +15,7 @@
 #include "Expressions/reference_expression.h"
 #include "Statements/assignment_statement.h"
 #include "Statements/dim_statement.h"
+#include "Statements/do_statement.h"
 #include "Statements/expression_statement.h"
 #include "Statements/for_statement.h"
 #include "Statements/if_statement.h"
@@ -113,6 +114,11 @@ void PS_LS_Node_Unload(ls_ast_node_t *me) {
         case LS_WHILE_STATEMENT:
             PS_LS_Node_Unload(((ls_while_statement_node_t*)me)->exprCondition);
             PS_LS_AST_NODE_LIST_Unload(((ls_while_statement_node_t*)me)->lsBody);
+        break;
+
+        case LS_DO_STATEMENT:
+            PS_LS_Node_Unload(((ls_do_statement_node_t*)me)->exprCondition);
+            PS_LS_AST_NODE_LIST_Unload(((ls_do_statement_node_t*)me)->lsBody);
         break;
 
         default:;

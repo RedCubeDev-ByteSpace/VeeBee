@@ -55,6 +55,7 @@ add_library(veebee_backend
         backend/AST/Loose/Statements/label_statement.h
         backend/AST/Loose/Statements/for_statement.h
         backend/AST/Loose/Statements/while_statement.h
+        backend/AST/Loose/Statements/do_statement.h
 )
 
 target_include_directories(veebee_backend

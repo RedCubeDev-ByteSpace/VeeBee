@@ -68,6 +68,10 @@
     GEN(TK_KW_WHILE)              \
     GEN(TK_KW_WEND)               \
                                   \
+    GEN(TK_KW_DO)                 \
+    GEN(TK_KW_UNTIL)              \
+    GEN(TK_KW_LOOP)               \
+                                  \
     GEN(TK_KW_IF)                 \
     GEN(TK_KW_ELSEIF)             \
     GEN(TK_KW_THEN)               \
@@ -187,6 +191,9 @@ static const char *KEYWORDS[] = {
     "next",
     "while",
     "wend",
+    "do",
+    "until",
+    "loop",
     "if",
     "elseif",
     "then",

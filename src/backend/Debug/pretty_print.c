@@ -20,6 +20,7 @@
 #include "AST/Loose/Members/type_member.h"
 #include "AST/Loose/Statements/assignment_statement.h"
 #include "AST/Loose/Statements/dim_statement.h"
+#include "AST/Loose/Statements/do_statement.h"
 #include "AST/Loose/Statements/expression_statement.h"
 #include "AST/Loose/Statements/for_statement.h"
 #include "AST/Loose/Statements/goto_statement.h"
@@ -424,6 +425,26 @@ void DBG_PRETTY_PRINT_Print_LSAstNode(ls_ast_node_t *me, bool finalEntry) {
 
             FIELD_FINAL("Body")
             SUBNODES(((ls_while_statement_node_t*)me)->lsBody, true)
+        END_NODE()
+
+        NODE(LS_DO_STATEMENT)
+            FIELD("HeadWhile")
+            VALUE_SET(((ls_do_statement_node_t*)me)->kwHeadWhile)
+
+            FIELD("HeadUntil")
+            VALUE_SET(((ls_do_statement_node_t*)me)->kwHeadUntil)
+
+            FIELD("Condition")
+            SUBNODE(((ls_do_statement_node_t*)me)->exprCondition, false)
+
+            FIELD("Body")
+            SUBNODES(((ls_do_statement_node_t*)me)->lsBody, false)
+
+            FIELD("TailWhile")
+            VALUE_SET(((ls_do_statement_node_t*)me)->kwTailWhile)
+
+            FIELD_FINAL("TailUntil")
+            VALUE_SET(((ls_do_statement_node_t*)me)->kwTailUntil)
         END_NODE()
 
         default:;
