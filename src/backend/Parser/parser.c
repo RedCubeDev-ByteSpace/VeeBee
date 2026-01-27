@@ -20,6 +20,7 @@
 #include "AST/Loose/Statements/for_statement.h"
 #include "AST/Loose/Statements/while_statement.h"
 #include "AST/Loose/Statements/do_statement.h"
+#include "AST/Loose/Statements/call_statement.h"
 #include "AST/Loose/Statements/expression_statement.h"
 #include "AST/Loose/Expressions/unary_expression.h"
 #include "AST/Loose/Expressions/binary_expression.h"
@@ -941,6 +942,10 @@ ls_ast_node_t *PARSER_parseStatement(parser_t *me) {
             stmt = PARSER_parseExitStatement(me);
         break;
 
+        case TK_KW_CALL:
+            stmt = PARSER_parseCallStatement(me);
+        break;
+
         case TK_IDENTIFIER:
             if (PS_PEEK(1)->type == TK_EOS && PS_PEEK(1)->strValue != NULL) {
                 stmt = PARSER_parseLabelStatement(me);
@@ -1617,6 +1622,29 @@ ls_ast_node_t *PARSER_parseDoStatement(parser_t *me) {
     node->lsBody            = lsBody;
     node->kwLoop            = kwLoop;
     node->kwTailConjunction = kwTailConjunction;
+    return (ls_ast_node_t*)node;
+}
+
+// ---------------------------------------------------------------------------------------------------------------------
+// PARSER_parseCallStatement:
+// parse a the call of a subroutine
+ls_ast_node_t *PARSER_parseCallStatement(parser_t *me) {
+
+    // consume the call keyword
+    token_t *kwCall = PARSER_consume(me, TK_KW_CALL);
+    RETURN_NULL_ON_ERROR()
+
+    // consume the reference to the sub and its arguments, force parentheses
+    ls_ast_node_t *exprCall = PARSER_parseReferenceExpression(me, NULL, true);
+    RETURN_NULL_ON_ERROR(
+        UNLOAD_IF_NOT_NULL(exprCall)
+    )
+
+    // allocate and return a new node
+    ls_call_statement_node_t *node = malloc(sizeof(ls_call_statement_node_t));
+    node->base.type = LS_CALL_STATEMENT;
+    node->kwCall = kwCall;
+    node->exprCall = exprCall;
     return (ls_ast_node_t*)node;
 }
 

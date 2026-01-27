@@ -17,6 +17,7 @@
 #include "Expressions/reference_expression.h"
 #include "Expressions/unary_expression.h"
 #include "Statements/assignment_statement.h"
+#include "Statements/call_statement.h"
 #include "Statements/dim_statement.h"
 #include "Statements/do_statement.h"
 #include "Statements/expression_statement.h"
@@ -135,6 +136,10 @@ void PS_LS_Node_Unload(ls_ast_node_t *me) {
 
         case LS_PARENTHESIZED_EXPRESSION:
             PS_LS_Node_Unload(((ls_parenthesized_expression_node_t*)me)->exprInner);
+        break;
+
+        case LS_CALL_STATEMENT:
+            PS_LS_Node_Unload(((ls_call_statement_node_t*)me)->exprCall);
         break;
 
         default:;

@@ -22,6 +22,7 @@
 #include "AST/Loose/Members/sub_member.h"
 #include "AST/Loose/Members/type_member.h"
 #include "AST/Loose/Statements/assignment_statement.h"
+#include "AST/Loose/Statements/call_statement.h"
 #include "AST/Loose/Statements/dim_statement.h"
 #include "AST/Loose/Statements/do_statement.h"
 #include "AST/Loose/Statements/exit_statement.h"
@@ -472,6 +473,11 @@ void DBG_PRETTY_PRINT_Print_LSAstNode(ls_ast_node_t *me, bool finalEntry) {
         NODE(LS_PARENTHESIZED_EXPRESSION)
             FIELD_FINAL("Inner")
             SUBNODE(((ls_parenthesized_expression_node_t*)me)->exprInner, true)
+        END_NODE()
+
+        NODE(LS_CALL_STATEMENT)
+            FIELD_FINAL("Reference")
+            SUBNODE(((ls_call_statement_node_t*)me)->exprCall, true)
         END_NODE()
 
         default:;

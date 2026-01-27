@@ -37,7 +37,8 @@ typedef enum LOOSE_NODE_TYPE {
     LS_RESUME_STATEMENT        = 0x0D0 | 0b0000'0010, // TODO, for later
     LS_WITH_STATEMENT          = 0x0E0 | 0b0000'0010, // TODO, for later
     LS_EXIT_STATEMENT          = 0x0F0 | 0b0000'0010,
-    LS_EXPRESSION_STATEMENT    = 0x100 | 0b0000'0010,
+    LS_CALL_STATEMENT          = 0x100 | 0b0000'0010,
+    LS_EXPRESSION_STATEMENT    = 0x110 | 0b0000'0010,
 
     // Expressions
     LS_LITERAL_EXPRESSION       = 0x10 | 0b0000'0100,

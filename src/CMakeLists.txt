@@ -60,6 +60,7 @@ add_library(veebee_backend
         backend/AST/Loose/Expressions/unary_expression.h
         backend/AST/Loose/Expressions/binary_expression.h
         backend/AST/Loose/Expressions/parenthesized_expression.h
+        backend/AST/Loose/Statements/call_statement.h
 )
 
 target_include_directories(veebee_backend
