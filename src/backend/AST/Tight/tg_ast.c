@@ -1,0 +1,122 @@
+//
+// Created by ds on 1/28/26.
+//
+#include <stdlib.h>
+#include "tg_ast.h"
+#include "../../Error/error.h"
+// ---------------------------------------------------------------------------------------------------------------------
+// Universal recursive node destructor
+// ---------------------------------------------------------------------------------------------------------------------
+void BD_TG_AST_Node_Unload(tg_ast_node_t *me) {
+    if (me == NULL) return; // nothing to do
+
+    switch (me->type) {
+        default:;
+    }
+
+    // finally, unload the buffer itself
+    free(me);
+}
+
+// ---------------------------------------------------------------------------------------------------------------------
+// Node List functions, basically a direct copy of the token list logic
+// ---------------------------------------------------------------------------------------------------------------------
+
+tg_ast_node_list_t BD_TG_AST_NODE_LIST_Init() {
+    return (tg_ast_node_list_t) {
+        NULL, 0, 0
+    };
+}
+
+void BD_TG_AST_NODE_LIST_Unload(const tg_ast_node_list_t me) {
+    for (int i = 0; i < me.length; ++i) {
+        BD_TG_AST_Node_Unload(me.nodes[i]);
+    }
+
+    free(me.nodes);
+}
+
+void BD_TG_AST_NODE_LIST_Add(tg_ast_node_list_t *me, tg_ast_node_t *newNode) {
+
+    // grow the list buffer if needed
+    if (!BD_TG_AST_NODE_LIST_grow(me)) {
+
+        // aw man
+        ERROR(SUB_BINDER, ERR_INTERNAL, "tight node list cannot grow any larger, out of memory");
+        return;
+    }
+
+    // when theres sufficient space in the buffer -> add this entry
+    me->nodes[me->length] = newNode;
+    me->length++;
+}
+
+bool BD_TG_AST_NODE_LIST_grow(tg_ast_node_list_t *me) {
+    if (me->length < me->capacity) return true; // nothing to do
+
+    // otherwise: expand the capacity and reallocate the buffer
+    me->capacity += TG_NODE_LIST_GROWTH;
+    tg_ast_node_t **newBuffer = realloc(me->nodes, sizeof(tg_ast_node_t*) * me->capacity);
+
+    // did we manage to allocate a new buffer?
+    if (newBuffer == NULL) {
+
+        // if not -> roll back the capacity and return false
+        me->capacity -= TG_NODE_LIST_GROWTH;
+        return false;
+    }
+
+    // otherwise, copy over the new buffer ptr into our list
+    me->nodes = newBuffer;
+    return true;
+}
+
+// ---------------------------------------------------------------------------------------------------------------------
+// Symbol List functions, basically a direct copy of the token list logic
+// ---------------------------------------------------------------------------------------------------------------------
+
+symbol_list_t BD_SYMBOL_LIST_Init() {
+    return (symbol_list_t) {
+        NULL,
+        0, 0
+    };
+}
+
+void BD_SYMBOL_LIST_Unload(symbol_list_t me) {
+    free(me.symbols);
+}
+
+void BD_SYMBOL_LIST_Add(symbol_list_t *me, symbol_t *symbol) {
+
+    // grow the list buffer if needed
+    if (!BD_SYMBOL_LIST_grow(me)) {
+
+        // damn
+        ERROR(SUB_BINDER, ERR_INTERNAL, "symbol list cannot grow any larger, out of memory");
+        return;
+    }
+
+    // when theres sufficient space -> add this entry
+    me->symbols[me->length] = symbol;
+    me->length++;
+}
+
+bool BD_SYMBOL_LIST_grow(symbol_list_t *me) {
+    if (me->length < me->capacity) return true; // no need to grow the buffer
+
+    // expand the capacity of this buffer
+    me->capacity += BD_SYMBOL_LIST_GROWTH;
+    symbol_t **newBuffer = realloc(me->symbols, me->capacity * sizeof(symbol_t *));
+
+    // did we manage to allocate a new buffer?
+    if (newBuffer == NULL) {
+
+        // if not -> roll back the capacity and return false
+        me->capacity -= BD_SYMBOL_LIST_GROWTH;
+        return false;
+    }
+
+    // if we did -> copy over the new buffer ptr to our list
+    me->symbols = newBuffer;
+    return true;
+}

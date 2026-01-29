@@ -47,9 +47,9 @@ parser_t *PARSER_Init(source_t source, token_list_t *tokens) {
 
     // initialize all other fields to zerp
     parser->pos = 0;
-    parser->members.nodes = NULL;
-    parser->members.length = 0;
-    parser->members.capacity = 0;
+    parser->lsMembers.nodes = NULL;
+    parser->lsMembers.length = 0;
+    parser->lsMembers.capacity = 0;
     parser->hasError = false;
     parser->suppressError = 0;
 
@@ -167,7 +167,7 @@ bool PARSER_parseModuleMember(parser_t *me) {
     node->idModuleName = idModule;
 
     // append it to the global member list
-    PS_LS_AST_NODE_LIST_Add(&me->members, (ls_ast_node_t*)node);
+    PS_LS_AST_NODE_LIST_Add(&me->lsMembers, (ls_ast_node_t*)node);
     return true;
 }
 
@@ -253,7 +253,7 @@ bool PARSER_parseTypeMember(parser_t *me) {
     node->kwEndType  = kwEndType;
 
     // and add it to the global member list
-    PS_LS_AST_NODE_LIST_Add(&me->members, (ls_ast_node_t*)node);
+    PS_LS_AST_NODE_LIST_Add(&me->lsMembers, (ls_ast_node_t*)node);
     return true;
 }
 
@@ -403,7 +403,7 @@ bool PARSER_parseFunctionMember(parser_t *me) {
     node->kwEndFunction       = kwEndFunction;
 
     // add it to the global member list
-    PS_LS_AST_NODE_LIST_Add(&me->members, (ls_ast_node_t*)node);
+    PS_LS_AST_NODE_LIST_Add(&me->lsMembers, (ls_ast_node_t*)node);
     return true;
 }
 
@@ -537,7 +537,7 @@ bool PARSER_parseSubMember(parser_t *me) {
     node->kwEndSub            = kwEndSub;
 
     // add it to the global member list
-    PS_LS_AST_NODE_LIST_Add(&me->members, (ls_ast_node_t*)node);
+    PS_LS_AST_NODE_LIST_Add(&me->lsMembers, (ls_ast_node_t*)node);
     return true;
 }
 

@@ -13,6 +13,7 @@
     GEN(SUB_CLI)                \
     GEN(SUB_LEXER)              \
     GEN(SUB_PARSER)             \
+    GEN(SUB_BINDER)             \
 
 #define GEN_ENUM(ENUM) ENUM,
 #define GEN_STRING(STRING) #STRING,
@@ -30,33 +31,39 @@ static const char *SUBSYSTEM_NAMES[] = {
 
 // ---------------------------------------------------------------------------------------------------------------------
 // Define all VeeBee error codes
-# define FOREACH_ERROR_TYPE(GEN)                      \
-    GEN(ERR_INTERNAL)                                 \
-                                                      \
-    GEN(ERR_CL_NO_SOURCES_GIVEN)                      \
-    GEN(ERR_CL_TOO_MANY_SOURCES)                      \
-    GEN(ERR_CL_SOURCE_DOESNT_EXIST)                   \
-                                                      \
-    GEN(ERR_LX_SOURCE_TEXT_NULL)                      \
-    GEN(ERR_LX_PATH_NULL)                             \
-    GEN(ERR_LX_PATH_TOO_LONG)                         \
-    GEN(ERR_LX_FILE_NOT_FOUND)                        \
-    GEN(ERR_LX_TOKEN_VALUE_TOO_LONG)                  \
-    GEN(ERR_LX_IDENTIFIER_TOO_LONG)                   \
-    GEN(ERR_LX_UNTERMINATED_STRING)                   \
-    GEN(ERR_LX_UNEXPECTED_CHARACTER)                  \
-    GEN(ERR_LX_UNEXPECTED_LITERAL_QUALIFIER)          \
-    GEN(ERR_LX_UNEXPECTED_CHAR_IN_NUMERIC_LITERAL)    \
-    GEN(ERR_LX_INCOMPATIBLE_NUMERIC_TYPE_AND_LITERAL) \
-    GEN(ERR_LX_INCOMPATIBLE_VALUE_FOR_NUMERIC_TYPE)   \
-                                                      \
-    GEN(ERR_PS_UNEXPECTED_TOKEN)                      \
-    GEN(ERR_PS_UNEXPECTED_NON_MEMBER)                 \
-    GEN(ERR_PS_UNEXPECTED_NON_EXPRESSION)             \
-    GEN(ERR_PS_UNEXPECTED_NON_STATEMENT)              \
-    GEN(ERR_PS_UNEXPECTED_AS_CLAUSE)                  \
-    GEN(ERR_PS_EXPECTED_UNARY_OPERATOR)               \
-    GEN(ERR_PS_EXPECTED_BINARY_OPERATOR)              \
+# define FOREACH_ERROR_TYPE(GEN)                       \
+    GEN(ERR_INTERNAL)                                  \
+                                                       \
+    GEN(ERR_CL_NO_SOURCES_GIVEN)                       \
+    GEN(ERR_CL_TOO_MANY_SOURCES)                       \
+    GEN(ERR_CL_SOURCE_DOESNT_EXIST)                    \
+                                                       \
+    GEN(ERR_LX_SOURCE_TEXT_NULL)                       \
+    GEN(ERR_LX_PATH_NULL)                              \
+    GEN(ERR_LX_PATH_TOO_LONG)                          \
+    GEN(ERR_LX_FILE_NOT_FOUND)                         \
+    GEN(ERR_LX_TOKEN_VALUE_TOO_LONG)                   \
+    GEN(ERR_LX_IDENTIFIER_TOO_LONG)                    \
+    GEN(ERR_LX_UNTERMINATED_STRING)                    \
+    GEN(ERR_LX_UNEXPECTED_CHARACTER)                   \
+    GEN(ERR_LX_UNEXPECTED_LITERAL_QUALIFIER)           \
+    GEN(ERR_LX_UNEXPECTED_CHAR_IN_NUMERIC_LITERAL)     \
+    GEN(ERR_LX_INCOMPATIBLE_NUMERIC_TYPE_AND_LITERAL)  \
+    GEN(ERR_LX_INCOMPATIBLE_VALUE_FOR_NUMERIC_TYPE)    \
+                                                       \
+    GEN(ERR_PS_UNEXPECTED_TOKEN)                       \
+    GEN(ERR_PS_UNEXPECTED_NON_MEMBER)                  \
+    GEN(ERR_PS_UNEXPECTED_NON_EXPRESSION)              \
+    GEN(ERR_PS_UNEXPECTED_NON_STATEMENT)               \
+    GEN(ERR_PS_UNEXPECTED_AS_CLAUSE)                   \
+    GEN(ERR_PS_EXPECTED_UNARY_OPERATOR)                \
+    GEN(ERR_PS_EXPECTED_BINARY_OPERATOR)               \
+                                                       \
+    GEN(ERR_BD_MORE_THAN_ONE_MODULE_MEMBERS)           \
+    GEN(ERR_BD_MODULE_MEMBER_NOT_AT_BEGINNING_OF_FILE) \
+    GEN(ERR_BD_UNRECOGNIZED_TYPE_NAME)                 \
+    GEN(ERR_BD_TOO_MANY_ARRAY_DIMENSIONS)              \
+    GEN(ERR_BD_NO_FIELDS_IN_TYPE)                      \
 
 // Error type enum
 typedef enum ERR_ERROR_TYPE {

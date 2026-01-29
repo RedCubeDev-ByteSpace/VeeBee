@@ -5,6 +5,8 @@
 #include "../backend/veebee.h"
 #include "../backend/Debug/ansi.h"
 #include "cli.h"
+#include "Binder/binder.h"
+#include "Binder/indexer.h"
 #include "Debug/pretty_print.h"
 #include "Error/error.h"
 #include "Lexer/lexer.h"
@@ -192,12 +194,16 @@ int CLI_doBusiness() {
     if (CLI_PrintDebugInfo) {
         printf("\nList of parsed members:\n");
         DBG_INIT_INDENT();
-        DBG_PRETTY_PRINT_Print_LSAstNode_List(parser->members);
+        DBG_PRETTY_PRINT_Print_LSAstNode_List(parser->lsMembers);
     }
 
+    // create a new binder
+    binder_t *binder = BINDER_Init();
+    BINDER_CreateModuleIndex(binder, source, parser->lsMembers);
+    BINDER_CreateTypeIndex(binder, (module_symbol_t*)binder->programUnit->lsModules.symbols[0]);
 
     // unload everything
-    PS_LS_AST_NODE_LIST_Unload(parser->members);
+    PS_LS_AST_NODE_LIST_Unload(parser->lsMembers);
     LX_TOKEN_LIST_Unload(lexer->tokens);
     PARSER_Unload(parser);
     LEXER_Unload(lexer);

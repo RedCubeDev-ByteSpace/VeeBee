@@ -61,6 +61,23 @@ add_library(veebee_backend
         backend/AST/Loose/Expressions/binary_expression.h
         backend/AST/Loose/Expressions/parenthesized_expression.h
         backend/AST/Loose/Statements/call_statement.h
+        backend/AST/Tight/tg_ast.c
+        backend/AST/Tight/tg_ast.h
+        backend/AST/Tight/Symbols/module_symbol.h
+        backend/AST/Tight/Symbols/function_symbol.h
+        backend/AST/Tight/Symbols/type_symbol.h
+        backend/AST/Tight/Symbols/subroutine_symbol.h
+        backend/AST/Tight/Symbols/local_variable_symbol.h
+        backend/AST/Tight/Symbols/type_field_symbol.h
+        backend/AST/Tight/Symbols/parameter_symbol.h
+        backend/AST/Tight/program_unit.h
+        backend/Binder/indexer.h
+        backend/AST/Tight/program_unit.c
+        backend/Binder/binder.h
+        backend/Binder/indexer.c
+        backend/Binder/binder.c
+        backend/Binder/type_resolver.h
+        backend/Binder/type_resolver.c
 )
 
 target_include_directories(veebee_backend

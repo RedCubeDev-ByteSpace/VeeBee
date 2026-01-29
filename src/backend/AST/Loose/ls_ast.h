@@ -6,6 +6,10 @@
 #define AST_H
 #include <stdint.h>
 
+// ---------------------------------------------------------------------------------------------------------------------
+// LOOSE AST
+// ---------------------------------------------------------------------------------------------------------------------
+
 typedef enum LOOSE_NODE_TYPE {
     LS_NONE = 0,
 
@@ -63,7 +67,7 @@ typedef enum LOOSE_NODE_TYPE {
 #define LS_CLAUSE 0b0000'1000
 
 // ---------------------------------------------------------------------------------------------------------------------
-// the basis for all out AST nodes
+// the basis for all our loose AST nodes
 
 typedef struct LOOSE_AST_NODE {
     ls_node_type_t type;

@@ -173,7 +173,7 @@ void PS_LS_AST_NODE_LIST_Add(ls_ast_node_list_t *me, ls_ast_node_t *newNode) {
     if (!PS_LS_AST_NODE_LIST_grow(me)) {
 
         // aw man
-        ERROR(SUB_PARSER, ERR_INTERNAL, "node list cannot grow any larger, out of memory");
+        ERROR(SUB_PARSER, ERR_INTERNAL, "loose node list cannot grow any larger, out of memory");
         return;
     }
 
@@ -191,6 +191,7 @@ bool PS_LS_AST_NODE_LIST_grow(ls_ast_node_list_t *me) {
 
     // did we manage to allocate a new buffer?
     if (newBuffer == NULL) {
+
         // if not -> roll back the capacity and return false
         me->capacity -= PS_NODE_LIST_GROWTH;
         return false;

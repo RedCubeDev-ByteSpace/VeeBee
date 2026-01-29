@@ -30,7 +30,7 @@ typedef struct PARSER {
     uint64_t pos;
 
     // a list of parsed members, which make up this modules global scope
-    ls_ast_node_list_t members;
+    ls_ast_node_list_t lsMembers;
 
     // have we hit an error while parsing?
     bool hasError;
