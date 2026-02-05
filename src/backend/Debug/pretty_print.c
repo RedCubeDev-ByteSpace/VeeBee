@@ -34,6 +34,13 @@
 #include "AST/Loose/Statements/redim_statement.h"
 #include "AST/Loose/Statements/select_statement.h"
 #include "AST/Loose/Statements/while_statement.h"
+#include "AST/Tight/program_unit.h"
+#include "AST/Tight/Symbols/local_variable_symbol.h"
+#include "AST/Tight/Symbols/module_symbol.h"
+#include "AST/Tight/Symbols/parameter_symbol.h"
+#include "AST/Tight/Symbols/procedure_symbol.h"
+#include "AST/Tight/Symbols/type_field_symbol.h"
+#include "AST/Tight/Symbols/type_symbol.h"
 
 char DBG_INDENT_BUFFER[256];
 int DBG_INDENT_LENGTH;
@@ -487,5 +494,153 @@ void DBG_PRETTY_PRINT_Print_LSAstNode(ls_ast_node_t *me, bool finalEntry) {
 void DBG_PRETTY_PRINT_Print_LSAstNode_List(ls_ast_node_list_t me) {
     for (int i = 0; i < me.length; ++i) {
         DBG_PRETTY_PRINT_Print_LSAstNode(me.nodes[i], i == me.length - 1);
+    }
+}
+
+void DBG_PRETTY_PRINT_Print_ProgramUnit(program_unit_t *me) {
+    printf("\n");
+    printf( WHTB BBLK "[Program Unit]\n" CRESET);
+
+    printf(CYNB BBLK "[[Builtin Types]]\n" CRESET);
+    DBG_PRETTY_PRINT_Print_SymbolList(me->lsBuiltinTypes);
+
+    printf(CYNB BBLK "[[Array Types]]\n" CRESET);
+    DBG_PRETTY_PRINT_Print_SymbolList(me->lsArrayTypes);
+
+    printf(CYNB BBLK "[[Modules]]\n" CRESET);
+    DBG_PRETTY_PRINT_Print_SymbolList(me->lsModules);
+}
+
+void DBG_PRETTY_PRINT_Print_Symbol(symbol_t *me, bool finalEntry) {
+    INDENT()
+
+    switch (me->type) {
+        SYMBOL(UNKNOWN_SYMBOL)
+            FIELD_FINAL("Name")
+            VALUE_STR(me->name)
+        END_SYMBOL()
+
+        SYMBOL(MODULE_SYMBOL)
+
+            FIELD("Name")
+            VALUE_STR(me->name)
+
+            FIELD("Types")
+            SUBSYMBOLS(((module_symbol_t*)me)->lsTypes, false)
+
+            FIELD_FINAL("Procedures")
+            SUBSYMBOLS(((module_symbol_t*)me)->lsProcedures, true)
+
+        END_SYMBOL()
+
+        SYMBOL(TYPE_SYMBOL)
+
+            FIELD("Name")
+            VALUE_STR(me->name)
+
+            if (((type_symbol_t*)me)->typeOfType == TYPE_BUILTIN) {
+                FIELD_FINAL("Kind")
+                VALUE_SYM(TYPE_BUILTIN)
+            }
+
+            if (((type_symbol_t*)me)->typeOfType == TYPE_ARRAY) {
+                FIELD("Kind")
+                VALUE_SYM(TYPE_ARRAY)
+
+                FIELD("Dimensions")
+                VALUE_NUM(((type_symbol_t*)me)->numArrayDimensions)
+
+                FIELD_FINAL("SubType")
+                SUBSYMBOL(((type_symbol_t*)me)->symSubType, true)
+            }
+
+            if (((type_symbol_t*)me)->typeOfType == TYPE_USER_DEFINED) {
+                FIELD("Kind")
+                VALUE_SYM(TYPE_USER_DEFINED)
+
+                FIELD_FINAL("Fields")
+                SUBSYMBOLS(((type_symbol_t*)me)->lsFields, true)
+            }
+
+        END_SYMBOL()
+
+        SYMBOL(TYPE_FIELD_SYMBOL)
+
+            FIELD("Name")
+            VALUE_STR(me->name)
+
+            FIELD_FINAL("Type")
+            SUBSYMBOL(((type_field_symbol_t*)me)->symType, true)
+
+        END_SYMBOL()
+
+        SYMBOL(PROCEDURE_SYMBOL)
+
+            FIELD("Name")
+            VALUE_STR(me->name)
+
+            FIELD("Visibility")
+            procedure_visibility_t visibility = ((procedure_symbol_t*)me)->visibility;
+            VALUE_STR(visibility == PUBLIC  ? "Public"  :
+                      visibility == PRIVATE ? "Private" :
+                      visibility == FRIEND  ? "Friend" : "Unknown");
+
+            FIELD("IsVariadic")
+            VALUE_NUM(((procedure_symbol_t*)me)->isVariadic)
+
+            FIELD("Parameters")
+            SUBSYMBOLS(((procedure_symbol_t*)me)->lsParameters, false)
+
+            FIELD("ReturnType")
+            SUBSYMBOL(((procedure_symbol_t*)me)->symReturnType, false)
+
+            FIELD_FINAL("Buckets")
+            SUBSYMBOLS(((procedure_symbol_t*)me)->lsBuckets, true)
+
+        END_SYMBOL()
+
+        SYMBOL(PARAMETER_SYMBOL)
+
+            FIELD("Name")
+            VALUE_STR(me->name)
+
+            FIELD("BucketIndex")
+            VALUE_NUM(((parameter_symbol_t*)me)->bucketIndex)
+
+            FIELD("PassingType")
+            passing_type_t passingType = ((parameter_symbol_t*)me)->passingType;
+            VALUE_STR(passingType == PASS_BY_REFERENCE  ? "ByRef"  :
+                      passingType == PASS_BY_VALUE      ? "ByVal" : "Unknown");
+
+            FIELD("IsOptional")
+            VALUE_NUM(((parameter_symbol_t*)me)->isOptional)
+
+            FIELD_FINAL("Type")
+            SUBSYMBOL(((parameter_symbol_t*)me)->symType, true)
+
+        END_SYMBOL()
+
+        SYMBOL(LOCAL_VARIABLE_SYMBOL)
+
+            FIELD("Name")
+            VALUE_STR(me->name)
+
+            FIELD("BucketIndex")
+            VALUE_NUM(((local_variable_symbol_t*)me)->bucketIndex)
+
+            FIELD_FINAL("Type")
+            SUBSYMBOL(((local_variable_symbol_t*)me)->symType, true)
+
+        END_SYMBOL()
+
+        default:
+            printf("(unimplemented) \n");
+    }
+}
+
+
+void DBG_PRETTY_PRINT_Print_SymbolList(symbol_list_t me) {
+    for (int i = 0; i < me.length; ++i) {
+        DBG_PRETTY_PRINT_Print_Symbol(me.symbols[i], i == me.length - 1);
     }
 }

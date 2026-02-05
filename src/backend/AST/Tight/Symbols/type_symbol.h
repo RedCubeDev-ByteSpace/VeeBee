@@ -6,6 +6,8 @@
 #define TYPE_SYMBOL_H
 #include "../tg_ast.h"
 
+#define ARRAY_DIM_GENERIC 0
+
 typedef enum TYPE_SYMBOL_TYPE {
 
     TYPE_BUILTIN,      // a basic built in type like int, bool, etc.

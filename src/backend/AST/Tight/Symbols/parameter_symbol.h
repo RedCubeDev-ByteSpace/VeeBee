@@ -14,7 +14,7 @@ typedef enum PASSING_TYPE {
 
 } passing_type_t;
 
-typedef struct LOCAL_VARIABLE_SYMBOL {
+typedef struct PARAMETER_SYMBOL {
     symbol_t base;
 
     // the type of this parameter
@@ -32,6 +32,6 @@ typedef struct LOCAL_VARIABLE_SYMBOL {
     // the bucket index of this variable
     uint16_t bucketIndex;
 
-} local_variable_symbol_t;
+} parameter_symbol_t;
 
 #endif //PARAMETER_SYMBOL_H

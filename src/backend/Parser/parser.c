@@ -273,12 +273,12 @@ bool PARSER_parseFunctionMember(parser_t *me) {
     }
 
     // if theres a 'Private' keyword, consume it
-    if (PS_CURRENT().type == TK_KW_PRIVATE) {
+    else if (PS_CURRENT().type == TK_KW_PRIVATE) {
         kwPrivate = PARSER_consume(me, TK_KW_PRIVATE);
     }
 
     // if theres a 'Friend' keyword, consume it
-    if (PS_CURRENT().type == TK_KW_FRIEND) {
+    else if (PS_CURRENT().type == TK_KW_FRIEND) {
         kwFriend = PARSER_consume(me, TK_KW_FRIEND);
     }
 
@@ -708,7 +708,7 @@ ls_parameter_clause_node_t *PARSER_parseParameterClause(parser_t *me) {
     }
 
     // if theres a 'ByRef' keyword, consume it
-    if (PS_CURRENT().type == TK_KW_BYREF) {
+    else if (PS_CURRENT().type == TK_KW_BYREF) {
         kwByRef = PARSER_consume(me, TK_KW_BYREF);
     }
 

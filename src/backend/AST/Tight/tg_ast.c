@@ -3,7 +3,42 @@
 //
 #include <stdlib.h>
 #include "tg_ast.h"
+
+#include <string.h>
+
 #include "../../Error/error.h"
+#include "Symbols/procedure_symbol.h"
+#include "Symbols/module_symbol.h"
+#include "Symbols/type_symbol.h"
+// ---------------------------------------------------------------------------------------------------------------------
+// Universal recursive symbol destructor
+// ---------------------------------------------------------------------------------------------------------------------
+void BD_SYMBOL_Unload(symbol_t *me) {
+    if (me == NULL) return; // nothing to do
+
+    switch (me->type) {
+        case MODULE_SYMBOL:
+            BD_SYMBOL_LIST_Unload(((module_symbol_t*)me)->lsTypes, true);
+            BD_SYMBOL_LIST_Unload(((module_symbol_t*)me)->lsProcedures, true);
+        break;
+
+        case TYPE_SYMBOL:
+            if (((type_symbol_t*)me)->typeOfType == TYPE_USER_DEFINED)
+                BD_SYMBOL_LIST_Unload(((type_symbol_t*)me)->lsFields, true);
+        break;
+
+        case PROCEDURE_SYMBOL:
+            BD_SYMBOL_LIST_Unload(((procedure_symbol_t*)me)->lsParameters, false);
+            BD_SYMBOL_LIST_Unload(((procedure_symbol_t*)me)->lsBuckets, true);
+        break;
+
+        default:;
+    }
+
+    // finally, unload the buffer itself
+    free(me);
+}
+
 // ---------------------------------------------------------------------------------------------------------------------
 // Universal recursive node destructor
 // ---------------------------------------------------------------------------------------------------------------------
@@ -82,7 +117,14 @@ symbol_list_t BD_SYMBOL_LIST_Init() {
     };
 }
 
-void BD_SYMBOL_LIST_Unload(symbol_list_t me) {
+void BD_SYMBOL_LIST_Unload(symbol_list_t me, bool unloadChildren) {
+
+    if (unloadChildren) {
+        for (int i = 0; i < me.length; ++i) {
+            BD_SYMBOL_Unload(me.symbols[i]);
+        }
+    }
+
     free(me.symbols);
 }
 
@@ -99,6 +141,21 @@ void BD_SYMBOL_LIST_Add(symbol_list_t *me, symbol_t *symbol) {
     // when theres sufficient space -> add this entry
     me->symbols[me->length] = symbol;
     me->length++;
+}
+
+int BD_SYMBOL_LIST_Find(symbol_list_t *me, char *name) {
+
+    // look through the list of symbols
+    for (int i = 0; i < me->length; ++i) {
+
+        // check if this symbol matches the name we're looking for
+        if (strcmp(me->symbols[i]->name, name) == 0) {
+            return i;
+        }
+    }
+
+    // otherwise: no luck
+    return -1;
 }
 
 bool BD_SYMBOL_LIST_grow(symbol_list_t *me) {

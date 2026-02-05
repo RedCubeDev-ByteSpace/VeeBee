@@ -199,10 +199,25 @@ int CLI_doBusiness() {
 
     // create a new binder
     binder_t *binder = BINDER_Init();
+
+    // create an index of all module and type names
     BINDER_CreateModuleIndex(binder, source, parser->lsMembers);
+    if (binder->hasError) goto unload;
+
+    // create an index of all type fields
     BINDER_CreateTypeIndex(binder, (module_symbol_t*)binder->programUnit->lsModules.symbols[0]);
+    if (binder->hasError) goto unload;
+
+    // create an index of all functions and subroutines
+    BINDER_CreateProcedureIndex(binder, (module_symbol_t*)binder->programUnit->lsModules.symbols[0]);
+    if (binder->hasError) goto unload;
+
+    DBG_PRETTY_PRINT_Print_ProgramUnit(binder->programUnit);
 
     // unload everything
+unload:
+    BD_PROGRAM_UNIT_Unload(binder->programUnit);
+    BINDER_Unload(binder);
     PS_LS_AST_NODE_LIST_Unload(parser->lsMembers);
     LX_TOKEN_LIST_Unload(lexer->tokens);
     PARSER_Unload(parser);

@@ -7,6 +7,7 @@
 
 #define TG_STATEMENT 0b0000'0001
 #define TG_EXPRESSION 0b0000'0010
+#include "Lexer/source.h"
 #include "Lexer/token.h"
 
 // ---------------------------------------------------------------------------------------------------------------------
@@ -67,14 +68,13 @@ typedef enum SYMBOL_TYPE {
 
     // Absolutely no idea what this symbol is
     // -> figure this out at runtime
-    UNKNOWN,
+    UNKNOWN_SYMBOL,
 
     // This is a module
     MODULE_SYMBOL,
 
     // This is a procedure of some kind
-    FUNCTION_SYMBOL,   // returns value
-    SUBROUTINE_SYMBOL, // doesnt return value
+    PROCEDURE_SYMBOL,
 
     // This is a data type
     TYPE_SYMBOL,
@@ -91,9 +91,11 @@ typedef enum SYMBOL_TYPE {
 typedef struct SYMBOL {
     symbol_type_t type;
     char name[MAX_IDENTIFIER_LENGTH + 1];
+    span_t declarationSpan;
 } symbol_t;
 
 static const char *BD_DEFAULT_MODULE_NAME = "Default";
+void BD_SYMBOL_Unload(symbol_t *me);
 
 // ---------------------------------------------------------------------------------------------------------------------
 // a dynamically sized list of symbols
@@ -105,8 +107,9 @@ typedef struct SYMBOL_LIST {
 } symbol_list_t;
 
 symbol_list_t BD_SYMBOL_LIST_Init();
-void BD_SYMBOL_LIST_Unload(symbol_list_t me);
+void BD_SYMBOL_LIST_Unload(symbol_list_t me, bool unloadChildren);
 void BD_SYMBOL_LIST_Add(symbol_list_t *me, symbol_t *symbol);
+int BD_SYMBOL_LIST_Find(symbol_list_t *me, char *name);
 bool BD_SYMBOL_LIST_grow(symbol_list_t *me);
 
 #endif //TG_AST_H

@@ -8,6 +8,7 @@
 #include <stdio.h>
 #include <wchar.h>
 #include "AST/Loose/ls_ast.h"
+#include "AST/Tight/program_unit.h"
 #include "Lexer/token.h"
 #include "Debug/ansi.h"
 
@@ -15,6 +16,9 @@ void DBG_PRETTY_PRINT_Print_TokenList(token_list_t tokens);
 void DBG_PRETTY_PRINT_Print_TokenList_AsSource(token_list_t tokens);
 void DBG_PRETTY_PRINT_Print_LSAstNode(ls_ast_node_t *me, bool finalEntry);
 void DBG_PRETTY_PRINT_Print_LSAstNode_List(ls_ast_node_list_t me);
+void DBG_PRETTY_PRINT_Print_ProgramUnit(program_unit_t *me);
+void DBG_PRETTY_PRINT_Print_Symbol(symbol_t *me, bool finalEntry);
+void DBG_PRETTY_PRINT_Print_SymbolList(symbol_list_t me);
 
 extern char DBG_INDENT_BUFFER[256];
 extern int DBG_INDENT_LENGTH;
@@ -74,6 +78,15 @@ DBG_INDENT_BUFFER[DBG_INDENT_LENGTH] = 0; \
     else                                               \
         printf(BYEL "'%s'\n" CRESET, TOKEN->strValue); \
 
+#define VALUE_SYM(STR)                      \
+        printf(BYEL "'%s'\n" CRESET, #STR); \
+
+#define VALUE_STR(STR)                   \
+    printf(BYEL "'%s'\n" CRESET, (STR)); \
+
+#define VALUE_NUM(NUM)                 \
+    printf(BCYN "'%d'\n" CRESET, NUM); \
+
 #define VALUE_INT(TOKEN)                               \
     if (TOKEN == NULL)                                 \
         printf("NULL\n");                              \
@@ -111,5 +124,44 @@ DBG_INDENT_BUFFER[DBG_INDENT_LENGTH] = 0; \
     DBG_PRETTY_PRINT_Print_LSAstNode_List(NODE_LIST);         \
     DBG_REMOVE_INDENT()                                       \
 
+
+#define SYMBOL(IDENT)     \
+    case IDENT:           \
+        if (finalEntry) { \
+            printf(GRY "└─" CRESET "[" BCYN "%s" CRESET "]\n", #IDENT); \
+             DBG_ADD_EMPTY_INDENT() \
+        } else { \
+            printf(GRY "├─" CRESET "[" BCYN "%s" CRESET "]\n", #IDENT); \
+            DBG_ADD_LINE_INDENT() \
+        } \
+
+#define END_SYMBOL() \
+    DBG_REMOVE_INDENT() \
+    break;         \
+
+#define SUBSYMBOL(SYM, FINAL)                                     \
+    if (SYM == NULL)                                              \
+        printf(BLU "NULL\n");                                     \
+    else {                                                        \
+        printf("\n");                                             \
+        if (FINAL) {                                              \
+            DBG_ADD_EMPTY_INDENT()                                \
+        } else {                                                  \
+            DBG_ADD_LINE_INDENT()                                 \
+        }                                                         \
+        DBG_PRETTY_PRINT_Print_Symbol((symbol_t*)(SYM), true);    \
+        DBG_REMOVE_INDENT()                                       \
+    }                                                             \
+
+
+#define SUBSYMBOLS(SYM_LIST, FINAL)                           \
+    printf("(%d)\n", SYM_LIST.length);                        \
+    if (FINAL) {                                              \
+        DBG_ADD_EMPTY_INDENT()                                \
+    } else {                                                  \
+        DBG_ADD_LINE_INDENT()                                 \
+    }                                                         \
+    DBG_PRETTY_PRINT_Print_SymbolList(SYM_LIST);              \
+    DBG_REMOVE_INDENT()                                       \
 
 #endif //PRETTY_PRINT_H

@@ -18,6 +18,7 @@ program_unit_t *BD_PROGRAM_UNIT_Init() {
     newUnit->lsBuiltinTypes = BD_SYMBOL_LIST_Init();
 
     type_symbol_t *typeSymbol;
+    CREATE_NEW_BUILTIN_TYPE("variant");
     CREATE_NEW_BUILTIN_TYPE("boolean");
     CREATE_NEW_BUILTIN_TYPE("byte");
     CREATE_NEW_BUILTIN_TYPE("integer");
@@ -35,6 +36,8 @@ program_unit_t *BD_PROGRAM_UNIT_Init() {
 }
 
 void BD_PROGRAM_UNIT_Unload(program_unit_t *me) {
-    BD_SYMBOL_LIST_Unload(me->lsModules);
+    BD_SYMBOL_LIST_Unload(me->lsModules, true);
+    BD_SYMBOL_LIST_Unload(me->lsBuiltinTypes, true);
+    BD_SYMBOL_LIST_Unload(me->lsArrayTypes, true);
     free(me);
 }

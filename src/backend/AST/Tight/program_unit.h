@@ -6,6 +6,9 @@
 #define PROGRAM_UNIT_H
 #include "tg_ast.h"
 
+// remember which builtin type is a variant
+#define IDX_BUILTIN_VARIANT 0
+
 // ---------------------------------------------------------------------------------------------------------------------
 // PROGRAM UNIT
 // ------------

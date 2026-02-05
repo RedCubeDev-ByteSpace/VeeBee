@@ -11,5 +11,12 @@ binder_t *BINDER_Init() {
     // initialize the program unit
     newBinder->programUnit = BD_PROGRAM_UNIT_Init();
 
+    // reset the error flag
+    newBinder->hasError = false;
+
     return newBinder;
+}
+
+void BINDER_Unload(binder_t *me) {
+    free(me);
 }

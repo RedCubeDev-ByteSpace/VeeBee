@@ -24,14 +24,11 @@ typedef struct MODULE_SYMBOL {
 
     // -----------------------------------------------------------------------------------------------------------------
 
-    // a list of all functions within this module
-    symbol_list_t lsFunctions;
-
-    // a list of all subroutines within this module
-    symbol_list_t lsSubroutines;
+    // a list of all functions and subroutines within this module
+    symbol_list_t lsProcedures;
 
     // our procedure body index
-    tg_ast_node_list_t *lsProcedureBodies;
+    //tg_ast_node_list_t *lsProcedureBodies;
 
     // a list of all user defined types within this module
     symbol_list_t lsTypes;

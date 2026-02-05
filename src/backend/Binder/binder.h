@@ -22,5 +22,6 @@ typedef struct BINDER {
 } binder_t;
 
 binder_t *BINDER_Init();
+void BINDER_Unload(binder_t *me);
 
 #endif //BINDER_H

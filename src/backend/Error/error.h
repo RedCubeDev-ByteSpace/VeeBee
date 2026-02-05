@@ -33,6 +33,7 @@ static const char *SUBSYSTEM_NAMES[] = {
 // Define all VeeBee error codes
 # define FOREACH_ERROR_TYPE(GEN)                       \
     GEN(ERR_INTERNAL)                                  \
+    GEN(ERR_NOT_IMPLEMENTED)                           \
                                                        \
     GEN(ERR_CL_NO_SOURCES_GIVEN)                       \
     GEN(ERR_CL_TOO_MANY_SOURCES)                       \
@@ -64,6 +65,14 @@ static const char *SUBSYSTEM_NAMES[] = {
     GEN(ERR_BD_UNRECOGNIZED_TYPE_NAME)                 \
     GEN(ERR_BD_TOO_MANY_ARRAY_DIMENSIONS)              \
     GEN(ERR_BD_NO_FIELDS_IN_TYPE)                      \
+    GEN(ERR_BD_ARRAY_TYPE_MUST_BE_GENERIC)             \
+    GEN(ERR_BD_UNEXPECTED_ARRAY_TYPE)                  \
+    GEN(ERR_BD_NON_UNIQUE_SYMBOL)                      \
+    GEN(ERR_BD_INVALID_NON_OPTIONAL_PARAMETER)         \
+    GEN(ERR_BD_INVALID_PARAMARRAY_PARAMETER)           \
+    GEN(ERR_BD_INVALID_NON_PARAMARRAY_PARAMETER)       \
+    GEN(ERR_BD_ILLEGAL_COMBINATION_OF_MODIFIERS)       \
+    GEN(ERR_BD_FRIEND_MODIFIER_NOT_ALLOWED)            \
 
 // Error type enum
 typedef enum ERR_ERROR_TYPE {
@@ -80,6 +89,10 @@ static const char *ERROR_TYPE_NAMES[] = {
 
 #ifndef TESTING
 #define ERROR(SUBSYSTEM, TYPE, MSG) error(SUBSYSTEM, TYPE, MSG);
+#define ERROR_SPLICE(SUBSYSTEM, TYPE, MSG, ...) \
+    MSG_SPLICE(MSG, __VA_ARGS__)                \
+    error(SUBSYSTEM, TYPE, ERR_MSG_BUFFER);     \
+
 #define ERROR_AT(SUBSYSTEM, TYPE, SOURCE, SPAN, MSG) error_at(SUBSYSTEM, TYPE, SOURCE, SPAN, MSG);
 #define ERROR_SPLICE_AT(SUBSYSTEM, TYPE, SOURCE, SPAN, MSG, ...) \
     MSG_SPLICE(MSG, __VA_ARGS__)                                 \
