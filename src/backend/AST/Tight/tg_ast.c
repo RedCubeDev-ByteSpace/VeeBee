@@ -107,6 +107,58 @@ bool BD_TG_AST_NODE_LIST_grow(tg_ast_node_list_t *me) {
 }
 
 // ---------------------------------------------------------------------------------------------------------------------
+// Node List List functions, please dont ask, i wouldn't know how to justify this
+// ---------------------------------------------------------------------------------------------------------------------
+tg_ast_node_list_list_t TIGHT_AST_NODE_LIST_LIST_Init() {
+    return (tg_ast_node_list_list_t) {
+    NULL, 0, 0
+    };
+}
+
+void TIGHT_AST_NODE_LIST_LIST_Unload(tg_ast_node_list_list_t me) {
+    for (int i = 0; i < me.length; ++i) {
+        BD_TG_AST_NODE_LIST_Unload(me.lists[i]);
+    }
+
+    free(me.lists);
+}
+
+void TIGHT_AST_NODE_LIST_LIST_Add(tg_ast_node_list_list_t *me, tg_ast_node_list_t newList) {
+
+    // grow the list buffer if needed
+    if (!TIGHT_AST_NODE_LIST_LIST_grow(me)) {
+
+        // aw man
+        ERROR(SUB_BINDER, ERR_INTERNAL, "tight node list list cannot grow any larger, out of memory");
+        return;
+    }
+
+    // when theres sufficient space in the buffer -> add this entry
+    me->lists[me->length] = newList;
+    me->length++;
+}
+
+bool TIGHT_AST_NODE_LIST_LIST_grow(tg_ast_node_list_list_t *me) {
+    if (me->length < me->capacity) return true; // nothing to do
+
+    // otherwise: expand the capacity and reallocate the buffer
+    me->capacity += TG_NODE_LIST_GROWTH;
+    tg_ast_node_list_t *newBuffer = realloc(me->lists, sizeof(tg_ast_node_list_t) * me->capacity);
+
+    // did we manage to allocate a new buffer?
+    if (newBuffer == NULL) {
+
+        // if not -> roll back the capacity and return false
+        me->capacity -= TG_NODE_LIST_GROWTH;
+        return false;
+    }
+
+    // otherwise, copy over the new buffer ptr into our list
+    me->lists = newBuffer;
+    return true;
+}
+
+// ---------------------------------------------------------------------------------------------------------------------
 // Symbol List functions, basically a direct copy of the token list logic
 // ---------------------------------------------------------------------------------------------------------------------
 

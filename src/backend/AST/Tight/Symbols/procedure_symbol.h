@@ -21,8 +21,8 @@ typedef struct PROCEDURE_SYMBOL {
     // index of the member defining this function or subroutine
     int idxMember;
 
-    // the implementation index number of this function or subroutine within our module
-    uint16_t bodyId;
+    // the globally unique procedure id given to this procedure
+    uint32_t procedureId;
 
     // the visibility of this function to other modules
     procedure_visibility_t visibility;
@@ -44,6 +44,9 @@ typedef struct PROCEDURE_SYMBOL {
 
     // a list of all variables in this procedure, this includes a copy of the parameters
     symbol_list_t lsBuckets;
+
+    // a list of all labels in this procedure
+    symbol_list_t lsLabels;
 
 } procedure_symbol_t;
 

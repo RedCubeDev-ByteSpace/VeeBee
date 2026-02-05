@@ -75,8 +75,25 @@ add_library(veebee_backend
         backend/Binder/binder.h
         backend/Binder/indexer.c
         backend/Binder/binder.c
-        backend/Binder/type_resolver.h
-        backend/Binder/type_resolver.c
+        backend/Binder/symbol_resolver.h
+        backend/Binder/symbol_resolver.c
+        backend/AST/Tight/Statements/proc_call_statement.h
+        backend/AST/Tight/Symbols/label_symbol.h
+        backend/AST/Tight/Statements/assignment_statement.h
+        backend/AST/Tight/Statements/initialize_statement.h
+        backend/AST/Tight/Statements/do_statement.h
+        backend/AST/Tight/Statements/goto_statement.h
+        backend/AST/Tight/Statements/for_statement.h
+        backend/AST/Tight/Statements/if_statement.h
+        backend/AST/Tight/Statements/label_statement.h
+        backend/AST/Tight/Statements/select_statement.h
+        backend/AST/Tight/Statements/while_statement.h
+        backend/AST/Tight/Statements/conditional_goto_statement.h
+        backend/AST/Tight/Expressions/binary_expression.h
+        backend/AST/Tight/Expressions/unary_expression.h
+        backend/AST/Tight/Expressions/literal_expression.h
+        backend/AST/Tight/Expressions/reference_expression.h
+        backend/AST/Tight/Statements/return_statement.h
 )
 
 target_include_directories(veebee_backend

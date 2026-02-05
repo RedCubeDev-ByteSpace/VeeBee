@@ -579,6 +579,9 @@ void DBG_PRETTY_PRINT_Print_Symbol(symbol_t *me, bool finalEntry) {
             FIELD("Name")
             VALUE_STR(me->name)
 
+            FIELD("ProcedureID")
+            VALUE_NUM(((procedure_symbol_t*)me)->procedureId)
+
             FIELD("Visibility")
             procedure_visibility_t visibility = ((procedure_symbol_t*)me)->visibility;
             VALUE_STR(visibility == PUBLIC  ? "Public"  :

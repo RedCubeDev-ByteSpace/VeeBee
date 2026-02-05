@@ -2,8 +2,8 @@
 // Created by ds on 1/29/26.
 //
 
-#ifndef TYPE_RESOLVER_H
-#define TYPE_RESOLVER_H
+#ifndef SYMBOL_RESOLVER_H
+#define SYMBOL_RESOLVER_H
 #include "binder.h"
 #include "AST/Tight/Symbols/type_symbol.h"
 #include "AST/Loose/Clauses/as_clause.h"
@@ -20,4 +20,4 @@ typedef enum ARRAY_RESOLVE_BEHAVIOR {
 type_symbol_t *BINDER_ResolveAsClause(binder_t *me, module_symbol_t *symMod, ls_as_clause_node_t *clsAs, array_resolve_behavior_t arrayBehavior);
 type_symbol_t *BINDER_resolveTypeName(binder_t *me, module_symbol_t *symMod, token_t *idTypeName);
 
-#endif //TYPE_RESOLVER_H
+#endif //SYMBOL_RESOLVER_H

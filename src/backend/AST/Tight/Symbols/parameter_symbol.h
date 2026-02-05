@@ -30,7 +30,7 @@ typedef struct PARAMETER_SYMBOL {
     tg_ast_node_t *exprDefaultValue;
 
     // the bucket index of this variable
-    uint16_t bucketIndex;
+    uint32_t bucketIndex;
 
 } parameter_symbol_t;
 

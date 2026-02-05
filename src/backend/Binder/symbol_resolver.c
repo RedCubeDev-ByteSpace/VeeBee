@@ -1,7 +1,7 @@
 //
 // Created by ds on 1/29/26.
 //
-#include "type_resolver.h"
+#include "symbol_resolver.h"
 
 #include <stdlib.h>
 #include <string.h>

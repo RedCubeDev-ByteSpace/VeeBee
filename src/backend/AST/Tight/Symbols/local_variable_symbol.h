@@ -14,7 +14,7 @@ typedef struct LOCAL_VARIABLE_SYMBOL {
     type_symbol_t *symType;
 
     // the bucket index of this variable
-    uint16_t bucketIndex;
+    uint32_t bucketIndex;
 
 } local_variable_symbol_t;
 

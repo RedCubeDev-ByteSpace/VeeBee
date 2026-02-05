@@ -17,25 +17,24 @@
 typedef enum TIGHT_NODE_TYPE {
 
     // Statements
-    TG_REDIM_STATEMENT,
     TG_ASSIGNMENT_STATEMENT,
-    TG_ARRAY_ASSIGNMENT_STATEMENT,
-    TG_IF_STATEMENT,
-    TG_SELECT_STATEMENT,
-    TG_FOR_STATEMENT,
+    TG_CONDITIONAL_GOTO_STATEMENT,
     TG_DO_STATEMENT,
-    TG_WHILE_STATEMENT,
+    TG_FOR_STATEMENT,
     TG_GOTO_STATEMENT,
+    TG_IF_STATEMENT,
+    TG_INITIALIZE_STATEMENT,
     TG_LABEL_STATEMENT,
-    TG_EXIT_STATEMENT,
-    TG_CALL_STATEMENT,
+    TG_PROC_CALL_STATEMENT,
+    TG_RETURN_STATEMENT,
+    TG_SELECT_STATEMENT,
+    TG_WHILE_STATEMENT,
 
     // Expressions
     TG_LITERAL_EXPRESSION,
     TG_UNARY_EXPRESSION,
     TG_BINARY_EXPRESSION,
-    TG_NAME_REFERENCE_EXPRESSION,
-    TG_CALL_REFERENCE_EXPRESSION,
+    TG_REFERENCE_EXPRESSION,
 
 } tg_node_type_t;
 
@@ -61,6 +60,20 @@ void BD_TG_AST_NODE_LIST_Add(tg_ast_node_list_t *me, tg_ast_node_t *newNode);
 bool BD_TG_AST_NODE_LIST_grow(tg_ast_node_list_t *me);
 
 // ---------------------------------------------------------------------------------------------------------------------
+// collection of collections of tight AST nodes
+// what the fuck am i doing
+typedef struct TIGHT_AST_NODE_LIST_LIST {
+    tg_ast_node_list_t *lists;
+    uint32_t length;
+    uint32_t capacity;
+} tg_ast_node_list_list_t;
+
+tg_ast_node_list_list_t TIGHT_AST_NODE_LIST_LIST_Init();
+void TIGHT_AST_NODE_LIST_LIST_Unload(tg_ast_node_list_list_t me);
+void TIGHT_AST_NODE_LIST_LIST_Add(tg_ast_node_list_list_t *me, tg_ast_node_list_t newList);
+bool TIGHT_AST_NODE_LIST_LIST_grow(tg_ast_node_list_list_t *me);
+
+// ---------------------------------------------------------------------------------------------------------------------
 // SYMBOLS
 // ---------------------------------------------------------------------------------------------------------------------
 
@@ -83,6 +96,9 @@ typedef enum SYMBOL_TYPE {
     PARAMETER_SYMBOL,      // a parameter for this procedure
     LOCAL_VARIABLE_SYMBOL, // a variable local to this procedure
     TYPE_FIELD_SYMBOL,     // a field of a user defined field
+
+    // This is a location within a procedure
+    LABEL_SYMBOL,
 
 } symbol_type_t;
 

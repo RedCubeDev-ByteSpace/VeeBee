@@ -26,6 +26,9 @@ typedef struct PROGRAM_UNIT {
     // a list of all modules in this compilation
     symbol_list_t lsModules;
 
+    // a running counter for our procedures
+    uint32_t procedureCounter;
+
 } program_unit_t;
 
 program_unit_t *BD_PROGRAM_UNIT_Init();

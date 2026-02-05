@@ -8,11 +8,12 @@
 #include <stdlib.h>
 #include <string.h>
 
-#include "type_resolver.h"
+#include "symbol_resolver.h"
 #include "AST/Tight/Symbols/local_variable_symbol.h"
 #include "AST/Tight/Symbols/type_field_symbol.h"
 #include "AST/Loose/Clauses/type_field_clause.h"
 #include "AST/Loose/Members/type_member.h"
+#include "AST/Loose/Statements/label_statement.h"
 #include "Error/error.h"
 #include "Parser/parser.h"
 
@@ -263,8 +264,14 @@ procedure_symbol_t *BINDER_indexFunction(binder_t *me, module_symbol_t *symModul
     // initialize the bucket list
     newFunction->lsBuckets = BD_SYMBOL_LIST_Init();
 
+    // initialize the label list
+    newFunction->lsLabels = BD_SYMBOL_LIST_Init();
+
     // remember which member this function symbol belongs to
     newFunction->idxMember = idx;
+
+    // get this procedures proc index
+    newFunction->procedureId = me->programUnit->procedureCounter++;
 
     // -----------------------------------------------------------------------------------------------------------------
     // remember the visibility
@@ -341,8 +348,14 @@ procedure_symbol_t *BINDER_indexSubroutine(binder_t *me, module_symbol_t *symMod
     // initialize the bucket list
     newSubroutine->lsBuckets = BD_SYMBOL_LIST_Init();
 
+    // initialize the label list
+    newSubroutine->lsLabels = BD_SYMBOL_LIST_Init();
+
     // remember which member this function symbol belongs to
     newSubroutine->idxMember = idx;
+
+    // get this procedures proc index
+    newSubroutine->procedureId = me->programUnit->procedureCounter++;
 
     // -----------------------------------------------------------------------------------------------------------------
     // remember the visibility
@@ -524,6 +537,34 @@ void BINDER_indexProcedureParameters(binder_t *me, module_symbol_t *symModule, p
 
 }
 
+void BINDER_indexLabels(binder_t *me, module_symbol_t *symModule, procedure_symbol_t *thisProc, ls_ast_node_list_t statementList) {
+
+    // go through all statements in this block
+    for (int i = 0; i < statementList.length; ++i) {
+
+        // see if we find any label statements
+        if (statementList.nodes[i]->type == LS_LABEL_STATEMENT) {
+            ls_label_statement_node_t *stmtLabel = (ls_label_statement_node_t*)statementList.nodes[i];
+
+            // create a new label symbol based on the statement
+            label_symbol_t *newLabel = malloc(sizeof(label_symbol_t));
+
+            // set up the new label
+            newLabel->base.type = LABEL_SYMBOL;
+            strcpy(newLabel->base.name, stmtLabel->idLabel->strValue);
+            newLabel->base.declarationSpan = SPAN_FromToken(*stmtLabel->idLabel);
+
+            // set its id based on the current label list in out procedure
+            newLabel->labelId = thisProc->lsLabels.length;
+
+            // try to add it to the procedure
+            if (!BINDER_addLabelToProcedureSymbol(me, symModule, thisProc, newLabel)) {
+                return; // something went wrong
+            }
+        }
+    }
+}
+
 // ---------------------------------------------------------------------------------------------------------------------
 bool BINDER_addModuleToProgramUnit(binder_t *me, program_unit_t *programUnit, module_symbol_t *newModuleSymbol) {
 
@@ -630,4 +671,22 @@ bool BINDER_addParameterToProcedureSymbol(binder_t *me, module_symbol_t *symModu
     BD_SYMBOL_LIST_Add(&symProc->lsBuckets, (symbol_t*)newParameter);
 
     return ok;
+}
+
+bool BINDER_addLabelToProcedureSymbol(binder_t *me, module_symbol_t *symModule, procedure_symbol_t *symProc, label_symbol_t *newLabel) {
+
+    // is there already a label with this name?
+    int idx = BD_SYMBOL_LIST_Find(&symProc->lsLabels, newLabel->base.name);
+
+    // add it to the list
+    BD_SYMBOL_LIST_Add(&symProc->lsLabels, (symbol_t*)newLabel);
+
+    // throw the relevant error
+    if (idx != -1) {
+        ERROR_SPLICE_AT(SUB_BINDER, ERR_BD_NON_UNIQUE_SYMBOL, symModule->source, newLabel->base.declarationSpan, "The name '%s' has already been used by a previously declared label", newLabel->base.name);
+        me->hasError = true;
+        return false;
+    }
+
+    return true;
 }
