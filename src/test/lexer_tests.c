@@ -138,16 +138,21 @@ END_TEST
 
 BEGIN_TEST(TEST_LX_LEX_all_punctuation)
     // create a buffer to store all punctuation marks with whitespace inbetween
-    uint32_t bufferSize = NUM_PUNC_AND_OPS * 2;
+    uint32_t bufferSize = 0;
+    for (int i = 0; i < NUM_PUNC_AND_OPS; ++i) {
+        bufferSize += strlen(PUNCTUATION_AND_OPERATORS[i]) + 1;
+    }
 
     // allocate the buffer
-    char *buffer = (char *)malloc(bufferSize + 1);
+    char *buffer = malloc(bufferSize + 1);
     uint32_t idx = 0;
 
     // copy over each keyword
     for (int i = 0; i < NUM_PUNC_AND_OPS; ++i) {
-        buffer[idx] = PUNCTUATION_AND_OPERATORS[i];
-        idx++;
+        for (int j = 0; j < strlen(PUNCTUATION_AND_OPERATORS[i]); j++) {
+            buffer[idx] = PUNCTUATION_AND_OPERATORS[i][j];
+            idx++;
+        }
 
         // add spaces in between
         buffer[idx] = ' ';
