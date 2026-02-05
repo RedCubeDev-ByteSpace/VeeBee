@@ -100,6 +100,7 @@ static const char *ERROR_TYPE_NAMES[] = {
 
 #else
 #define ERROR(SUBSYSTEM, TYPE, MSG)
+#define ERROR_SPLICE(SUBSYSTEM, TYPE, MSG, ...)
 #define ERROR_AT(SUBSYSTEM, TYPE, SOURCE, SPAN, MSG)
 #define ERROR_SPLICE_AT(SUBSYSTEM, TYPE, SOURCE, SPAN, MSG, ...)
 #endif
