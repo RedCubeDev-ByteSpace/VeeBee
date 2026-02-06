@@ -2,12 +2,13 @@
 // Created by ds on 2/5/26.
 //
 
-#ifndef DO_STATEMENT_H
-#define DO_STATEMENT_H
+#ifndef TG_DO_STATEMENT_H
+#define TG_DO_STATEMENT_H
 #include "AST/Tight/tg_ast.h"
 #include "AST/Tight/Symbols/label_symbol.h"
 
 typedef enum DO_STATEMENT_KIND {
+    DO_STATEMENT_INFINITE,
     DO_STATEMENT_WHILE,
     DO_STATEMENT_UNTIL,
     DO_STATEMENT_HEAD,
@@ -28,4 +29,4 @@ typedef struct TG_DO_STATEMENT {
 
 } tg_do_statement_t;
 
-#endif //DO_STATEMENT_H
+#endif //TG_DO_STATEMENT_H

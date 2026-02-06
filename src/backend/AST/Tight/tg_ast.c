@@ -109,13 +109,13 @@ bool BD_TG_AST_NODE_LIST_grow(tg_ast_node_list_t *me) {
 // ---------------------------------------------------------------------------------------------------------------------
 // Node List List functions, please dont ask, i wouldn't know how to justify this
 // ---------------------------------------------------------------------------------------------------------------------
-tg_ast_node_list_list_t TIGHT_AST_NODE_LIST_LIST_Init() {
+tg_ast_node_list_list_t BD_TG_AST_NODE_LIST_LIST_Init() {
     return (tg_ast_node_list_list_t) {
     NULL, 0, 0
     };
 }
 
-void TIGHT_AST_NODE_LIST_LIST_Unload(tg_ast_node_list_list_t me) {
+void BD_TG_AST_NODE_LIST_LIST_Unload(tg_ast_node_list_list_t me) {
     for (int i = 0; i < me.length; ++i) {
         BD_TG_AST_NODE_LIST_Unload(me.lists[i]);
     }
@@ -123,10 +123,10 @@ void TIGHT_AST_NODE_LIST_LIST_Unload(tg_ast_node_list_list_t me) {
     free(me.lists);
 }
 
-void TIGHT_AST_NODE_LIST_LIST_Add(tg_ast_node_list_list_t *me, tg_ast_node_list_t newList) {
+void BD_TG_AST_NODE_LIST_LIST_Add(tg_ast_node_list_list_t *me, tg_ast_node_list_t newList) {
 
     // grow the list buffer if needed
-    if (!TIGHT_AST_NODE_LIST_LIST_grow(me)) {
+    if (!BD_TG_AST_NODE_LIST_LIST_grow(me)) {
 
         // aw man
         ERROR(SUB_BINDER, ERR_INTERNAL, "tight node list list cannot grow any larger, out of memory");
@@ -138,7 +138,7 @@ void TIGHT_AST_NODE_LIST_LIST_Add(tg_ast_node_list_list_t *me, tg_ast_node_list_
     me->length++;
 }
 
-bool TIGHT_AST_NODE_LIST_LIST_grow(tg_ast_node_list_list_t *me) {
+bool BD_TG_AST_NODE_LIST_LIST_grow(tg_ast_node_list_list_t *me) {
     if (me->length < me->capacity) return true; // nothing to do
 
     // otherwise: expand the capacity and reallocate the buffer
@@ -193,6 +193,13 @@ void BD_SYMBOL_LIST_Add(symbol_list_t *me, symbol_t *symbol) {
     // when theres sufficient space -> add this entry
     me->symbols[me->length] = symbol;
     me->length++;
+}
+
+void BD_SYMBOL_LIST_RemoveLast(symbol_list_t *me) {
+    if (me->length == 0) return;
+
+    me->length--;
+    me->symbols[me->length] = NULL;
 }
 
 int BD_SYMBOL_LIST_Find(symbol_list_t *me, char *name) {

@@ -44,3 +44,7 @@ void BD_PROGRAM_UNIT_Unload(program_unit_t *me) {
     BD_SYMBOL_LIST_Unload(me->lsArrayTypes, true);
     free(me);
 }
+
+void BD_PROGRAM_UNIT_InitializeProcedureBuffer(program_unit_t *me) {
+    me->bufProcedureBodies = malloc(sizeof(tg_ast_node_list_t) * me->procedureCounter);
+}

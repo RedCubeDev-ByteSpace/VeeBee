@@ -7,6 +7,7 @@
 #include "binder.h"
 #include "AST/Tight/Symbols/type_symbol.h"
 #include "AST/Loose/Clauses/as_clause.h"
+#include "AST/Loose/Expressions/reference_expression.h"
 #include "AST/Tight/Symbols/module_symbol.h"
 
 typedef enum ARRAY_RESOLVE_BEHAVIOR {
@@ -19,5 +20,14 @@ typedef enum ARRAY_RESOLVE_BEHAVIOR {
 
 type_symbol_t *BINDER_ResolveAsClause(binder_t *me, module_symbol_t *symMod, ls_as_clause_node_t *clsAs, array_resolve_behavior_t arrayBehavior);
 type_symbol_t *BINDER_resolveTypeName(binder_t *me, module_symbol_t *symMod, token_t *idTypeName);
+type_symbol_t *BINDER_resolveTypeNameFromBuffer(binder_t *me, char *buffer);
+
+procedure_symbol_t *BINDER_ResolveProcedure(binder_t *me, ls_reference_expression_node_t *exprReference);
+procedure_symbol_t *BINDER_resolveProcedureName(binder_t *me, module_symbol_t *symModule, token_t *procedureName);
+module_symbol_t *BINDER_resolveModuleName(binder_t *me, token_t *moduleName);
+
+label_symbol_t *BINDER_ResolveLabelName(binder_t *me, module_symbol_t *symMod, procedure_symbol_t *symProc, token_t *idLabelName);
+
+bool BINDER_areTypesEqual(type_symbol_t *a, type_symbol_t *b);
 
 #endif //SYMBOL_RESOLVER_H

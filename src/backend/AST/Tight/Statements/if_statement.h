@@ -2,8 +2,8 @@
 // Created by ds on 2/5/26.
 //
 
-#ifndef IF_STATEMENT_H
-#define IF_STATEMENT_H
+#ifndef TG_IF_STATEMENT_H
+#define TG_IF_STATEMENT_H
 #include "AST/Tight/tg_ast.h"
 
 typedef struct TG_IF_STATEMENT {
@@ -15,4 +15,4 @@ typedef struct TG_IF_STATEMENT {
 
 } tg_if_statement_t;
 
-#endif //IF_STATEMENT_H
+#endif //TG_IF_STATEMENT_H

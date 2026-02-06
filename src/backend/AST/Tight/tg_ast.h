@@ -35,6 +35,8 @@ typedef enum TIGHT_NODE_TYPE {
     TG_UNARY_EXPRESSION,
     TG_BINARY_EXPRESSION,
     TG_REFERENCE_EXPRESSION,
+    TG_ENSURE_TYPE_EXPRESSION,
+    TG_DEFAULT_EXPRESSION,
 
 } tg_node_type_t;
 
@@ -68,10 +70,10 @@ typedef struct TIGHT_AST_NODE_LIST_LIST {
     uint32_t capacity;
 } tg_ast_node_list_list_t;
 
-tg_ast_node_list_list_t TIGHT_AST_NODE_LIST_LIST_Init();
-void TIGHT_AST_NODE_LIST_LIST_Unload(tg_ast_node_list_list_t me);
-void TIGHT_AST_NODE_LIST_LIST_Add(tg_ast_node_list_list_t *me, tg_ast_node_list_t newList);
-bool TIGHT_AST_NODE_LIST_LIST_grow(tg_ast_node_list_list_t *me);
+tg_ast_node_list_list_t BD_TG_AST_NODE_LIST_LIST_Init();
+void BD_TG_AST_NODE_LIST_LIST_Unload(tg_ast_node_list_list_t me);
+void BD_TG_AST_NODE_LIST_LIST_Add(tg_ast_node_list_list_t *me, tg_ast_node_list_t newList);
+bool BD_TG_AST_NODE_LIST_LIST_grow(tg_ast_node_list_list_t *me);
 
 // ---------------------------------------------------------------------------------------------------------------------
 // SYMBOLS
@@ -110,7 +112,7 @@ typedef struct SYMBOL {
     span_t declarationSpan;
 } symbol_t;
 
-static const char *BD_DEFAULT_MODULE_NAME = "Default";
+static const char *BD_DEFAULT_MODULE_NAME = "default";
 void BD_SYMBOL_Unload(symbol_t *me);
 
 // ---------------------------------------------------------------------------------------------------------------------
@@ -125,6 +127,7 @@ typedef struct SYMBOL_LIST {
 symbol_list_t BD_SYMBOL_LIST_Init();
 void BD_SYMBOL_LIST_Unload(symbol_list_t me, bool unloadChildren);
 void BD_SYMBOL_LIST_Add(symbol_list_t *me, symbol_t *symbol);
+void BD_SYMBOL_LIST_RemoveLast(symbol_list_t *me);
 int BD_SYMBOL_LIST_Find(symbol_list_t *me, char *name);
 bool BD_SYMBOL_LIST_grow(symbol_list_t *me);
 

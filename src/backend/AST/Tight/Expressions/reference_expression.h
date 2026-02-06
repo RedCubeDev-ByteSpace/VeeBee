@@ -2,8 +2,8 @@
 // Created by ds on 2/5/26.
 //
 
-#ifndef REFERENCE_EXPRESSION_H
-#define REFERENCE_EXPRESSION_H
+#ifndef TG_REFERENCE_EXPRESSION_H
+#define TG_REFERENCE_EXPRESSION_H
 #include "AST/Tight/tg_ast.h"
 
 typedef struct TG_REFERENCE_EXPRESSION {
@@ -15,4 +15,4 @@ typedef struct TG_REFERENCE_EXPRESSION {
 
 } tg_reference_expression_t;
 
-#endif //REFERENCE_EXPRESSION_H
+#endif //TG_REFERENCE_EXPRESSION_H

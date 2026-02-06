@@ -212,6 +212,13 @@ int CLI_doBusiness() {
     BINDER_CreateProcedureIndex(binder, (module_symbol_t*)binder->programUnit->lsModules.symbols[0]);
     if (binder->hasError) goto unload;
 
+    // now that we know all the procedures that exist in this program we can initialize the global procedure buffer
+    BD_PROGRAM_UNIT_InitializeProcedureBuffer(binder->programUnit);
+
+    // and then finally bind all our procedure bodies!
+    BINDER_BindProcedureBodies(binder);
+    if (binder->hasError) goto unload;
+
     DBG_PRETTY_PRINT_Print_ProgramUnit(binder->programUnit);
 
     // unload everything

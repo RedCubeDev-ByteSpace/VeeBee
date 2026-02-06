@@ -191,6 +191,11 @@ void DBG_PRETTY_PRINT_Print_TokenList_AsSource(token_list_t tokens) {
 void DBG_PRETTY_PRINT_Print_LSAstNode(ls_ast_node_t *me, bool finalEntry) {
     INDENT()
 
+    if (me == NULL) {
+        NULL_NODE()
+        return;
+    }
+
     switch (me->type) {
         NODE(LS_FUNCTION_MEMBER)
             FIELD("Public")
@@ -597,6 +602,9 @@ void DBG_PRETTY_PRINT_Print_Symbol(symbol_t *me, bool finalEntry) {
             FIELD("ReturnType")
             SUBSYMBOL(((procedure_symbol_t*)me)->symReturnType, false)
 
+            FIELD("Labels")
+            SUBSYMBOLS(((procedure_symbol_t*)me)->lsLabels, false)
+
             FIELD_FINAL("Buckets")
             SUBSYMBOLS(((procedure_symbol_t*)me)->lsBuckets, true)
 
@@ -633,6 +641,16 @@ void DBG_PRETTY_PRINT_Print_Symbol(symbol_t *me, bool finalEntry) {
 
             FIELD_FINAL("Type")
             SUBSYMBOL(((local_variable_symbol_t*)me)->symType, true)
+
+        END_SYMBOL()
+
+        SYMBOL(LABEL_SYMBOL)
+
+            FIELD("Name")
+            VALUE_STR(me->name)
+
+            FIELD_FINAL("LabelId")
+            VALUE_NUM(((label_symbol_t*)me)->labelId);
 
         END_SYMBOL()
 

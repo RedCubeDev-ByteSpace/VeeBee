@@ -2,8 +2,8 @@
 // Created by ds on 2/5/26.
 //
 
-#ifndef LABEL_STATEMENT_H
-#define LABEL_STATEMENT_H
+#ifndef TG_LABEL_STATEMENT_H
+#define TG_LABEL_STATEMENT_H
 #include "AST/Tight/tg_ast.h"
 #include "AST/Tight/Symbols/label_symbol.h"
 
@@ -14,4 +14,4 @@ typedef struct TG_LABEL_STATEMENT {
 
 } tg_label_statement_t;
 
-#endif //LABEL_STATEMENT_H
+#endif //TG_LABEL_STATEMENT_H

@@ -4,6 +4,7 @@
 
 #ifndef PROCEDURE_SYMBOL_H
 #define PROCEDURE_SYMBOL_H
+#include "label_symbol.h"
 #include "../tg_ast.h"
 #include "type_symbol.h"
 
@@ -41,6 +42,8 @@ typedef struct PROCEDURE_SYMBOL {
 
     // -----------------------------------------------------------------------------------------------------------------
     // INTERNALS
+
+    label_symbol_t *returnLabel;
 
     // a list of all variables in this procedure, this includes a copy of the parameters
     symbol_list_t lsBuckets;

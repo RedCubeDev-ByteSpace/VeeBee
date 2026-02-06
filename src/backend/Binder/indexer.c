@@ -273,6 +273,9 @@ procedure_symbol_t *BINDER_indexFunction(binder_t *me, module_symbol_t *symModul
     // get this procedures proc index
     newFunction->procedureId = me->programUnit->procedureCounter++;
 
+    // generate a return label
+    newFunction->returnLabel = BINDER_generateLabel(me, symModule, newFunction, SPAN_FromToken(*memFunction->idName), "end_of_procedure");
+
     // -----------------------------------------------------------------------------------------------------------------
     // remember the visibility
     newFunction->visibility = visibility;
@@ -356,6 +359,9 @@ procedure_symbol_t *BINDER_indexSubroutine(binder_t *me, module_symbol_t *symMod
 
     // get this procedures proc index
     newSubroutine->procedureId = me->programUnit->procedureCounter++;
+
+    // generate a return label
+    newSubroutine->returnLabel = BINDER_generateLabel(me, symModule, newSubroutine, SPAN_FromToken(*memSubroutine->idName), "end_of_procedure");
 
     // -----------------------------------------------------------------------------------------------------------------
     // remember the visibility
@@ -510,6 +516,14 @@ void BINDER_indexProcedureParameters(binder_t *me, module_symbol_t *symModule, p
         // is this a ParamArray parameter -> mark the procedure as such
         if (param->kwParamArray != NULL) {
             symProc->isVariadic = true;
+
+            // wait, does this parameter have an array type?
+            // otherwise it cannot be a ParamArray parameter
+            if (paramType->typeOfType != TYPE_ARRAY) {
+                ERROR_SPLICE_AT(SUB_BINDER, ERR_BD_UNEXPECTED_NON_ARRAY_TYPE, symModule->source, SPAN_FromToken(*param->kwParamArray), "ParamArray is only allowed to be used on array types, current type: '%s'", paramType->base.name)
+                me->hasError = true;
+                return;
+            }
         }
 
         // assign a bucket index for data storage
@@ -666,9 +680,40 @@ bool BINDER_addParameterToProcedureSymbol(binder_t *me, module_symbol_t *symModu
     }
 
     // add the symbol to the list, no matter if there has been an issue or not
-    // this is done for clean up puposes
+    // this is done for clean up purposes
     BD_SYMBOL_LIST_Add(&symProc->lsParameters, (symbol_t*)newParameter);
     BD_SYMBOL_LIST_Add(&symProc->lsBuckets, (symbol_t*)newParameter);
+
+    return ok;
+}
+
+bool BINDER_addLocalVariableToProcedureSymbol(binder_t *me, module_symbol_t *symModule, procedure_symbol_t *symProc, local_variable_symbol_t *newLocalVariable) {
+
+    bool ok = true;
+
+    // does this local have the same name as the function?
+    // not allowed -> name is reserved for the return value
+    // NOTE: this would already be handled by the check in the buckets list but i want a nicer error for this
+    // edge case
+    if (strcmp(symProc->base.name, newLocalVariable->base.name) == 0) {
+        ERROR_SPLICE_AT(SUB_BINDER, ERR_BD_NON_UNIQUE_SYMBOL, symModule->source, newLocalVariable->base.declarationSpan, "The name '%s' has already been used as the function or subroutine name and is therefore reserved", newLocalVariable->base.name);
+        me->hasError = true;
+        ok = false;
+    }
+
+    // has this name already been taken by another variable?
+    if (ok) {
+        int idxBucket = BD_SYMBOL_LIST_Find(&symProc->lsBuckets, newLocalVariable->base.name);
+        if (idxBucket != -1) {
+            ERROR_SPLICE_AT(SUB_BINDER, ERR_BD_NON_UNIQUE_SYMBOL, symModule->source, newLocalVariable->base.declarationSpan, "The name '%s' has already been used by a previous parameter or local variable", newLocalVariable->base.name);
+            me->hasError = true;
+            ok = false;
+        }
+    }
+
+    // add the symbol to the list, no matter if there has been an issue or not
+    // this is done for clean up purposes
+    BD_SYMBOL_LIST_Add(&symProc->lsBuckets, (symbol_t*)newLocalVariable);
 
     return ok;
 }
@@ -689,4 +734,23 @@ bool BINDER_addLabelToProcedureSymbol(binder_t *me, module_symbol_t *symModule, 
     }
 
     return true;
+}
+
+label_symbol_t *BINDER_generateLabel(binder_t *me, module_symbol_t *symModule, procedure_symbol_t *symProc, span_t declaration, char *name) {
+
+    // create a new label symbol
+    label_symbol_t *newLabel = malloc(sizeof(label_symbol_t));
+
+    // set up the new label
+    newLabel->base.type = LABEL_SYMBOL;
+    newLabel->base.declarationSpan = declaration;
+
+    // set its id based on the current label list in out procedure
+    newLabel->labelId = symProc->lsLabels.length;
+
+    // construct a name for this label
+    snprintf(newLabel->base.name, MAX_IDENTIFIER_LENGTH, "#%s_%d", name, newLabel->labelId);
+
+    // add it to the procedure label list
+    BINDER_addLabelToProcedureSymbol(me, symModule, symProc, newLabel);
 }

@@ -2,8 +2,8 @@
 // Created by ds on 2/5/26.
 //
 
-#ifndef ASSIGNMENT_STATEMENT_H
-#define ASSIGNMENT_STATEMENT_H
+#ifndef TG_ASSIGNMENT_STATEMENT_H
+#define TG_ASSIGNMENT_STATEMENT_H
 #include "AST/Tight/tg_ast.h"
 
 typedef struct ATG_SSIGNMENT_STATEMENT {
@@ -14,4 +14,4 @@ typedef struct ATG_SSIGNMENT_STATEMENT {
 
 } tg_assignment_statement_t;
 
-#endif //ASSIGNMENT_STATEMENT_H
+#endif //TG_ASSIGNMENT_STATEMENT_H

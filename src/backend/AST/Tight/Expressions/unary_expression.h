@@ -2,8 +2,8 @@
 // Created by ds on 2/5/26.
 //
 
-#ifndef UNARY_EXPRESSION_H
-#define UNARY_EXPRESSION_H
+#ifndef TG_UNARY_EXPRESSION_H
+#define TG_UNARY_EXPRESSION_H
 #include "AST/Tight/tg_ast.h"
 
 
@@ -23,4 +23,4 @@ typedef struct TG_UNARY_EXPRESSION {
 
 } tg_unary_expression_t;
 
-#endif //UNARY_EXPRESSION_H
+#endif //TG_UNARY_EXPRESSION_H

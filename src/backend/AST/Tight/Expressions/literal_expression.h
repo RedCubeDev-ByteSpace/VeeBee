@@ -2,8 +2,8 @@
 // Created by ds on 2/5/26.
 //
 
-#ifndef LITERAL_EXPRESSION_H
-#define LITERAL_EXPRESSION_H
+#ifndef TG_LITERAL_EXPRESSION_H
+#define TG_LITERAL_EXPRESSION_H
 #include "AST/Tight/tg_ast.h"
 #include "AST/Tight/Symbols/type_symbol.h"
 
@@ -13,6 +13,6 @@ typedef struct TG_LITERAL_EXPRESSION {
     type_symbol_t *literalType;
     void *value;
 
-} tg_reference_expression_t;
+} tg_literal_expression_t;
 
-#endif //LITERAL_EXPRESSION_H
+#endif //TG_LITERAL_EXPRESSION_H

@@ -60,6 +60,13 @@ DBG_INDENT_BUFFER[DBG_INDENT_LENGTH] = 0; \
             DBG_ADD_LINE_INDENT() \
         } \
 
+#define NULL_NODE()   \
+    if (finalEntry) { \
+        printf(GRY "└─" CRESET "[" BCYN "NULL" CRESET "]\n"); \
+    } else { \
+        printf(GRY "├─" CRESET "[" BCYN "NULL" CRESET "]\n"); \
+    } \
+
 #define END_NODE() \
     DBG_REMOVE_INDENT() \
     break;         \

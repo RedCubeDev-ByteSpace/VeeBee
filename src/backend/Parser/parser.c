@@ -1640,6 +1640,18 @@ ls_ast_node_t *PARSER_parseCallStatement(parser_t *me) {
         UNLOAD_IF_NOT_NULL(exprCall)
     )
 
+    // as long as we find a chaining period, parse more reference chain links
+    while (PS_CURRENT().type == TK_PC_PERIOD) {
+        ls_ast_node_t *newCall = PARSER_parseReferenceExpression(me, exprCall, true);
+        RETURN_NULL_ON_ERROR(
+            UNLOAD_IF_NOT_NULL(newCall);
+            UNLOAD_IF_NOT_NULL(exprCall);
+        )
+
+        // the newly parsed reference expression will be the
+        exprCall = newCall;
+    }
+
     // allocate and return a new node
     ls_call_statement_node_t *node = malloc(sizeof(ls_call_statement_node_t));
     node->base.type = LS_CALL_STATEMENT;
@@ -1701,7 +1713,21 @@ ls_ast_node_t *PARSER_parseAssignmentStatement(parser_t *me, ls_ast_node_t *targ
 ls_ast_node_t *PARSER_parseExpressionStatement(parser_t *me) {
     // parse a reference expression, only expression currently allowed to be used like a statement
     ls_ast_node_t *exprExpression = (ls_ast_node_t*)PARSER_parseReferenceExpression(me, NULL, false);
-    RETURN_NULL_ON_ERROR()
+    RETURN_NULL_ON_ERROR(
+        UNLOAD_IF_NOT_NULL(exprExpression)
+    )
+
+    // as long as we find a chaining period, parse more reference chain links
+    while (PS_CURRENT().type == TK_PC_PERIOD) {
+        ls_ast_node_t *newExpression = PARSER_parseReferenceExpression(me, exprExpression, false);
+        RETURN_NULL_ON_ERROR(
+            UNLOAD_IF_NOT_NULL(newExpression);
+            UNLOAD_IF_NOT_NULL(exprExpression);
+        )
+
+        // the newly parsed reference expression will be the
+        exprExpression = newExpression;
+    }
 
     // wrap it in an expression statement and return it
     ls_expression_statement_node_t *node = malloc(sizeof(ls_expression_statement_node_t));
@@ -1935,7 +1961,17 @@ ls_ast_node_t *PARSER_parseReferenceExpression(parser_t *me, ls_ast_node_t *expr
 
         // as long as we are not at the end of the argument list
         while (PS_CURRENT().type != TK_PC_CLOSED_PARENTHESIS) {
-            // parse this expression
+
+            // if the current parameter is just a comma -> argument has been omitted
+            if (PS_CURRENT().type == TK_PC_COMMA) {
+                PARSER_consume(me, TK_PC_COMMA);
+
+                // add a cheeky null to the argument list
+                PS_LS_AST_NODE_LIST_Add(&lsArguments, NULL);
+                continue;
+            }
+
+            // otherwise, if its not omitted: parse this expression
             ls_ast_node_t *exprArg = PARSER_parseExpression(me);
             RETURN_NULL_ON_ERROR(
                 PS_LS_AST_NODE_LIST_Unload(lsArguments);
@@ -1976,6 +2012,16 @@ ls_ast_node_t *PARSER_parseReferenceExpression(parser_t *me, ls_ast_node_t *expr
 
                 // as long as we are not at the end of the argument list
                 while (PS_CURRENT().type != TK_EOS) {
+
+                    // if the current parameter is just a comma -> argument has been omitted
+                    if (PS_CURRENT().type == TK_PC_COMMA) {
+                        PARSER_consume(me, TK_PC_COMMA);
+
+                        // add a cheeky null to the argument list
+                        PS_LS_AST_NODE_LIST_Add(&lsArguments, NULL);
+                        continue;
+                    }
+
                     // parse this expression
                     exprArg = PARSER_parseExpression(me);
                     RETURN_NULL_ON_ERROR(

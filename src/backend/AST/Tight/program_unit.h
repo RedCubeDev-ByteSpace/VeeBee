@@ -29,10 +29,14 @@ typedef struct PROGRAM_UNIT {
     // a running counter for our procedures
     uint32_t procedureCounter;
 
+    // all procedure bodys
+    tg_ast_node_list_t *bufProcedureBodies;
+
 } program_unit_t;
 
 program_unit_t *BD_PROGRAM_UNIT_Init();
 void BD_PROGRAM_UNIT_Unload(program_unit_t *me);
+void BD_PROGRAM_UNIT_InitializeProcedureBuffer(program_unit_t *me);
 
 #define CREATE_NEW_BUILTIN_TYPE(NAME)                                    \
     typeSymbol = malloc(sizeof(type_symbol_t));                          \

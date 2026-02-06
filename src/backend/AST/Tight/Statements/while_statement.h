@@ -2,8 +2,8 @@
 // Created by ds on 2/5/26.
 //
 
-#ifndef WHILE_STATEMENT_H
-#define WHILE_STATEMENT_H
+#ifndef TG_WHILE_STATEMENT_H
+#define TG_WHILE_STATEMENT_H
 #include "AST/Tight/tg_ast.h"
 #include "AST/Tight/Symbols/label_symbol.h"
 
@@ -17,4 +17,4 @@ typedef struct TG_WHILE_STATEMENT {
 
 } tg_while_statement_t;
 
-#endif //WHILE_STATEMENT_H
+#endif //TG_WHILE_STATEMENT_H

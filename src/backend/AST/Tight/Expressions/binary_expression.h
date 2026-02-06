@@ -2,8 +2,8 @@
 // Created by ds on 2/5/26.
 //
 
-#ifndef BINARY_EXPRESSION_H
-#define BINARY_EXPRESSION_H
+#ifndef TG_BINARY_EXPRESSION_H
+#define TG_BINARY_EXPRESSION_H
 #include "AST/Tight/tg_ast.h"
 
 typedef enum TG_BINARY_OPERATOR {
@@ -37,4 +37,4 @@ typedef struct TG_BINARY_EXPRESSION {
 
 } tg_binary_expression_t;
 
-#endif //BINARY_EXPRESSION_H
+#endif //TG_BINARY_EXPRESSION_H

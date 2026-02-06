@@ -37,7 +37,7 @@ type_symbol_t *BINDER_ResolveAsClause(binder_t *me, module_symbol_t *symMod, ls_
     // if this is an array type:
     // find out how many dimensions this array has
     uint8_t dimensions = ARRAY_DIM_GENERIC;
-    if (clsAs->lsArrRanges.length > 1)
+    if (clsAs->lsArrRanges.length > 0)
         dimensions = clsAs->lsArrRanges.length;
 
     // make sure this type is actually valid
@@ -58,7 +58,7 @@ type_symbol_t *BINDER_ResolveAsClause(binder_t *me, module_symbol_t *symMod, ls_
     for (int i = 0; i < me->programUnit->lsArrayTypes.length; ++i) {
 
         // look for an array symbol with the same name
-        if (strcmp(me->programUnit->lsArrayTypes.symbols[i]->name, clsAs->idType->strValue) == 0) {
+        if (strcmp(me->programUnit->lsArrayTypes.symbols[i]->name, baseType->base.name) == 0) {
 
             type_symbol_t *arrType = (type_symbol_t*)me->programUnit->lsArrayTypes.symbols[i];
 
@@ -97,6 +97,9 @@ type_symbol_t *BINDER_ResolveAsClause(binder_t *me, module_symbol_t *symMod, ls_
 // resolves a type by its name, passed as a token for error reporting
 type_symbol_t *BINDER_resolveTypeName(binder_t *me, module_symbol_t *symMod, token_t *idTypeName) {
 
+    // if the name is null -> return a variant type
+    if (idTypeName == NULL) return (type_symbol_t*)me->programUnit->lsBuiltinTypes.symbols[IDX_BUILTIN_VARIANT];
+
     // -----------------------------------------------------------------------------------------------------------------
     // check if this is a builtin symbol
     for (int i = 0; i < me->programUnit->lsBuiltinTypes.length; i++) {
@@ -132,4 +135,110 @@ type_symbol_t *BINDER_resolveTypeName(binder_t *me, module_symbol_t *symMod, tok
     me->hasError = true;
 
     return NULL;
+}
+
+type_symbol_t *BINDER_resolveTypeNameFromBuffer(binder_t *me, char *buffer) {
+    // -----------------------------------------------------------------------------------------------------------------
+    // check if this is a builtin symbol
+    for (int i = 0; i < me->programUnit->lsBuiltinTypes.length; i++) {
+        if (strcmp(me->programUnit->lsBuiltinTypes.symbols[i]->name, buffer) == 0) {
+
+            // found it!
+            return (type_symbol_t*)me->programUnit->lsBuiltinTypes.symbols[i];
+        }
+    }
+
+    // anything else is not available at compile time
+    ERROR_SPLICE(SUB_BINDER, ERR_INTERNAL, "The type name '%s' could not be resolved to a builtin type", buffer);
+    me->hasError = true;
+
+    return NULL;
+}
+
+procedure_symbol_t *BINDER_ResolveProcedure(binder_t *me, ls_reference_expression_node_t *exprReference) {
+
+    // is this just a procedure name on its own?
+    if (exprReference->exprBase == NULL) {
+        return BINDER_resolveProcedureName(me, me->currentModule, exprReference->idName);
+    }
+
+    // -----------------------------------------------------------------------------------------------------------------
+    // otherwise this should be a "Module.Procedure"
+
+    // make sure the inner layer is also a name expression
+    if (exprReference->exprBase->type != LS_REFERENCE_EXPRESSION) {
+        ERROR_AT(SUB_BINDER, ERR_BD_INVALID_REFERENCE_LINK, me->currentModule->source, SPAN_FromToken(*exprReference->idName), "The reference path for a procedure call must only contain named links");
+        me->hasError = true;
+        return NULL;
+    }
+
+    // also make sure we dont have too many layers, only two are allowed
+    ls_reference_expression_node_t *exprInner = (ls_reference_expression_node_t*)exprReference->exprBase;
+
+    if (exprInner->exprBase != NULL) {
+        ERROR_AT(SUB_BINDER, ERR_BD_TOO_MANY_REFERENCE_LINKS, me->currentModule->source, SPAN_FromToken(*exprInner->idName), "The reference path for a procedure call must only be of a maximum length of 2");
+        me->hasError = true;
+        return NULL;
+    }
+
+    // resolve the module
+    module_symbol_t *module = BINDER_resolveModuleName(me, exprInner->idName);
+    if (module == NULL) return NULL; // we did not find the module
+
+    // resolve the procedure inside the module
+    procedure_symbol_t *proc = BINDER_resolveProcedureName(me, module, exprReference->idName);
+    return proc;
+}
+
+
+procedure_symbol_t *BINDER_resolveProcedureName(binder_t *me, module_symbol_t *symModule, token_t *procedureName) {
+
+    // try to find the procedure by name inside the given module
+    int idx = BD_SYMBOL_LIST_Find(&symModule->lsProcedures, procedureName->strValue);
+
+    // did we get nothing?
+    if (idx == -1) {
+        ERROR_SPLICE_AT(SUB_BINDER, ERR_BD_UNKNOWN_PROCEDURE_NAME, me->currentModule->source, SPAN_FromToken(*procedureName), "Could not find a procedure named '%s' in module '%s'", procedureName->strValue, symModule->base.name);
+        me->hasError = true;
+        return NULL;
+    }
+
+    // otherwise: return the procedure symbol
+    return (procedure_symbol_t*)symModule->lsProcedures.symbols[idx];
+}
+
+module_symbol_t *BINDER_resolveModuleName(binder_t *me, token_t *moduleName) {
+
+    // try to find the module by name inside the program unit
+    int idx = BD_SYMBOL_LIST_Find(&me->programUnit->lsModules, moduleName->strValue);
+
+    // did we get nothing?
+    if (idx == -1) {
+        ERROR_SPLICE_AT(SUB_BINDER, ERR_BD_UNKNOWN_MODULE_NAME, me->currentModule->source, SPAN_FromToken(*moduleName), "Could not find a module named '%s'", moduleName->strValue);
+        me->hasError = true;
+        return NULL;
+    }
+
+    // otherwise: return the module symbol
+    return (module_symbol_t*)me->programUnit->lsModules.symbols[idx];
+}
+
+label_symbol_t *BINDER_ResolveLabelName(binder_t *me, module_symbol_t *symMod, procedure_symbol_t *symProc, token_t *idLabelName) {
+
+    // try to find the label in this procedure
+    int idx = BD_SYMBOL_LIST_Find(&symProc->lsLabels, idLabelName->strValue);
+
+    // did we get nothing?
+    if (idx == -1) {
+        ERROR_SPLICE_AT(SUB_BINDER, ERR_BD_UNKNOWN_LABEL_NAME, me->currentModule->source, SPAN_FromToken(*idLabelName), "Could not find a label named '%s' withing procedure '%s'", idLabelName->strValue, symProc->base.name);
+        me->hasError = true;
+        return NULL;
+    }
+
+    // otherwise: return the label
+    return (label_symbol_t*)symProc->lsLabels.symbols[idx];
+}
+
+bool BINDER_areTypesEqual(type_symbol_t *a, type_symbol_t *b) {
+    return a == b; // same types should have the same pointer address (i think)
 }
