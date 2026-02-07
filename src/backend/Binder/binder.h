@@ -18,6 +18,11 @@
 #include "AST/Loose/Statements/redim_statement.h"
 #include "AST/Loose/Statements/select_statement.h"
 #include "AST/Loose/Statements/while_statement.h"
+#include "AST/Loose/Expressions/binary_expression.h"
+#include "AST/Loose/Expressions/unary_expression.h"
+#include "AST/Loose/Expressions/literal_expression.h"
+#include "AST/Loose/Expressions/parenthesized_expression.h"
+#include "AST/Loose/Expressions/reference_expression.h"
 #include "AST/Tight/program_unit.h"
 #include "AST/Tight/tg_ast.h"
 #include "AST/Tight/Symbols/module_symbol.h"
@@ -74,7 +79,15 @@ tg_ast_node_t *BINDER_bindWhileStatement(binder_t *me, ls_while_statement_node_t
 
 tg_ast_node_list_t BINDER_bindCallArguments(binder_t *me, procedure_symbol_t *target, ls_ast_node_list_t arguments, span_t errorLocation);
 
-tg_ast_node_t *BINDER_bindExpression(binder_t *me, ls_ast_node_t *expression);
+tg_ast_node_t *BINDER_bindExpression(binder_t *me, ls_ast_node_t *expression, bool requireValue);
+
+tg_ast_node_t *BINDER_bindBinaryExpression(binder_t *me, ls_binary_expression_node_t *expression);
+tg_ast_node_t *BINDER_bindUnaryExpression(binder_t *me, ls_unary_expression_node_t *expression);
+tg_ast_node_t *BINDER_bindParenthesizedExpression(binder_t *me, ls_parenthesized_expression_node_t *expression);
+tg_ast_node_t *BINDER_bindReferenceExpression(binder_t *me, ls_reference_expression_node_t *expression);
+tg_ast_node_t *BINDER_bindLiteralExpression(binder_t *me, ls_literal_expression_node_t *expression);
+
+
 tg_ast_node_t *BINDER_bindDefaultExpression(binder_t *me, type_symbol_t *type);
 tg_ast_node_t *BINDER_bindEnsureTypeExpression(binder_t *me, type_symbol_t *type, tg_ast_node_t *expression);
 

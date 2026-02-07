@@ -3,6 +3,7 @@
 //
 #include "binder.h"
 
+#include <math.h>
 #include <stdlib.h>
 #include <string.h>
 
@@ -18,12 +19,11 @@
 #include "AST/Tight/Statements/do_statement.h"
 #include "AST/Tight/Statements/for_statement.h"
 #include "AST/Tight/Statements/goto_statement.h"
-#include "AST/Tight/Statements/if_statement.h"
+#include "AST/Tight/Statements/conditional_branch_statement.h"
 #include "AST/Tight/Statements/initialize_statement.h"
 #include "AST/Tight/Statements/label_statement.h"
 #include "AST/Tight/Statements/proc_call_statement.h"
 #include "AST/Tight/Statements/return_statement.h"
-#include "AST/Tight/Statements/select_statement.h"
 #include "AST/Tight/Statements/while_statement.h"
 #include "AST/Tight/Expressions/binary_expression.h"
 #include "AST/Tight/Expressions/default_expression.h"
@@ -144,10 +144,10 @@ tg_ast_node_t *BINDER_bindStatement(binder_t *me, ls_ast_node_t *statement, tg_a
 tg_ast_node_t *BINDER_bindAssignmentStatement(binder_t *me, ls_assignment_statement_node_t *statement) {
 
     // bind the reference to the thing we want to assign to
-    tg_ast_node_t *target = BINDER_bindExpression(me, statement->exprTarget);
+    tg_ast_node_t *target = BINDER_bindExpression(me, statement->exprTarget, true);
 
     // bind the value we want to assign
-    tg_ast_node_t *value = BINDER_bindExpression(me, statement->exprValue);
+    tg_ast_node_t *value = BINDER_bindExpression(me, statement->exprValue, true);
 
     // allocate and return a new node
     tg_assignment_statement_t *node = malloc(sizeof(tg_assignment_statement_t));
@@ -243,11 +243,11 @@ tg_ast_node_t *BINDER_bindDimStatement(binder_t *me, ls_dim_statement_node_t *st
 
                 // otherwise if there is a lower bound -> bind it
                 else {
-                    BD_TG_AST_NODE_LIST_Add(&boundRanges, BINDER_bindExpression(me, clsRange->ltLBound));
+                    BD_TG_AST_NODE_LIST_Add(&boundRanges, BINDER_bindExpression(me, clsRange->ltLBound, true));
                 }
 
                 // if theres should always be an upper bound
-                BD_TG_AST_NODE_LIST_Add(&boundRanges, BINDER_bindExpression(me, clsRange->ltUBound));
+                BD_TG_AST_NODE_LIST_Add(&boundRanges, BINDER_bindExpression(me, clsRange->ltUBound, true));
             }
         }
 
@@ -299,7 +299,7 @@ tg_ast_node_t *BINDER_bindDoStatement(binder_t *me, ls_do_statement_node_t *stat
     // bind the loop condition
     tg_ast_node_t *condition = NULL;
     if (kindOfDo != DO_STATEMENT_INFINITE) {
-        condition = BINDER_bindExpression(me, statement->exprCondition);
+        condition = BINDER_bindExpression(me, statement->exprCondition, true);
     }
 
     // create a new pair of labels for this loop
@@ -490,7 +490,7 @@ tg_ast_node_t *BINDER_bindForStatement(binder_t *me, ls_for_statement_node_t *st
     }
 
     // bind the starting position
-    tg_ast_node_t *startingPos = BINDER_bindExpression(me, statement->exprStart);
+    tg_ast_node_t *startingPos = BINDER_bindExpression(me, statement->exprStart, true);
 
     // create an initializer
     tg_reference_expression_t *iteratorReference = malloc(sizeof(tg_reference_expression_t));
@@ -503,14 +503,14 @@ tg_ast_node_t *BINDER_bindForStatement(binder_t *me, ls_for_statement_node_t *st
     initializer->value = startingPos;
 
     // bind the ending position
-    tg_ast_node_t *endingPos = BINDER_bindExpression(me, statement->exprEnd);
+    tg_ast_node_t *endingPos = BINDER_bindExpression(me, statement->exprEnd, true);
 
     // bind the step
     tg_ast_node_t *stepSize = NULL;
 
     // if we have a step size -> bind it
     if (statement->exprStep != NULL) {
-        stepSize = BINDER_bindExpression(me, statement->exprStep);
+        stepSize = BINDER_bindExpression(me, statement->exprStep, true);
     }
 
     // otherwise, create a constant literal 1 expression
@@ -567,7 +567,7 @@ tg_ast_node_t *BINDER_bindIfStatement(binder_t *me, ls_if_statement_node_t *stat
         ls_conditional_clause_node_t *clsConditional = (ls_conditional_clause_node_t*)statement->lsConditionals.nodes[i];
 
         // bind the condition
-        tg_ast_node_t *condition = BINDER_bindExpression(me, clsConditional->exprCondition);
+        tg_ast_node_t *condition = BINDER_bindExpression(me, clsConditional->exprCondition, true);
         BD_TG_AST_NODE_LIST_Add(&conditions, condition);
 
         // bind the body
@@ -587,8 +587,8 @@ tg_ast_node_t *BINDER_bindIfStatement(binder_t *me, ls_if_statement_node_t *stat
     }
 
     // allocate and return a new node
-    tg_if_statement_t *node = malloc(sizeof(tg_if_statement_t));
-    node->base.type = TG_IF_STATEMENT;
+    tg_conditional_branch_statement_t *node = malloc(sizeof(tg_conditional_branch_statement_t));
+    node->base.type = TG_CONDITIONAL_BRANCH_STATEMENT;
     node->branchConditions = conditions;
     node->branchStatements = bodies;
     node->elseStatements = elseBody;
@@ -624,10 +624,76 @@ tg_ast_node_t *BINDER_bindRedimStatement(binder_t *me, ls_redim_statement_node_t
 
 tg_ast_node_t *BINDER_bindSelectStatement(binder_t *me, ls_select_statement_node_t *statement) {
 
+    // bind the test expression that we're choosing paths on
+    // TODO: use temp variable for this
+    //tg_ast_node_t *test = BINDER_bindExpression(me, statement->exprTest, true);
+
+    // create a list for all our branches and their constructed conditions
+    tg_ast_node_list_t conditions = BD_TG_AST_NODE_LIST_Init();
+    tg_ast_node_list_list_t bodies = BD_TG_AST_NODE_LIST_LIST_Init();
+
+    // iterate through all cases
+    // TODO: find out when theres a case in here twice
+    for (int i = 0; i < statement->lsConditionals.length; ++i) {
+        ls_conditional_clause_node_t *clsConditional = (ls_conditional_clause_node_t*)statement->lsConditionals.nodes[i];
+
+        // bind the value for this case
+        tg_ast_node_t *value = BINDER_bindExpression(me, clsConditional->exprCondition, true);
+
+        // construct a condition based on the test expression and this case's value
+        tg_binary_expression_t *condition = malloc(sizeof(tg_binary_expression_t));
+        condition->base.type = TG_BINARY_EXPRESSION;
+        condition->left = BINDER_bindExpression(me, statement->exprTest, true);
+        condition->right = value;
+        condition->op = TG_OP_COMPARE_EQUAL;
+
+        // add it to the list
+        BD_TG_AST_NODE_LIST_Add(&conditions, (tg_ast_node_t*)condition);
+
+        // if there was an error binding the test expression -> skip all cases
+        if (condition->left == NULL) break;
+
+        // otherwise: bind the body
+        tg_ast_node_list_t body = BINDER_bindStatementList(me, clsConditional->lsStatements);
+
+        // add it to the list
+        BD_TG_AST_NODE_LIST_LIST_Add(&bodies, body);
+    }
+
+    // if theres an else case, bind it
+    tg_ast_node_list_t elseBody = BD_TG_AST_NODE_LIST_Init();
+    if (statement->clsElse != NULL) {
+        ls_else_clause_node_t *clsElse = (ls_else_clause_node_t*)statement->clsElse;
+        elseBody = BINDER_bindStatementList(me, clsElse->lsStatements);
+    }
+
+    // allocate and return a new node
+    tg_conditional_branch_statement_t *node = malloc(sizeof(tg_conditional_branch_statement_t));
+    node->base.type = TG_CONDITIONAL_BRANCH_STATEMENT;
+    node->branchConditions = conditions;
+    node->branchStatements = bodies;
+    node->elseStatements = elseBody;
+    return (tg_ast_node_t*)node;
 }
 
 tg_ast_node_t *BINDER_bindWhileStatement(binder_t *me, ls_while_statement_node_t *statement) {
 
+    // bind the loop condition
+    tg_ast_node_t *condition = BINDER_bindExpression(me, statement->exprCondition, true);
+
+    // bind the loop body
+    tg_ast_node_list_t loopBody = BINDER_bindStatementList(me, statement->lsBody);
+
+    // create a new continue label for this block
+    label_symbol_t *continueLabel = BINDER_generateLabel(me, me->currentModule, me->currentProcedure, SPAN_FromToken(*statement->kwWhile), "continue_while");
+
+    // allocate and return a new node
+    tg_while_statement_t *node = malloc(sizeof(tg_while_statement_t));
+    node->base.type = TG_WHILE_STATEMENT;
+    node->condition = condition;
+    node->statements = loopBody;
+    node->continueLabel = continueLabel;
+    return (tg_ast_node_t*)node;
 }
 
 tg_ast_node_list_t BINDER_bindCallArguments(binder_t *me, procedure_symbol_t *target, ls_ast_node_list_t arguments, span_t errorLocation) {
@@ -734,7 +800,7 @@ tg_ast_node_list_t BINDER_bindCallArguments(binder_t *me, procedure_symbol_t *ta
 
         // otherwise: if we do have an argument here
         // -> bind it
-        boundArgument = BINDER_bindExpression(me, arg);
+        boundArgument = BINDER_bindExpression(me, arg, true);
 
         // if our parameter is not of type variant
         // -> ensure it is at runtime
@@ -749,9 +815,352 @@ tg_ast_node_list_t BINDER_bindCallArguments(binder_t *me, procedure_symbol_t *ta
     return boundArguments;
 }
 
-tg_ast_node_t *BINDER_bindExpression(binder_t *me, ls_ast_node_t *expression) {
-    return BINDER_bindDefaultExpression(me, (type_symbol_t*)me->programUnit->lsBuiltinTypes.symbols[IDX_BUILTIN_VARIANT]);
+tg_ast_node_t *BINDER_bindExpression(binder_t *me, ls_ast_node_t *expression, bool requireValue) {
+
+    tg_ast_node_t *boundExpression = NULL;
+
+    // bind this expression based on its type
+    switch (expression->type) {
+        case LS_LITERAL_EXPRESSION       : boundExpression = BINDER_bindLiteralExpression(me, (ls_literal_expression_node_t*)expression); break;
+        case LS_UNARY_EXPRESSION         : boundExpression = BINDER_bindUnaryExpression(me, (ls_unary_expression_node_t*)expression); break;
+        case LS_BINARY_EXPRESSION        : boundExpression = BINDER_bindBinaryExpression(me, (ls_binary_expression_node_t*)expression); break;
+        case LS_REFERENCE_EXPRESSION     : boundExpression = BINDER_bindReferenceExpression(me, (ls_reference_expression_node_t*)expression); break;
+        case LS_PARENTHESIZED_EXPRESSION : boundExpression = BINDER_bindParenthesizedExpression(me, (ls_parenthesized_expression_node_t*)expression); break;
+
+        default:
+            ERROR_SPLICE(SUB_BINDER, ERR_INTERNAL, "Unknown expression type in binder '%d'", expression->type)
+            me->hasError = true;
+        break;
+    }
+
+    // if the bound expression is a reference expression
+    // -> make sure it actually has a value
+    if (requireValue && boundExpression != NULL && boundExpression->type == TG_REFERENCE_EXPRESSION) {
+        tg_reference_expression_t *exrReference = (tg_reference_expression_t*)boundExpression;
+
+        if (exrReference->linkSymbol != NULL && exrReference->linkSymbol->type == MODULE_SYMBOL) {
+            ERROR(SUB_BINDER, ERR_BD_EXPRESSION_WITHOUT_VALUE, "Module symbols cannot be used as expressions")
+            me->hasError = true;
+        }
+    }
+
+    return boundExpression;
 }
+
+tg_ast_node_t *BINDER_bindBinaryExpression(binder_t *me, ls_binary_expression_node_t *expression) {
+
+    // bind the left expression
+    tg_ast_node_t *left = BINDER_bindExpression(me, expression->exprLeft, true);
+
+    // bind the right expression
+    tg_ast_node_t *right = BINDER_bindExpression(me, expression->exprRight, true);
+
+    // bind the operator
+    tg_binary_operator_t op = 0;
+    switch (expression->opOperator->type) {
+        case TK_OP_HAT           : op = TG_OP_EXPONENTIATION;           break;
+        case TK_OP_STAR          : op = TG_OP_MULTIPLICATION;           break;
+        case TK_OP_SLASH         : op = TG_OP_DIVISION;                 break;
+        case TK_OP_BACKSLASH     : op = TG_OP_INTEGER_DIVISION;         break;
+        case TK_KW_MOD           : op = TG_OP_MODULO;                   break;
+        case TK_OP_PLUS          : op = TG_OP_ADDITION;                 break;
+        case TK_OP_MINUS         : op = TG_OP_SUBTRACTION;              break;
+        case TK_OP_AND           : op = TG_OP_CONCATENATION;            break;
+        case TK_OP_EQUALS        : op = TG_OP_COMPARE_EQUAL;            break;
+        case TK_OP_UNEQUALS      : op = TG_OP_COMPARE_UNEQUAL;          break;
+        case TK_OP_LESS          : op = TG_OP_COMPARE_LESS;             break;
+        case TK_OP_GREATER       : op = TG_OP_COMPARE_GREATER;          break;
+        case TK_OP_LESS_EQUALS   : op = TG_OP_COMPARE_LESS_OR_EQUAL;    break;
+        case TK_OP_GREATER_EQUALS: op = TG_OP_COMPARE_GREATER_OR_EQUAL; break;
+        case TK_KW_AND           : op = TG_OP_LOGICAL_AND;              break;
+        case TK_KW_OR            : op = TG_OP_LOGICAL_OR;               break;
+        case TK_KW_XOR           : op = TG_OP_LOGICAL_XOR;              break;
+
+        default:
+            ERROR_SPLICE(SUB_BINDER, ERR_INTERNAL, "Unknown binary operator in binder '%d'", expression->opOperator->type)
+            me->hasError = true;
+        return BINDER_bindDefaultExpression(me, (type_symbol_t*)me->programUnit->lsBuiltinTypes.symbols[IDX_BUILTIN_VARIANT]);
+    }
+
+    // allocate and return a new node
+    tg_binary_expression_t *node = malloc(sizeof(tg_binary_expression_t));
+    node->base.type = TG_BINARY_EXPRESSION;
+    node->op = op;
+    node->left = left;
+    node->right = right;
+    return (tg_ast_node_t*)node;
+}
+
+tg_ast_node_t *BINDER_bindUnaryExpression(binder_t *me, ls_unary_expression_node_t *expression) {
+
+    // bind the operand
+    tg_ast_node_t *operand = BINDER_bindExpression(me, expression->exprOperand, true);
+
+    // bind the unary operator
+    tg_unary_operator_t op = 0;
+    switch (expression->opOperator->type) {
+        case TK_OP_PLUS  : op = TG_OP_IDENTITY;         break;
+        case TK_OP_MINUS : op = TG_OP_NEGATION;         break;
+        case TK_KW_NOT   : op = TG_OP_LOGICAL_NEGATION; break;
+
+        default:
+            ERROR_SPLICE(SUB_BINDER, ERR_INTERNAL, "Unknown unary operator in binder '%d'", expression->opOperator->type)
+            me->hasError = true;
+        return BINDER_bindDefaultExpression(me, (type_symbol_t*)me->programUnit->lsBuiltinTypes.symbols[IDX_BUILTIN_VARIANT]);
+    }
+
+    // if this is an identity operation
+    // -> it literally does nothing, return the operand unchanged
+    if (op == TG_OP_IDENTITY) {
+        return (tg_ast_node_t*)operand;
+    }
+
+    // allocate and return a new node
+    tg_unary_expression_t *node = malloc(sizeof(tg_unary_expression_t));
+    node->base.type = TG_UNARY_EXPRESSION;
+    node->op = op;
+    node->operand = operand;
+    return (tg_ast_node_t*)node;
+}
+
+tg_ast_node_t *BINDER_bindParenthesizedExpression(binder_t *me, ls_parenthesized_expression_node_t *expression) {
+
+    // bind the inner expression
+    tg_ast_node_t *inner = BINDER_bindExpression(me, expression->exprInner, true);
+
+    // thats it, we're done
+    return inner;
+
+}
+
+tg_ast_node_t *BINDER_bindReferenceExpression(binder_t *me, ls_reference_expression_node_t *expression) {
+
+    // bind the base expression
+    tg_ast_node_t *base = NULL;
+
+    // bind the base if there is one
+    if (expression->exprBase != NULL) {
+        base = BINDER_bindExpression(me, expression->exprBase, false);
+
+        // oh oh
+        if (base == NULL) return NULL;
+
+        // -------------------------------------------------------------------------------------------------------------
+        // can this base expression actually have a reference taken?
+
+        // only reference expressions can be the base of reference expressions
+        if (base->type != TG_REFERENCE_EXPRESSION) {
+            ERROR(SUB_BINDER, ERR_BD_NON_REFERENCABLE_BASE_EXPRESSION, "The given expression cannot be the base of a reference expression")
+            me->hasError = true;
+            return base;
+        }
+
+        // if it is a reference expression, only modules are allowed
+        tg_reference_expression_t *exprReference = (tg_reference_expression_t*)base;
+        if (exprReference->linkSymbol->type != MODULE_SYMBOL) {
+            ERROR(SUB_BINDER, ERR_BD_NON_REFERENCABLE_BASE_EXPRESSION, "The given base expression must be of type module expression")
+            me->hasError = true;
+            return base;
+        }
+    }
+
+    symbol_t *symbol = NULL;
+
+    // look up this symbol
+    int idx;
+
+    // if theres no base
+    if (base == NULL) {
+
+        // look up if this is a local variable
+        idx = BD_SYMBOL_LIST_Find(&me->currentProcedure->lsBuckets, expression->idName->strValue);
+        if (idx != -1) {
+            // if this variable exists -> use this
+            symbol = me->currentProcedure->lsBuckets.symbols[idx];
+            goto evaluate_found_symbol;
+        }
+
+        // look up if this is a module
+        idx = BD_SYMBOL_LIST_Find(&me->programUnit->lsModules, expression->idName->strValue);
+        if (idx != -1) {
+            // if this module exists -> use this
+            symbol = me->programUnit->lsModules.symbols[idx];
+            goto evaluate_found_symbol;
+        }
+
+        // look if this is a procedure
+        idx = BD_SYMBOL_LIST_Find(&me->currentModule->lsProcedures, expression->idName->strValue);
+        if (idx != -1) {
+            // if this procedure exists -> use this
+            symbol = me->currentModule->lsProcedures.symbols[idx];
+            goto evaluate_found_symbol;
+        }
+    }
+
+    // if there is a base
+    else {
+
+        // get the module base
+        tg_reference_expression_t *exprReference = (tg_reference_expression_t*)base;
+
+        // get the symbol
+        module_symbol_t *symModule = (module_symbol_t*)exprReference->linkSymbol;
+
+        // try to resolve a procedure
+        symbol = (symbol_t*)BINDER_resolveProcedureName(me, symModule, expression->idName);
+    }
+
+evaluate_found_symbol:
+
+    // did we not find anything?
+    if (symbol == NULL) {
+        ERROR_SPLICE_AT(SUB_BINDER, ERR_BD_UNKNOWN_REFERENCE_NAME, me->currentModule->source, SPAN_FromToken(*expression->idName), "The name '%s' could not be resolved to a symbol within the given base", expression->idName->strValue)
+        me->hasError = true;
+
+        // clear the base's symbol to prevent phantom errors otherwise caused by the early return
+        if (base != NULL && base->type == TG_REFERENCE_EXPRESSION)
+            ((tg_reference_expression_t*)base)->linkSymbol = NULL;
+        return base;
+    }
+
+    // otherwise: make sure this reference is valid
+    tg_reference_expression_t *newReferenceExpr = NULL;
+
+    // if the symbol we found is a module
+    if (symbol->type == MODULE_SYMBOL) {
+
+        // make sure there are no parentheses
+        if (expression->pcOpenParenthesis != NULL) {
+            ERROR_AT(SUB_BINDER, ERR_BD_ILLEGAL_PARENTHESES, me->currentModule->source, SPAN_FromToken(*expression->pcOpenParenthesis), "A module reference cannot use any parentheses")
+            me->hasError = true;
+
+            // clear the base's symbol to prevent phantom errors otherwise caused by the early return
+            if (base != NULL && base->type == TG_REFERENCE_EXPRESSION)
+                ((tg_reference_expression_t*)base)->linkSymbol = NULL;
+            return base;
+        }
+
+        // make sure there are no arguments here
+        if (expression->lsArguments.length > 0) {
+            ERROR(SUB_BINDER, ERR_BD_INVALID_NUMBER_OF_ARGUMENTS, "A module reference cannot have any arguments")
+            me->hasError = true;
+
+            // clear the base's symbol to prevent phantom errors otherwise caused by the early return
+            if (base != NULL && base->type == TG_REFERENCE_EXPRESSION)
+                ((tg_reference_expression_t*)base)->linkSymbol = NULL;
+            return base;
+        }
+    }
+
+
+    // if the symbol we found is a local variable
+    if (symbol->type == LOCAL_VARIABLE_SYMBOL || symbol->type == PARAMETER_SYMBOL) {
+
+        // make sure there are no parentheses
+        if (expression->pcOpenParenthesis != NULL) {
+            ERROR_AT(SUB_BINDER, ERR_BD_ILLEGAL_PARENTHESES, me->currentModule->source, SPAN_FromToken(*expression->pcOpenParenthesis), "A variable reference cannot use any parentheses")
+            me->hasError = true;
+
+            // clear the base's symbol to prevent phantom errors otherwise caused by the early return
+            if (base != NULL && base->type == TG_REFERENCE_EXPRESSION)
+                ((tg_reference_expression_t*)base)->linkSymbol = NULL;
+            return base;
+        }
+
+        // make sure there are no arguments here
+        if (expression->lsArguments.length > 0) {
+            ERROR(SUB_BINDER, ERR_BD_INVALID_NUMBER_OF_ARGUMENTS, "A variable reference cannot have any arguments")
+            me->hasError = true;
+
+            // clear the base's symbol to prevent phantom errors otherwise caused by the early return
+            if (base != NULL && base->type == TG_REFERENCE_EXPRESSION)
+                ((tg_reference_expression_t*)base)->linkSymbol = NULL;
+            return base;
+        }
+    }
+
+    // if the symbol we found is a procedure
+    if (symbol->type == PROCEDURE_SYMBOL) {
+        procedure_symbol_t *symProc = (procedure_symbol_t*)symbol;
+
+        // make sure this procedure has a return value
+        if (symProc->symReturnType == NULL) {
+            ERROR(SUB_BINDER, ERR_BD_EXPRESSION_WITHOUT_VALUE, "A subroutine call does not return a value, therefore it cannot be used as an expression")
+            me->hasError = true;
+
+            // clear the base's symbol to prevent phantom errors otherwise caused by the early return
+            if (base != NULL && base->type == TG_REFERENCE_EXPRESSION)
+                ((tg_reference_expression_t*)base)->linkSymbol = NULL;
+            return base;
+        }
+
+        // make sure there are parentheses
+        if (expression->pcOpenParenthesis == NULL) {
+            ERROR(SUB_BINDER, ERR_BD_MISSING_PARENTHESES, "A function call always requires parentheses")
+            me->hasError = true;
+
+            // clear the base's symbol to prevent phantom errors otherwise caused by the early return
+            if (base != NULL && base->type == TG_REFERENCE_EXPRESSION)
+                ((tg_reference_expression_t*)base)->linkSymbol = NULL;
+            return base;
+        }
+
+        // if there is a base reference expression
+        // -> reuse it and just replace the symbol
+        if (base != NULL) {
+            newReferenceExpr = (tg_reference_expression_t*)base;
+            newReferenceExpr->linkSymbol = symbol;
+        }
+    }
+
+    // allocate a new node if needed
+    if (newReferenceExpr == NULL) {
+        newReferenceExpr = malloc(sizeof(tg_reference_expression_t));
+        newReferenceExpr->base.type = TG_REFERENCE_EXPRESSION;
+        newReferenceExpr->linkSymbol = symbol;
+        newReferenceExpr->baseExpression = base;
+    }
+
+    // if this is a procedure call
+    if (symbol->type == PROCEDURE_SYMBOL) {
+        procedure_symbol_t *symProc = (procedure_symbol_t*)symbol;
+
+        // bind the arguments
+        newReferenceExpr->arguments = BINDER_bindCallArguments(me, symProc, expression->lsArguments, SPAN_FromToken(*expression->idName));
+    }
+
+    // we're so done
+    return (tg_ast_node_t*)newReferenceExpr;
+}
+
+tg_ast_node_t *BINDER_bindLiteralExpression(binder_t *me, ls_literal_expression_node_t *expression) {
+
+    // create a copy of the literal value
+    uint32_t size = BINDER_getSizeForLiteralType(expression->ltLiteral);
+    void *literalBuffer = malloc(size);
+
+    // if this is a string, copy from string value
+    if (expression->ltLiteral->type == TK_LT_STRING) {
+        memcpy(literalBuffer, expression->ltLiteral->strValue, size);
+    }
+
+    // otherwise, copy from interpreted value
+    else {
+        memcpy(literalBuffer, expression->ltLiteral->value, size);
+    }
+
+    // get the correct type symbol for this literal
+    type_symbol_t *literalType = BINDER_getTypeForLiteral(me, expression->ltLiteral);
+
+    // allocate and return the new node
+    tg_literal_expression_t *node = malloc(sizeof(tg_literal_expression_t));
+    node->base.type = TG_LITERAL_EXPRESSION;
+    node->value = literalBuffer;
+    node->literalType = literalType;
+    return (tg_ast_node_t*)node;
+}
+
+
 
 tg_ast_node_t *BINDER_bindDefaultExpression(binder_t *me, type_symbol_t *type) {
     tg_default_expression_t *node = malloc(sizeof(tg_default_expression_t));

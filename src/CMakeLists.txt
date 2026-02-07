@@ -84,9 +84,8 @@ add_library(veebee_backend
         backend/AST/Tight/Statements/do_statement.h
         backend/AST/Tight/Statements/goto_statement.h
         backend/AST/Tight/Statements/for_statement.h
-        backend/AST/Tight/Statements/if_statement.h
+        backend/AST/Tight/Statements/conditional_branch_statement.h
         backend/AST/Tight/Statements/label_statement.h
-        backend/AST/Tight/Statements/select_statement.h
         backend/AST/Tight/Statements/while_statement.h
         backend/AST/Tight/Statements/conditional_goto_statement.h
         backend/AST/Tight/Expressions/binary_expression.h

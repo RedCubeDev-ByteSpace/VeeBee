@@ -13,7 +13,7 @@ typedef struct TG_WHILE_STATEMENT {
     tg_ast_node_t *condition;
     label_symbol_t *continueLabel;
 
-    tg_ast_node_list_t *statements;
+    tg_ast_node_list_t statements;
 
 } tg_while_statement_t;
 

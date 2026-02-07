@@ -45,7 +45,7 @@ parser_t *PARSER_Init(source_t source, token_list_t *tokens) {
     parser->tokens = tokens;
     parser->source = source;
 
-    // initialize all other fields to zerp
+    // initialize all other fields to zero
     parser->pos = 0;
     parser->lsMembers.nodes = NULL;
     parser->lsMembers.length = 0;
@@ -1712,7 +1712,7 @@ ls_ast_node_t *PARSER_parseAssignmentStatement(parser_t *me, ls_ast_node_t *targ
 // some expressions are allowed to be used as statements, like function calls
 ls_ast_node_t *PARSER_parseExpressionStatement(parser_t *me) {
     // parse a reference expression, only expression currently allowed to be used like a statement
-    ls_ast_node_t *exprExpression = (ls_ast_node_t*)PARSER_parseReferenceExpression(me, NULL, false);
+    ls_ast_node_t *exprExpression = PARSER_parseReferenceExpression(me, NULL, false);
     RETURN_NULL_ON_ERROR(
         UNLOAD_IF_NOT_NULL(exprExpression)
     )

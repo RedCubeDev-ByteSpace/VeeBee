@@ -19,7 +19,7 @@ typedef struct TG_UNARY_EXPRESSION {
     tg_ast_node_t base;
 
     tg_unary_operator_t op;
-    tg_ast_node_t operand;
+    tg_ast_node_t *operand;
 
 } tg_unary_expression_t;
 

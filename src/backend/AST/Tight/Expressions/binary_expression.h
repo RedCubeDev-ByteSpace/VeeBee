@@ -32,8 +32,8 @@ typedef struct TG_BINARY_EXPRESSION {
     tg_ast_node_t base;
 
     tg_binary_operator_t op;
-    tg_ast_node_t left;
-    tg_ast_node_t right;
+    tg_ast_node_t *left;
+    tg_ast_node_t *right;
 
 } tg_binary_expression_t;
 

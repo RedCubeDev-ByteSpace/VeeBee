@@ -28,6 +28,9 @@ module_symbol_t *BINDER_resolveModuleName(binder_t *me, token_t *moduleName);
 
 label_symbol_t *BINDER_ResolveLabelName(binder_t *me, module_symbol_t *symMod, procedure_symbol_t *symProc, token_t *idLabelName);
 
+uint32_t BINDER_getSizeForLiteralType(token_t *ltToken);
+type_symbol_t *BINDER_getTypeForLiteral(binder_t *me, token_t *ltToken);
+
 bool BINDER_areTypesEqual(type_symbol_t *a, type_symbol_t *b);
 
 #endif //SYMBOL_RESOLVER_H

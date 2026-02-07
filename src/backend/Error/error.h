@@ -67,7 +67,7 @@ static const char *SUBSYSTEM_NAMES[] = {
     GEN(ERR_BD_NO_FIELDS_IN_TYPE)                      \
     GEN(ERR_BD_ARRAY_TYPE_MUST_BE_GENERIC)             \
     GEN(ERR_BD_UNEXPECTED_ARRAY_TYPE)                  \
-    GEN(ERR_BD_UNEXPECTED_NON_ARRAY_TYPE)                  \
+    GEN(ERR_BD_UNEXPECTED_NON_ARRAY_TYPE)              \
     GEN(ERR_BD_NON_UNIQUE_SYMBOL)                      \
     GEN(ERR_BD_INVALID_NON_OPTIONAL_PARAMETER)         \
     GEN(ERR_BD_INVALID_PARAMARRAY_PARAMETER)           \
@@ -75,18 +75,21 @@ static const char *SUBSYSTEM_NAMES[] = {
     GEN(ERR_BD_ILLEGAL_COMBINATION_OF_MODIFIERS)       \
     GEN(ERR_BD_FRIEND_MODIFIER_NOT_ALLOWED)            \
     GEN(ERR_BD_INVALID_REFERENCE_LINK)                 \
-    GEN(ERR_BD_TOO_MANY_REFERENCE_LINKS)                 \
+    GEN(ERR_BD_TOO_MANY_REFERENCE_LINKS)               \
     GEN(ERR_BD_UNKNOWN_PROCEDURE_NAME)                 \
-    GEN(ERR_BD_UNKNOWN_MODULE_NAME)                 \
-    GEN(ERR_BD_UNKNOWN_LABEL_NAME)                 \
-    GEN(ERR_BD_UNEXPECTED_NON_SUBROUTINE)                 \
-    GEN(ERR_BD_INVALID_NUMBER_OF_ARGUMENTS)                 \
-    GEN(ERR_BD_ILLEGALLY_MISSING_ARGUMENT)                 \
-    GEN(ERR_BD_MISSING_PARENTHESES)                 \
-    GEN(ERR_BD_ILLEGAL_PARENTHESES)                 \
-    GEN(ERR_BD_INVALID_DO_LOOP_CONJUNCTIONS)                 \
+    GEN(ERR_BD_UNKNOWN_MODULE_NAME)                    \
+    GEN(ERR_BD_UNKNOWN_LABEL_NAME)                     \
+    GEN(ERR_BD_UNEXPECTED_NON_SUBROUTINE)              \
+    GEN(ERR_BD_INVALID_NUMBER_OF_ARGUMENTS)            \
+    GEN(ERR_BD_ILLEGALLY_MISSING_ARGUMENT)             \
+    GEN(ERR_BD_MISSING_PARENTHESES)                    \
+    GEN(ERR_BD_ILLEGAL_PARENTHESES)                    \
+    GEN(ERR_BD_INVALID_DO_LOOP_CONJUNCTIONS)           \
     GEN(ERR_BD_INVALID_EXIT_CONTAINER)                 \
-    GEN(ERR_BD_INVALID_ITERATOR_TYPE)                 \
+    GEN(ERR_BD_INVALID_ITERATOR_TYPE)                  \
+    GEN(ERR_BD_EXPRESSION_WITHOUT_VALUE)               \
+    GEN(ERR_BD_NON_REFERENCABLE_BASE_EXPRESSION)       \
+    GEN(ERR_BD_UNKNOWN_REFERENCE_NAME)                 \
 
 // Error type enum
 typedef enum ERR_ERROR_TYPE {

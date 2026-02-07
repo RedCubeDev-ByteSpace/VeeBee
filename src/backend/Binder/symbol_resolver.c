@@ -242,3 +242,71 @@ label_symbol_t *BINDER_ResolveLabelName(binder_t *me, module_symbol_t *symMod, p
 bool BINDER_areTypesEqual(type_symbol_t *a, type_symbol_t *b) {
     return a == b; // same types should have the same pointer address (i think)
 }
+
+uint32_t BINDER_getSizeForLiteralType(token_t *ltToken) {
+
+    // is this a boolean literal?
+    if (ltToken->type == TK_LT_BOOLEAN) {
+        return 1; // always 1 byte
+    }
+
+    // is this a string literal
+    if (ltToken->type == TK_LT_STRING) {
+        return strlen(ltToken->strValue) + 1;
+    }
+
+    // is this a numeric literal?
+    if (ltToken->type == TK_LT_NUMBER) {
+
+        // what kind of number is it exaclty?
+        switch (ltToken->numberValueType) {
+            case NUMBER_VALUE_BYTE      : return sizeof(uint8_t);
+            case NUMBER_VALUE_INT       : return sizeof(int16_t);
+            case NUMBER_VALUE_LONG      : return sizeof(int32_t);
+            case NUMBER_VALUE_LONG_LONG : return sizeof(int64_t);
+            case NUMBER_VALUE_SINGLE    : return sizeof(float);
+            case NUMBER_VALUE_DOUBLE    : return sizeof(double);
+            case NUMBER_VALUE_CURRENCY  : return sizeof(int64_t);
+            default:
+                ERROR_SPLICE(SUB_BINDER, ERR_INTERNAL, "Unknown number literal type '%d'", ltToken->numberValueType);
+                return 1;
+        }
+    }
+
+    ERROR_SPLICE(SUB_BINDER, ERR_INTERNAL, "Unknown literal type '%s'", TOKEN_TYPE_STRING[ltToken->type]);
+    return 1;
+}
+
+type_symbol_t *BINDER_getTypeForLiteral(binder_t *me, token_t *ltToken) {
+
+    // is this a boolean literal?
+    if (ltToken->type == TK_LT_BOOLEAN) {
+        return BINDER_resolveTypeNameFromBuffer(me, "boolean");
+    }
+
+    // is this a string literal
+    if (ltToken->type == TK_LT_STRING) {
+        return BINDER_resolveTypeNameFromBuffer(me, "string");
+    }
+
+    // is this a numeric literal?
+    if (ltToken->type == TK_LT_NUMBER) {
+
+        // what kind of number is it exaclty?
+        switch (ltToken->numberValueType) {
+            case NUMBER_VALUE_BYTE      : return BINDER_resolveTypeNameFromBuffer(me, "byte");
+            case NUMBER_VALUE_INT       : return BINDER_resolveTypeNameFromBuffer(me, "integer");
+            case NUMBER_VALUE_LONG      : return BINDER_resolveTypeNameFromBuffer(me, "long");
+            case NUMBER_VALUE_LONG_LONG : return BINDER_resolveTypeNameFromBuffer(me, "longlong");
+            case NUMBER_VALUE_SINGLE    : return BINDER_resolveTypeNameFromBuffer(me, "single");
+            case NUMBER_VALUE_DOUBLE    : return BINDER_resolveTypeNameFromBuffer(me, "double");
+            case NUMBER_VALUE_CURRENCY  : return BINDER_resolveTypeNameFromBuffer(me, "currency");
+            default:
+                ERROR_SPLICE(SUB_BINDER, ERR_INTERNAL, "Unknown number literal type '%d'", ltToken->numberValueType);
+            return BINDER_resolveTypeNameFromBuffer(me, "variant");
+        }
+    }
+
+    ERROR_SPLICE(SUB_BINDER, ERR_INTERNAL, "Unknown literal type '%s'", TOKEN_TYPE_STRING[ltToken->type]);
+    return BINDER_resolveTypeNameFromBuffer(me, "variant");
+}
