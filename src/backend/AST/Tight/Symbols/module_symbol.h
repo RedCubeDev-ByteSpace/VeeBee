@@ -16,6 +16,9 @@ typedef struct MODULE_SYMBOL {
     // has this module symbol been inserted automatically by the compiler?
     bool isAutoInserted;
 
+    // is this symbol external and actually implemented in c?
+    bool isExternal;
+
     // the list of members we are basing this module on
     ls_ast_node_list_t lsMembers;
 

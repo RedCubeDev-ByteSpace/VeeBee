@@ -59,6 +59,9 @@ void BINDER_BindProcedureBodies(binder_t *me) {
     for (int i = 0; i < me->programUnit->lsModules.length; ++i) {
         module_symbol_t *module = (module_symbol_t*)me->programUnit->lsModules.symbols[i];
 
+        // skip any modules that are defined in c
+        if (module->isExternal) continue;
+
         // tell the binder the module we'll be working in
         me->currentModule = module;
 

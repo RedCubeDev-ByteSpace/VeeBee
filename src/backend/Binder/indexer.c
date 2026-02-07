@@ -45,6 +45,9 @@ void BINDER_CreateModuleIndex(binder_t *me, source_t source, ls_ast_node_list_t 
         // this is an automatically inserted module
         newModule->isAutoInserted = true;
 
+        // this is also a veebee module
+        newModule->isExternal = false;
+
         // initialize all lists
         newModule->lsProcedures = BD_SYMBOL_LIST_Init();
         newModule->lsTypes = BD_SYMBOL_LIST_Init();
@@ -137,6 +140,9 @@ module_symbol_t *BINDER_indexModule(ls_module_member_node_t *memModule) {
 
     // this is a user defined module
     newModule->isAutoInserted = false;
+
+    // this is also a veebee module
+    newModule->isExternal = false;
 
     // remember where this was declared
     newModule->base.declarationSpan = SPAN_FromToken(*memModule->idModuleName);
