@@ -69,6 +69,9 @@ procedure_symbol_t *INTEROP_CreateProcedure(program_unit_t *prgUnit, module_symb
     myProc->procedureId = 1 << 31 | prgUnit->externalProcedureCounter;
     myProc->visibility = PUBLIC;
     myProc->lsParameters = BD_SYMBOL_LIST_Init();
+    myProc->lsLabels = BD_SYMBOL_LIST_Init();
+    myProc->lsBuckets = BD_SYMBOL_LIST_Init();
+    myProc->isVariadic = false;
     myProc->symReturnType = returnType;
 
     // count this procedure

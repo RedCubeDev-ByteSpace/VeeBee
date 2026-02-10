@@ -124,7 +124,7 @@ tg_ast_node_t *BINDER_bindStatement(binder_t *me, ls_ast_node_t *statement, tg_a
     // bind this node based on what type it is
     switch (statement->type) {
         case LS_DIM_STATEMENT        : return BINDER_bindDimStatement(me, (ls_dim_statement_node_t*)statement, boundStatementList);
-        case LS_REDIM_STATEMENT      : return BINDER_bindRedimStatement(me, (ls_redim_statement_node_t*)statement);
+        case LS_REDIM_STATEMENT      : return BINDER_bindRedimStatement(me, (ls_redim_statement_node_t*)statement, boundStatementList);
         case LS_ASSIGNMENT_STATEMENT : return BINDER_bindAssignmentStatement(me, (ls_assignment_statement_node_t*)statement);
         case LS_IF_STATEMENT         : return BINDER_bindIfStatement(me, (ls_if_statement_node_t*)statement);
         case LS_SELECT_STATEMENT     : return BINDER_bindSelectStatement(me, (ls_select_statement_node_t*)statement);
@@ -257,7 +257,7 @@ tg_ast_node_t *BINDER_bindDimStatement(binder_t *me, ls_dim_statement_node_t *st
         // when we're done, allocate a new node
         tg_initialize_statement_t *node = malloc(sizeof(tg_initialize_statement_t));
         node->base.type = TG_INITIALIZE_STATEMENT;
-        node->variable = newLocalVariable;
+        node->variable = (symbol_t*)newLocalVariable;
         node->preserve = false;
         node->ranges = boundRanges;
 
@@ -611,7 +611,7 @@ tg_ast_node_t *BINDER_bindLabelStatement(binder_t *me, ls_label_statement_node_t
 
 }
 
-tg_ast_node_t *BINDER_bindRedimStatement(binder_t *me, ls_redim_statement_node_t *statement) {
+tg_ast_node_t *BINDER_bindRedimStatement(binder_t *me, ls_redim_statement_node_t *statement, tg_ast_node_list_t *boundStatementList) {
 
     // should we preserve redimmed data?
     bool preserve = false;
@@ -621,8 +621,136 @@ tg_ast_node_t *BINDER_bindRedimStatement(binder_t *me, ls_redim_statement_node_t
 
     // go through each redim field
     for (int d = 0; d < statement->lsDimFields.length; ++d) {
+        ls_dim_field_clause_node_t *clsDimField = (ls_dim_field_clause_node_t*)statement->lsDimFields.nodes[d];
 
+        // try to locate the referenced variable
+        int idx = BD_SYMBOL_LIST_Find(&me->currentProcedure->lsBuckets, clsDimField->idName->strValue);
+        if (idx == -1) {
+
+            // we found nothing
+            ERROR_SPLICE_AT(SUB_BINDER, ERR_BD_UNKNOWN_REFERENCE_NAME, me->currentModule->source, SPAN_FromToken(*clsDimField->idName), "The variable '%s' could not be resolved", clsDimField->idName->strValue)
+            me->hasError = true;
+
+            // try the next one
+            continue;
+        }
+
+        // get the symbol
+        symbol_t *referenceSymbol = me->currentProcedure->lsBuckets.symbols[idx];
+
+        // get the variable type
+        type_symbol_t *varType = NULL;
+        if (referenceSymbol->type == PARAMETER_SYMBOL) {
+            varType = ((parameter_symbol_t*)referenceSymbol)->symType;
+        }
+        else if (referenceSymbol->type == LOCAL_VARIABLE_SYMBOL) {
+            varType = ((local_variable_symbol_t*)referenceSymbol)->symType;
+        }
+
+        // make sure this variable is already an array type or of type variant
+        if (varType->typeOfType != TYPE_ARRAY && !BINDER_areTypesEqual(varType, (type_symbol_t*)me->programUnit->lsBuiltinTypes.symbols[IDX_BUILTIN_VARIANT])) {
+
+            // cannot redim a scalar
+            ERROR_AT(SUB_BINDER, ERR_BD_INVALID_NON_ARRAY_TYPE, me->currentModule->source, SPAN_FromToken(*clsDimField->idName), "A Redim cannot be done on a non array variable")
+            me->hasError = true;
+
+            // try the next one
+            continue;
+        }
+
+        // make sure the as clause contains ranges, otherwise theres really no reason to redim
+        if (clsDimField->clsType->lsArrRanges.length == 0) {
+
+            // not a valid redim
+            ERROR_AT(SUB_BINDER, ERR_BD_INVALID_NUMBER_OF_ARGUMENTS, me->currentModule->source, SPAN_FromToken(*clsDimField->idName), "A Redim of an Array requires at least one dimension")
+            me->hasError = true;
+
+            // try the next one
+            continue;
+        }
+
+        // resolve the type we want to redefine this as
+        type_symbol_t *requestedType = BINDER_ResolveAsClause(me, me->currentModule, clsDimField->clsType, BD_RS_ALLOW_ALL_ARRAYS);
+
+        // -------------------------------------------------------------------------------------------------------------
+        // create a new type for this array
+        type_symbol_t *newType;
+
+        // if the As clause contains an explicit type name -> use that one
+        if (clsDimField->clsType->idType != NULL) {
+            newType = requestedType;
+        }
+
+        // otherwise: use the original type with the As clauses dimensionality
+        else {
+
+            // if the variable is of type array -> get its base type
+            if (varType->typeOfType == TYPE_ARRAY) {
+                newType = BINDER_resolveArrayType(me, varType->symSubType, requestedType->numArrayDimensions);
+            }
+
+            // if the variable is of type variant -> simply use variant as the element type
+            else {
+                newType = BINDER_resolveArrayType(me, (type_symbol_t*)me->programUnit->lsBuiltinTypes.symbols[IDX_BUILTIN_VARIANT], requestedType->numArrayDimensions);
+            }
+        }
+
+        // -------------------------------------------------------------------------------------------------------------
+        // make sure redimming to the type is actually allowed
+
+        // variants are allowed to do whatever, i dont care
+        if (!BINDER_areTypesEqual(varType, (type_symbol_t*)me->programUnit->lsBuiltinTypes.symbols[IDX_BUILTIN_VARIANT])) {
+
+            // if this is not a variant though
+            if (!BINDER_areTypesEqual(varType->symSubType, newType->symSubType)) {
+
+                // cant change the type once its seBINDER_areTypesEqual(t
+                ERROR_SPLICE_AT(SUB_BINDER, ERR_BD_NON_MATCHING_REDIM_ELEMENT_TYPE, me->currentModule->source, SPAN_FromToken(*clsDimField->idName), "Cannot Redim an Array of type '%s' to be of type '%s', the type is not allowed to change", varType->symSubType->base.name, newType->symSubType->base.name)
+                me->hasError = true;
+
+                // try the next one
+                continue;
+            }
+        }
+
+        // -------------------------------------------------------------------------------------------------------------
+        // bind all array ranges
+        tg_ast_node_list_t boundRanges = BD_TG_AST_NODE_LIST_Init();
+
+        for (int i = 0; i < clsDimField->clsType->lsArrRanges.length; ++i) {
+            ls_arr_range_clause_node_t *clsRange = (ls_arr_range_clause_node_t*)clsDimField->clsType->lsArrRanges.nodes[i];
+
+            // if theres no lower bound -> substitute a default zero expression
+            if (clsRange->ltLBound == NULL) {
+                BD_TG_AST_NODE_LIST_Add(&boundRanges, BINDER_bindDefaultExpression(me, BINDER_resolveTypeNameFromBuffer(me, "integer")));
+            }
+
+            // otherwise if there is a lower bound -> bind it
+            else {
+                BD_TG_AST_NODE_LIST_Add(&boundRanges, BINDER_bindExpression(me, clsRange->ltLBound, true));
+            }
+
+            // if theres should always be an upper bound
+            BD_TG_AST_NODE_LIST_Add(&boundRanges, BINDER_bindExpression(me, clsRange->ltUBound, true));
+        }
+
+
+        // when we're done, allocate a new node
+        tg_initialize_statement_t *node = malloc(sizeof(tg_initialize_statement_t));
+        node->base.type = TG_INITIALIZE_STATEMENT;
+        node->variable = referenceSymbol;
+        node->preserve = preserve;
+        node->ranges = boundRanges;
+
+
+        // directly add it to the bound statement list
+        // this is the only way we can return multiple bound nodes out of a single unbound node
+        BD_TG_AST_NODE_LIST_Add(boundStatementList, (tg_ast_node_t*)node);
     }
+
+    // we dont actually return a node from here
+    // instead they will be added directly to the bound statement list which is calling this
+    return NULL;
 }
 
 tg_ast_node_t *BINDER_bindSelectStatement(binder_t *me, ls_select_statement_node_t *statement) {
@@ -1059,26 +1187,74 @@ evaluate_found_symbol:
     // if the symbol we found is a local variable
     if (symbol->type == LOCAL_VARIABLE_SYMBOL || symbol->type == PARAMETER_SYMBOL) {
 
-        // make sure there are no parentheses
-        if (expression->pcOpenParenthesis != NULL) {
-            ERROR_AT(SUB_BINDER, ERR_BD_ILLEGAL_PARENTHESES, me->currentModule->source, SPAN_FromToken(*expression->pcOpenParenthesis), "A variable reference cannot use any parentheses")
+        // get the type of the variable
+        type_symbol_t *varType = NULL;
+        if (symbol->type == LOCAL_VARIABLE_SYMBOL) {
+            varType = ((local_variable_symbol_t*)symbol)->symType;
+        }
+        else if (symbol->type == PARAMETER_SYMBOL) {
+            varType = ((parameter_symbol_t*)symbol)->symType;
+        }
+
+        // -------------------------------------------------------------------------------------------------------------
+        // make sure the arguments make sense
+
+        // if there are parentheses there must be at least one arg
+        if (expression->pcOpenParenthesis != NULL && expression->lsArguments.length == 0) {
+            // nope, we dont
+            ERROR(SUB_BINDER, ERR_BD_INVALID_NUMBER_OF_ARGUMENTS, "Accessing an array requires at least one parameter")
             me->hasError = true;
 
             // clear the base's symbol to prevent phantom errors otherwise caused by the early return
             if (base != NULL && base->type == TG_REFERENCE_EXPRESSION)
                 ((tg_reference_expression_t*)base)->linkSymbol = NULL;
+
             return base;
         }
 
-        // make sure there are no arguments here
-        if (expression->lsArguments.length > 0) {
-            ERROR(SUB_BINDER, ERR_BD_INVALID_NUMBER_OF_ARGUMENTS, "A variable reference cannot have any arguments")
-            me->hasError = true;
 
-            // clear the base's symbol to prevent phantom errors otherwise caused by the early return
-            if (base != NULL && base->type == TG_REFERENCE_EXPRESSION)
-                ((tg_reference_expression_t*)base)->linkSymbol = NULL;
-            return base;
+        // if this is of variant type -> anything goes
+        if (!BINDER_areTypesEqual(varType, (type_symbol_t*)me->programUnit->lsBuiltinTypes.symbols[IDX_BUILTIN_VARIANT])) {
+
+            // otherwise -> make sure its an array type
+            if (varType->typeOfType != TYPE_ARRAY) {
+
+                // nope, just a plain old scalar
+                if (expression->lsArguments.length > 0) {
+
+                    // if there are arguments given to it -> error
+                    ERROR(SUB_BINDER, ERR_BD_INVALID_NUMBER_OF_ARGUMENTS, "A variable reference to a non array type cannot have any arguments")
+                    me->hasError = true;
+
+                    // clear the base's symbol to prevent phantom errors otherwise caused by the early return
+                    if (base != NULL && base->type == TG_REFERENCE_EXPRESSION)
+                        ((tg_reference_expression_t*)base)->linkSymbol = NULL;
+
+                    return base;
+                }
+            }
+
+            else {
+
+                // if it is an array, make sure the dimensions line up
+                if (varType->numArrayDimensions != ARRAY_DIM_GENERIC) {
+
+                    // if its note generic -> make sure we have the same number of args as dimensions
+                    if (varType->numArrayDimensions != expression->lsArguments.length) {
+
+                        // nope, we dont
+                        ERROR_SPLICE(SUB_BINDER, ERR_BD_INVALID_NUMBER_OF_ARGUMENTS, "An array access to an array which has %d dimensions requires %d parameters (got: %d)", varType->numArrayDimensions, varType->numArrayDimensions, expression->lsArguments.length)
+                        me->hasError = true;
+
+                        // clear the base's symbol to prevent phantom errors otherwise caused by the early return
+                        if (base != NULL && base->type == TG_REFERENCE_EXPRESSION)
+                            ((tg_reference_expression_t*)base)->linkSymbol = NULL;
+
+                        return base;
+
+                    }
+                }
+            }
         }
     }
 
@@ -1122,6 +1298,7 @@ evaluate_found_symbol:
         newReferenceExpr->base.type = TG_REFERENCE_EXPRESSION;
         newReferenceExpr->linkSymbol = symbol;
         newReferenceExpr->baseExpression = base;
+        newReferenceExpr->arguments = BD_TG_AST_NODE_LIST_Init();
     }
 
     // if this is a procedure call
@@ -1130,6 +1307,15 @@ evaluate_found_symbol:
 
         // bind the arguments
         newReferenceExpr->arguments = BINDER_bindCallArguments(me, symProc, expression->lsArguments, SPAN_FromToken(*expression->idName));
+    }
+
+    // if this is an array access
+    if (symbol->type == PARAMETER_SYMBOL || symbol->type == LOCAL_VARIABLE_SYMBOL) {
+
+        // bind all indices
+        for (int i = 0; i < expression->lsArguments.length; ++i) {
+            BD_TG_AST_NODE_LIST_Add(&newReferenceExpr->arguments, BINDER_bindExpression(me, expression->lsArguments.nodes[i], true));
+        }
     }
 
     // we're so done
@@ -1167,7 +1353,7 @@ tg_ast_node_t *BINDER_bindLiteralExpression(binder_t *me, ls_literal_expression_
 
 tg_ast_node_t *BINDER_bindDefaultExpression(binder_t *me, type_symbol_t *type) {
     tg_default_expression_t *node = malloc(sizeof(tg_default_expression_t));
-    node->base.type == TG_DEFAULT_EXPRESSION;
+    node->base.type = TG_DEFAULT_EXPRESSION;
     node->type = type;
     return (tg_ast_node_t*)node;
 }

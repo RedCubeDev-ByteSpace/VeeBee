@@ -21,6 +21,7 @@ typedef enum ARRAY_RESOLVE_BEHAVIOR {
 type_symbol_t *BINDER_ResolveAsClause(binder_t *me, module_symbol_t *symMod, ls_as_clause_node_t *clsAs, array_resolve_behavior_t arrayBehavior);
 type_symbol_t *BINDER_resolveTypeName(binder_t *me, module_symbol_t *symMod, token_t *idTypeName);
 type_symbol_t *BINDER_resolveTypeNameFromBuffer(binder_t *me, char *buffer);
+type_symbol_t *BINDER_resolveArrayType(binder_t *me, type_symbol_t *baseType, uint8_t dimensions);
 
 procedure_symbol_t *BINDER_ResolveProcedure(binder_t *me, ls_reference_expression_node_t *exprReference);
 procedure_symbol_t *BINDER_resolveProcedureName(binder_t *me, module_symbol_t *symModule, token_t *procedureName);

@@ -11,7 +11,7 @@ typedef struct TG_INITIALIZE_STATEMENT {
     tg_ast_node_t base;
 
     bool preserve;
-    local_variable_symbol_t *variable;
+    symbol_t *variable;
     tg_ast_node_list_t ranges;
 
 } tg_initialize_statement_t;

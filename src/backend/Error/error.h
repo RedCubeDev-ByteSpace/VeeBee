@@ -91,6 +91,8 @@ static const char *SUBSYSTEM_NAMES[] = {
     GEN(ERR_BD_EXPRESSION_WITHOUT_VALUE)               \
     GEN(ERR_BD_NON_REFERENCABLE_BASE_EXPRESSION)       \
     GEN(ERR_BD_UNKNOWN_REFERENCE_NAME)                 \
+    GEN(ERR_BD_INVALID_NON_ARRAY_TYPE)                 \
+    GEN(ERR_BD_NON_MATCHING_REDIM_ELEMENT_TYPE)        \
                                                        \
     GEN(ERR_IO_UNKNOWN_TYPE_NAME)                      \
 

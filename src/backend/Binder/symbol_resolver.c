@@ -56,11 +56,11 @@ type_symbol_t *BINDER_ResolveAsClause(binder_t *me, module_symbol_t *symMod, ls_
 
     // look if a type symbol for this array already exits
     for (int i = 0; i < me->programUnit->lsArrayTypes.length; ++i) {
+        type_symbol_t *arrType = (type_symbol_t*)me->programUnit->lsArrayTypes.symbols[i];
 
         // look for an array symbol with the same name
-        if (strcmp(me->programUnit->lsArrayTypes.symbols[i]->name, baseType->base.name) == 0) {
-
-            type_symbol_t *arrType = (type_symbol_t*)me->programUnit->lsArrayTypes.symbols[i];
+        if (arrType->typeOfType != TYPE_ARRAY) continue;
+        if (strcmp(arrType->symSubType->base.name, baseType->base.name) == 0) {
 
             // and the same number of dimensions
             if (arrType->numArrayDimensions == dimensions) {
@@ -152,6 +152,53 @@ type_symbol_t *BINDER_resolveTypeNameFromBuffer(binder_t *me, char *buffer) {
     me->hasError = true;
 
     return NULL;
+}
+
+type_symbol_t *BINDER_resolveArrayType(binder_t *me, type_symbol_t *baseType, uint8_t dimensions) {
+
+    // make sure this type is actually valid
+    if (dimensions > MAX_ARRAY_DIMENSIONS) {
+        ERROR_SPLICE(SUB_BINDER, ERR_BD_TOO_MANY_ARRAY_DIMENSIONS, "Array types only allow for a maximum of %d dimensions", MAX_ARRAY_DIMENSIONS)
+        me->hasError = true;
+        return NULL;
+    }
+
+    // look if a type symbol for this array already exits
+    for (int i = 0; i < me->programUnit->lsArrayTypes.length; ++i) {
+        type_symbol_t *arrType = (type_symbol_t*)me->programUnit->lsArrayTypes.symbols[i];
+
+        // look for an array symbol with the same name
+        if (arrType->typeOfType != TYPE_ARRAY) continue;
+        if (strcmp(arrType->symSubType->base.name, baseType->base.name) == 0) {
+
+            // and the same number of dimensions
+            if (arrType->numArrayDimensions == dimensions) {
+
+                // found it!
+                return arrType;
+            }
+        }
+    }
+
+    // if it doesnt exist yet -> create a new one and add it to the list
+    type_symbol_t *arrType = malloc(sizeof(type_symbol_t));
+    arrType->base.type = TYPE_SYMBOL;
+    arrType->typeOfType = TYPE_ARRAY;
+
+    // create a new name for this type
+    snprintf(arrType->base.name, MAX_IDENTIFIER_LENGTH, "%s_array_dim_%d", baseType->base.name, dimensions);
+
+    // give it the desired amount of dimensions
+    arrType->numArrayDimensions = dimensions;
+
+    // link the original type
+    arrType->symSubType = baseType;
+
+    // add it to the global table
+    BD_SYMBOL_LIST_Add(&me->programUnit->lsArrayTypes, (symbol_t*)arrType);
+
+    // return it back
+    return arrType;
 }
 
 procedure_symbol_t *BINDER_ResolveProcedure(binder_t *me, ls_reference_expression_node_t *exprReference) {

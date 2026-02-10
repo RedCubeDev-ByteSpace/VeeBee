@@ -373,6 +373,9 @@ procedure_symbol_t *BINDER_indexSubroutine(binder_t *me, module_symbol_t *symMod
     // remember the visibility
     newSubroutine->visibility = visibility;
 
+    // because this is a subroutine -> we dont return anything
+    newSubroutine->symReturnType = NULL;
+
     // -----------------------------------------------------------------------------------------------------------------
     // Bind all parameters
     BINDER_indexProcedureParameters(me, symModule, newSubroutine, memSubroutine->lsParameters, 0);

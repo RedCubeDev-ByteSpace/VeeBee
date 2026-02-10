@@ -73,7 +73,7 @@ tg_ast_node_t *BINDER_bindForStatement(binder_t *me, ls_for_statement_node_t *st
 tg_ast_node_t *BINDER_bindGotoStatement(binder_t *me, ls_goto_statement_node_t *statement);
 tg_ast_node_t *BINDER_bindIfStatement(binder_t *me, ls_if_statement_node_t *statement);
 tg_ast_node_t *BINDER_bindLabelStatement(binder_t *me, ls_label_statement_node_t *statement);
-tg_ast_node_t *BINDER_bindRedimStatement(binder_t *me, ls_redim_statement_node_t *statement);
+tg_ast_node_t *BINDER_bindRedimStatement(binder_t *me, ls_redim_statement_node_t *statement, tg_ast_node_list_t *boundStatementList);
 tg_ast_node_t *BINDER_bindSelectStatement(binder_t *me, ls_select_statement_node_t *statement);
 tg_ast_node_t *BINDER_bindWhileStatement(binder_t *me, ls_while_statement_node_t *statement);
 
