@@ -35,6 +35,22 @@
 #include "AST/Loose/Statements/select_statement.h"
 #include "AST/Loose/Statements/while_statement.h"
 #include "AST/Tight/program_unit.h"
+#include "AST/Tight/Expressions/binary_expression.h"
+#include "AST/Tight/Expressions/default_expression.h"
+#include "AST/Tight/Expressions/ensure_type_expression.h"
+#include "AST/Tight/Expressions/literal_expression.h"
+#include "AST/Tight/Expressions/reference_expression.h"
+#include "AST/Tight/Expressions/unary_expression.h"
+#include "AST/Tight/Statements/assignment_statement.h"
+#include "AST/Tight/Statements/conditional_branch_statement.h"
+#include "AST/Tight/Statements/conditional_goto_statement.h"
+#include "AST/Tight/Statements/do_statement.h"
+#include "AST/Tight/Statements/for_statement.h"
+#include "AST/Tight/Statements/goto_statement.h"
+#include "AST/Tight/Statements/initialize_statement.h"
+#include "AST/Tight/Statements/label_statement.h"
+#include "AST/Tight/Statements/proc_call_statement.h"
+#include "AST/Tight/Statements/while_statement.h"
 #include "AST/Tight/Symbols/local_variable_symbol.h"
 #include "AST/Tight/Symbols/module_symbol.h"
 #include "AST/Tight/Symbols/parameter_symbol.h"
@@ -514,6 +530,9 @@ void DBG_PRETTY_PRINT_Print_ProgramUnit(program_unit_t *me) {
 
     printf(CYNB BBLK "[[Modules]]\n" CRESET);
     DBG_PRETTY_PRINT_Print_SymbolList(me->lsModules);
+
+    printf(CYNB BBLK "[[Procedures]]\n" CRESET);
+    DBG_PRETTY_PRINT_Print_TGAstNode_List_Buffer(me->bufProcedureBodies, me->procedureCounter);
 }
 
 void DBG_PRETTY_PRINT_Print_Symbol(symbol_t *me, bool finalEntry) {
@@ -663,5 +682,209 @@ void DBG_PRETTY_PRINT_Print_Symbol(symbol_t *me, bool finalEntry) {
 void DBG_PRETTY_PRINT_Print_SymbolList(symbol_list_t me) {
     for (int i = 0; i < me.length; ++i) {
         DBG_PRETTY_PRINT_Print_Symbol(me.symbols[i], i == me.length - 1);
+    }
+}
+
+void DBG_PRETTY_PRINT_Print_TGAstNode(tg_ast_node_t *me, bool finalEntry) {
+    INDENT()
+
+    if (me == NULL) {
+        NULL_NODE()
+        return;
+    }
+
+    switch (me->type) {
+
+        NODE(TG_ASSIGNMENT_STATEMENT)
+            FIELD("Target")
+            TG_SUBNODE(((tg_assignment_statement_t*)me)->target, false)
+
+            FIELD_FINAL("Value")
+            TG_SUBNODE(((tg_assignment_statement_t*)me)->value, true)
+        END_NODE()
+
+        NODE(TG_CONDITIONAL_BRANCH_STATEMENT)
+            FIELD("Conditions")
+            TG_SUBNODES(((tg_conditional_branch_statement_t*)me)->branchConditions, false)
+
+            FIELD("Branches")
+            TG_SUBNODE_LISTS(((tg_conditional_branch_statement_t*)me)->branchStatements, false)
+
+            FIELD_FINAL("Else")
+            TG_SUBNODES(((tg_conditional_branch_statement_t*)me)->elseStatements, true)
+        END_NODE()
+
+        NODE(TG_CONDITIONAL_GOTO_STATEMENT)
+            FIELD("Condition")
+            TG_SUBNODE(((tg_conditional_goto_statement_t*)me)->condition, false)
+
+            FIELD_FINAL("Target")
+            SUBSYMBOL(((tg_conditional_goto_statement_t*)me)->target, true)
+        END_NODE()
+
+        NODE(TG_DO_STATEMENT)
+            FIELD("Kind")
+            do_statement_kind_t kindOfDo = ((tg_do_statement_t*)me)->kindOfDo;
+            VALUE_STR(kindOfDo == DO_STATEMENT_INFINITE ? "Infinite" :
+                      kindOfDo == DO_STATEMENT_WHILE    ? "While"    :
+                      kindOfDo == DO_STATEMENT_UNTIL    ? "Until"    : "Unknown");
+
+            FIELD("Control")
+            do_statement_kind_t controlOfDo = ((tg_do_statement_t*)me)->controlOfDo;
+            VALUE_STR(controlOfDo == DO_STATEMENT_HEAD ? "Head" :
+                      controlOfDo == DO_STATEMENT_FOOT ? "Foot " : "Unknown");
+
+            FIELD("ContinueLabel")
+            SUBSYMBOL(((tg_do_statement_t*)me)->continueLabel, false)
+
+            FIELD("BreakLabel")
+            SUBSYMBOL(((tg_do_statement_t*)me)->breakLabel, false)
+
+            FIELD("Condition")
+            TG_SUBNODE(((tg_do_statement_t*)me)->condition, false)
+
+            FIELD_FINAL("Body")
+            TG_SUBNODES(((tg_do_statement_t*)me)->statements, true)
+        END_NODE()
+
+        NODE(TG_FOR_STATEMENT)
+            FIELD("Initializer")
+            TG_SUBNODE(((tg_for_statement_t*)me)->initializer, false)
+
+            FIELD("UpperBound")
+            TG_SUBNODE(((tg_for_statement_t*)me)->upperBound, false)
+
+            FIELD("Step")
+            TG_SUBNODE(((tg_for_statement_t*)me)->step, false)
+
+            FIELD("ContinueLabel")
+            SUBSYMBOL(((tg_for_statement_t*)me)->continueLabel, false)
+
+            FIELD("BreakLabel")
+            SUBSYMBOL(((tg_for_statement_t*)me)->breakLabel, false)
+
+            FIELD_FINAL("Body")
+            TG_SUBNODES(((tg_for_statement_t*)me)->statements, true)
+        END_NODE()
+
+        NODE(TG_GOTO_STATEMENT)
+            FIELD("Target")
+            SUBSYMBOL(((tg_goto_statement_t*)me)->target, true)
+        END_NODE()
+
+        NODE(TG_INITIALIZE_STATEMENT)
+            FIELD("Preserve")
+            VALUE_NUM(((tg_initialize_statement_t*)me)->preserve)
+
+            FIELD("Variable")
+            SUBSYMBOL(((tg_initialize_statement_t*)me)->variable, false)
+
+            FIELD_FINAL("Ranges")
+            TG_SUBNODES(((tg_initialize_statement_t*)me)->ranges, true)
+        END_NODE()
+
+        NODE(TG_LABEL_STATEMENT)
+            FIELD_FINAL("Label")
+            TG_SUBNODE(((tg_label_statement_t*)me)->me, true)
+        END_NODE()
+
+        NODE(TG_PROC_CALL_STATEMENT)
+            FIELD("Procedure")
+            SUBSYMBOL(((tg_proc_call_statement_t*)me)->procedure, false)
+
+            FIELD_FINAL("Arguments")
+            TG_SUBNODES(((tg_proc_call_statement_t*)me)->arguments, true)
+        END_NODE()
+
+        NODE(TG_RETURN_STATEMENT)
+        END_NODE()
+
+        NODE(TG_WHILE_STATEMENT)
+            FIELD("Condition")
+            TG_SUBNODE(((tg_while_statement_t*)me)->condition, false)
+
+            FIELD("ContinueLabel")
+            SUBSYMBOL(((tg_while_statement_t*)me)->continueLabel, false)
+
+            FIELD_FINAL("Body")
+            TG_SUBNODES(((tg_while_statement_t*)me)->statements, true)
+        END_NODE()
+
+        NODE(TG_BINARY_EXPRESSION)
+            FIELD("Operator")
+            VALUE_STR(BINARY_OPERATOR_STRING[((tg_binary_expression_t*)me)->op])
+
+            FIELD("Left")
+            TG_SUBNODE(((tg_binary_expression_t*)me)->left, false)
+
+            FIELD_FINAL("Right")
+            TG_SUBNODE(((tg_binary_expression_t*)me)->right, true)
+        END_NODE()
+
+        NODE(TG_DEFAULT_EXPRESSION)
+            FIELD_FINAL("Type")
+            SUBSYMBOL(((tg_default_expression_t*)me)->type, true)
+        END_NODE()
+
+        NODE(TG_ENSURE_TYPE_EXPRESSION)
+            FIELD("TargetType")
+            SUBSYMBOL(((tg_ensure_type_expression_t*)me)->targetType, false)
+
+            FIELD_FINAL("Expression")
+            TG_SUBNODE(((tg_ensure_type_expression_t*)me)->expression, true)
+        END_NODE()
+
+        NODE(TG_LITERAL_EXPRESSION)
+            FIELD_FINAL("LiteralType")
+            SUBSYMBOL(((tg_literal_expression_t*)me)->literalType, true)
+        END_NODE()
+
+        NODE(TG_REFERENCE_EXPRESSION)
+            FIELD("Base")
+            TG_SUBNODE(((tg_reference_expression_t*)me)->baseExpression, false)
+
+            FIELD("Link")
+            SUBSYMBOL(((tg_reference_expression_t*)me)->linkSymbol, false)
+
+            FIELD_FINAL("Arguments")
+            TG_SUBNODES(((tg_reference_expression_t*)me)->arguments, true)
+        END_NODE()
+
+        NODE(TG_UNARY_EXPRESSION)
+            FIELD("Operator")
+            VALUE_STR(UNARY_OPERATOR_STRING[((tg_unary_expression_t*)me)->op])
+
+            FIELD_FINAL("Operand")
+            TG_SUBNODE(((tg_unary_expression_t*)me)->operand, true)
+        END_NODE()
+
+        default:;
+    }
+}
+
+void DBG_PRETTY_PRINT_Print_TGAstNode_List(tg_ast_node_list_t me) {
+    for (int i = 0; i < me.length; ++i) {
+        DBG_PRETTY_PRINT_Print_TGAstNode(me.nodes[i], i == me.length - 1);
+    }
+}
+
+void DBG_PRETTY_PRINT_Print_TGAstNode_List_List(tg_ast_node_list_list_t me) {
+    for (int i = 0; i < me.length; ++i) {
+        INDENT()
+        LIST(i, i == me.length - 1)
+
+        DBG_PRETTY_PRINT_Print_TGAstNode_List(me.lists[i]);
+
+        END_LIST()
+    }
+}
+
+void DBG_PRETTY_PRINT_Print_TGAstNode_List_Buffer(tg_ast_node_list_t *me, uint32_t length) {
+    for (int i = 0; i < length; ++i) {
+        LIST(i, i == length - 1)
+
+        DBG_PRETTY_PRINT_Print_TGAstNode_List(me[i]);
+
+        END_LIST()
     }
 }

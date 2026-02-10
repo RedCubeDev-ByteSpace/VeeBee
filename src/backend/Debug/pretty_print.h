@@ -19,6 +19,10 @@ void DBG_PRETTY_PRINT_Print_LSAstNode_List(ls_ast_node_list_t me);
 void DBG_PRETTY_PRINT_Print_ProgramUnit(program_unit_t *me);
 void DBG_PRETTY_PRINT_Print_Symbol(symbol_t *me, bool finalEntry);
 void DBG_PRETTY_PRINT_Print_SymbolList(symbol_list_t me);
+void DBG_PRETTY_PRINT_Print_TGAstNode(tg_ast_node_t *me, bool finalEntry);
+void DBG_PRETTY_PRINT_Print_TGAstNode_List(tg_ast_node_list_t me);
+void DBG_PRETTY_PRINT_Print_TGAstNode_List_List(tg_ast_node_list_list_t me);
+void DBG_PRETTY_PRINT_Print_TGAstNode_List_Buffer(tg_ast_node_list_t *me, uint32_t length);
 
 extern char DBG_INDENT_BUFFER[256];
 extern int DBG_INDENT_LENGTH;
@@ -60,6 +64,15 @@ DBG_INDENT_BUFFER[DBG_INDENT_LENGTH] = 0; \
             DBG_ADD_LINE_INDENT() \
         } \
 
+#define LIST(IDENT, FINAL)  \
+    if (FINAL) { \
+        printf(GRY "└─" CRESET "[" BCYN "%d" CRESET "]\n", IDENT); \
+        DBG_ADD_EMPTY_INDENT() \
+    } else { \
+        printf(GRY "├─" CRESET "[" BCYN "%d" CRESET "]\n", IDENT); \
+        DBG_ADD_LINE_INDENT() \
+    } \
+
 #define NULL_NODE()   \
     if (finalEntry) { \
         printf(GRY "└─" CRESET "[" BCYN "NULL" CRESET "]\n"); \
@@ -70,6 +83,9 @@ DBG_INDENT_BUFFER[DBG_INDENT_LENGTH] = 0; \
 #define END_NODE() \
     DBG_REMOVE_INDENT() \
     break;         \
+
+#define END_LIST() \
+    DBG_REMOVE_INDENT() \
 
 #define FIELD(FIELD)                        \
     INDENT()                                \
@@ -92,7 +108,7 @@ DBG_INDENT_BUFFER[DBG_INDENT_LENGTH] = 0; \
     printf(BYEL "'%s'\n" CRESET, (STR)); \
 
 #define VALUE_NUM(NUM)                 \
-    printf(BCYN "'%d'\n" CRESET, NUM); \
+    printf(BCYN "'%d' (0x%x)\n" CRESET, NUM, NUM); \
 
 #define VALUE_INT(TOKEN)                               \
     if (TOKEN == NULL)                                 \
@@ -120,6 +136,19 @@ DBG_INDENT_BUFFER[DBG_INDENT_LENGTH] = 0; \
         DBG_REMOVE_INDENT()                                       \
     }                                                             \
 
+#define TG_SUBNODE(NODE, FINAL)                                   \
+    if (NODE == NULL)                                             \
+        printf(BLU "NULL\n");                                     \
+    else {                                                        \
+        printf("\n");                                             \
+        if (FINAL) {                                              \
+            DBG_ADD_EMPTY_INDENT()                                \
+        } else {                                                  \
+            DBG_ADD_LINE_INDENT()                                 \
+        }                                                         \
+        DBG_PRETTY_PRINT_Print_TGAstNode((tg_ast_node_t*)(NODE), true); \
+        DBG_REMOVE_INDENT()                                       \
+    }
 
 #define SUBNODES(NODE_LIST, FINAL)                            \
     printf("(%d)\n", NODE_LIST.length);                       \
@@ -131,6 +160,25 @@ DBG_INDENT_BUFFER[DBG_INDENT_LENGTH] = 0; \
     DBG_PRETTY_PRINT_Print_LSAstNode_List(NODE_LIST);         \
     DBG_REMOVE_INDENT()                                       \
 
+#define TG_SUBNODES(NODE_LIST, FINAL)                         \
+    printf("(%d)\n", NODE_LIST.length);                       \
+    if (FINAL) {                                              \
+        DBG_ADD_EMPTY_INDENT()                                \
+    } else {                                                  \
+        DBG_ADD_LINE_INDENT()                                 \
+    }                                                         \
+    DBG_PRETTY_PRINT_Print_TGAstNode_List(NODE_LIST);         \
+    DBG_REMOVE_INDENT()                                       \
+
+#define TG_SUBNODE_LISTS(NODE_LIST, FINAL)                    \
+    printf("(%d)\n", NODE_LIST.length);                       \
+    if (FINAL) {                                              \
+        DBG_ADD_EMPTY_INDENT()                                \
+    } else {                                                  \
+        DBG_ADD_LINE_INDENT()                                 \
+    }                                                         \
+    DBG_PRETTY_PRINT_Print_TGAstNode_List_List(NODE_LIST);    \
+    DBG_REMOVE_INDENT()                                       \
 
 #define SYMBOL(IDENT)     \
     case IDENT:           \

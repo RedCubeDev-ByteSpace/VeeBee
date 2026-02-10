@@ -6,14 +6,21 @@
 #define TG_UNARY_EXPRESSION_H
 #include "AST/Tight/tg_ast.h"
 
+#define FOREACH_UNARY_OPERATOR(GEN) \
+    GEN(TG_OP_IDENTITY)             \
+    GEN(TG_OP_NEGATION)             \
+    GEN(TG_OP_LOGICAL_NEGATION)     \
+
+#define GEN_ENUM(ENUM) ENUM,
+#define GEN_STRING(STRING) #STRING,
 
 typedef enum TG_UNARY_OPERATOR {
-
-    TG_OP_IDENTITY,
-    TG_OP_NEGATION,
-    TG_OP_LOGICAL_NEGATION,
-
+    FOREACH_UNARY_OPERATOR(GEN_ENUM)
 } tg_unary_operator_t;
+
+static const char *UNARY_OPERATOR_STRING[] = {
+    FOREACH_UNARY_OPERATOR(GEN_STRING)
+};
 
 typedef struct TG_UNARY_EXPRESSION {
     tg_ast_node_t base;

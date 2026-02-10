@@ -14,6 +14,7 @@
     GEN(SUB_LEXER)              \
     GEN(SUB_PARSER)             \
     GEN(SUB_BINDER)             \
+    GEN(SUB_INTEROP)            \
 
 #define GEN_ENUM(ENUM) ENUM,
 #define GEN_STRING(STRING) #STRING,
@@ -90,6 +91,8 @@ static const char *SUBSYSTEM_NAMES[] = {
     GEN(ERR_BD_EXPRESSION_WITHOUT_VALUE)               \
     GEN(ERR_BD_NON_REFERENCABLE_BASE_EXPRESSION)       \
     GEN(ERR_BD_UNKNOWN_REFERENCE_NAME)                 \
+                                                       \
+    GEN(ERR_IO_UNKNOWN_TYPE_NAME)                      \
 
 // Error type enum
 typedef enum ERR_ERROR_TYPE {

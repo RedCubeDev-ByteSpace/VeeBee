@@ -7,13 +7,13 @@
 #include "AST/Tight/tg_ast.h"
 #include "AST/Tight/Symbols/label_symbol.h"
 
-typedef struct TG_GOTO_STATEMENT {
+typedef struct TG_CONDITIONAL_GOTO_STATEMENT {
     tg_ast_node_t base;
 
     tg_ast_node_t *condition;
     label_symbol_t *target;
 
-} tg_goto_statement_t;
+} tg_conditional_goto_statement_t;
 
 
 #endif //TG_CONDITIONAL_GOTO_STATEMENT_H

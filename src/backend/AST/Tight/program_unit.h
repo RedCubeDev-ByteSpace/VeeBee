@@ -29,6 +29,9 @@ typedef struct PROGRAM_UNIT {
     // a running counter for our procedures
     uint32_t procedureCounter;
 
+    // a running counter for all external procedures
+    uint32_t externalProcedureCounter;
+
     // all procedure bodys
     tg_ast_node_list_t *bufProcedureBodies;
 

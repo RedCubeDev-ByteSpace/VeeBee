@@ -32,8 +32,9 @@ program_unit_t *BD_PROGRAM_UNIT_Init() {
     // initialize the array type list
     newUnit->lsArrayTypes = BD_SYMBOL_LIST_Init();
 
-    // reset the procedure counter
+    // reset the procedure counters
     newUnit->procedureCounter = 0;
+    newUnit->externalProcedureCounter = 0;
 
     return newUnit;
 }

@@ -95,6 +95,8 @@ add_library(veebee_backend
         backend/AST/Tight/Statements/return_statement.h
         backend/AST/Tight/Expressions/ensure_type_expression.h
         backend/AST/Tight/Expressions/default_expression.h
+        backend/Interop/interop.h
+        backend/Interop/interop.c
 )
 
 target_include_directories(veebee_backend

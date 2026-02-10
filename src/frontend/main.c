@@ -11,6 +11,7 @@
 #include "Binder/symbol_resolver.h"
 #include "Debug/pretty_print.h"
 #include "Error/error.h"
+#include "Interop/interop.h"
 #include "Lexer/lexer.h"
 #include "Parser/parser.h"
 
@@ -221,36 +222,16 @@ int CLI_doBusiness() {
     // -----------------------------------------------------------------------------------------------------------------
     // create a c runtime module
 
-    module_symbol_t *myModule = malloc(sizeof(module_symbol_t));
-    myModule->base.type = MODULE_SYMBOL;
-    myModule->isExternal = true;
-    myModule->lsProcedures = BD_SYMBOL_LIST_Init();
-    myModule->lsTypes = BD_SYMBOL_LIST_Init();
-    strcpy(myModule->base.name, "runtime");
+    program_unit_t *prgUnit = binder->programUnit;
+    module_symbol_t *runtime = INTEROP_CreateModule(prgUnit, "Runtime");
 
-    // Add a print function
-    procedure_symbol_t *prcPrint = malloc(sizeof(procedure_symbol_t));
-    prcPrint->base.type = PROCEDURE_SYMBOL;
-    strcpy(prcPrint->base.name, "print");
+    procedure_symbol_t *prcPrint = INTEROP_CreateProcedure(prgUnit, runtime, "Print", NULL);
+    INTEROP_AddParameter(prcPrint, "Message", INTEROP_LookupType(prgUnit, "string"), PASS_BY_REFERENCE, false);
 
-    prcPrint->procedureId = 1 << 31;
-    prcPrint->visibility = PUBLIC;
-    prcPrint->lsParameters = BD_SYMBOL_LIST_Init();
+    INTEROP_CreateProcedure(prgUnit, runtime, "Array", INTEROP_LookupType(prgUnit, "variant"));
 
-    parameter_symbol_t *prcPrintMsg = malloc(sizeof(parameter_symbol_t));
-    prcPrintMsg->base.type = PARAMETER_SYMBOL;
-    strcpy(prcPrintMsg->base.name, "msg");
-    prcPrintMsg->isOptional = false;
-    prcPrintMsg->passingType = PASS_BY_REFERENCE;
-    prcPrintMsg->exprDefaultValue = NULL;
-    prcPrintMsg->symType = BINDER_resolveTypeNameFromBuffer(binder, "string");
-
-    BD_SYMBOL_LIST_Add(&prcPrint->lsParameters, (symbol_t*)prcPrintMsg);
-    BD_SYMBOL_LIST_Add(&myModule->lsProcedures, (symbol_t*)prcPrint);
-    BD_SYMBOL_LIST_Add(&binder->programUnit->lsModules, (symbol_t*)myModule);
-
-
-
+    procedure_symbol_t *prcSqr = INTEROP_CreateProcedure(prgUnit, runtime, "Sqr", INTEROP_LookupType(prgUnit, "variant"));
+    INTEROP_AddParameter(prcSqr, "Num", INTEROP_LookupType(prgUnit, "integer"), PASS_BY_REFERENCE, false);
 
 
     // and then finally bind all our procedure bodies!

@@ -759,4 +759,6 @@ label_symbol_t *BINDER_generateLabel(binder_t *me, module_symbol_t *symModule, p
 
     // add it to the procedure label list
     BINDER_addLabelToProcedureSymbol(me, symModule, symProc, newLabel);
+
+    return newLabel;
 }

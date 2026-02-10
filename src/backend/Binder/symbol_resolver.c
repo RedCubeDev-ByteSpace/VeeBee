@@ -20,7 +20,7 @@ type_symbol_t *BINDER_ResolveAsClause(binder_t *me, module_symbol_t *symMod, ls_
 
     // otherwise: resolve the base type
     type_symbol_t *baseType = BINDER_resolveTypeName(me, symMod, clsAs->idType);
-    RETURN_NULL_ON_ERROR()
+    if (baseType == NULL) return NULL;
 
     // if this is not an array type -> we are so done
     if (clsAs->pcOpenParenthesis == NULL) {
@@ -133,7 +133,6 @@ type_symbol_t *BINDER_resolveTypeName(binder_t *me, module_symbol_t *symMod, tok
     // Oh no!
     ERROR_SPLICE_AT(SUB_BINDER, ERR_BD_UNRECOGNIZED_TYPE_NAME, symMod->source, SPAN_FromToken(*idTypeName), "The type name '%s' could not be resolved to a type", idTypeName->strValue);
     me->hasError = true;
-
     return NULL;
 }
 
