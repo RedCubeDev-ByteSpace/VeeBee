@@ -208,6 +208,19 @@ DBG_INDENT_BUFFER[DBG_INDENT_LENGTH] = 0; \
         DBG_REMOVE_INDENT()                                       \
     }                                                             \
 
+#define SUBSYMBOL_STUB(SYM, FINAL)                                \
+    if (SYM == NULL)                                              \
+        printf(BLU "NULL\n");                                     \
+    else {                                                        \
+        printf("\n");                                             \
+        if (FINAL) {                                              \
+            DBG_ADD_EMPTY_INDENT()                                \
+        } else {                                                  \
+            DBG_ADD_LINE_INDENT()                                 \
+        }                                                         \
+        DBG_PRETTY_PRINT_Print_Symbol_Stub((symbol_t*)(SYM), true);\
+        DBG_REMOVE_INDENT()                                       \
+    }                                                             \
 
 #define SUBSYMBOLS(SYM_LIST, FINAL)                           \
     printf("(%d)\n", SYM_LIST.length);                        \

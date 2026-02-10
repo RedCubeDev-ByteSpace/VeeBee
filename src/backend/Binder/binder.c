@@ -499,6 +499,8 @@ tg_ast_node_t *BINDER_bindForStatement(binder_t *me, ls_for_statement_node_t *st
     tg_reference_expression_t *iteratorReference = malloc(sizeof(tg_reference_expression_t));
     iteratorReference->base.type = TG_REFERENCE_EXPRESSION;
     iteratorReference->linkSymbol = iterator;
+    iteratorReference->baseExpression = NULL;
+    iteratorReference->arguments = BD_TG_AST_NODE_LIST_Init();
 
     tg_assignment_statement_t *initializer = malloc(sizeof(tg_assignment_statement_t));
     initializer->base.type = TG_ASSIGNMENT_STATEMENT;

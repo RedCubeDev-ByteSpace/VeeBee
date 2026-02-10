@@ -678,6 +678,28 @@ void DBG_PRETTY_PRINT_Print_Symbol(symbol_t *me, bool finalEntry) {
     }
 }
 
+void DBG_PRETTY_PRINT_Print_Symbol_Stub(symbol_t *me, bool finalEntry) {
+    INDENT()
+
+    switch (me->type) {
+        SYMBOL(UNKNOWN_SYMBOL) break;
+        SYMBOL(MODULE_SYMBOL) break;
+        SYMBOL(TYPE_SYMBOL) break;
+        SYMBOL(TYPE_FIELD_SYMBOL) break;
+        SYMBOL(PROCEDURE_SYMBOL) break;
+        SYMBOL(PARAMETER_SYMBOL) break;
+        SYMBOL(LOCAL_VARIABLE_SYMBOL) break;
+        SYMBOL(LABEL_SYMBOL) break;
+
+        default:
+            printf("(unimplemented) \n");
+    }
+
+    FIELD_FINAL("Name")
+    VALUE_STR(me->name)
+    DBG_REMOVE_INDENT()
+}
+
 
 void DBG_PRETTY_PRINT_Print_SymbolList(symbol_list_t me) {
     for (int i = 0; i < me.length; ++i) {
@@ -719,7 +741,7 @@ void DBG_PRETTY_PRINT_Print_TGAstNode(tg_ast_node_t *me, bool finalEntry) {
             TG_SUBNODE(((tg_conditional_goto_statement_t*)me)->condition, false)
 
             FIELD_FINAL("Target")
-            SUBSYMBOL(((tg_conditional_goto_statement_t*)me)->target, true)
+            SUBSYMBOL_STUB(((tg_conditional_goto_statement_t*)me)->target, true)
         END_NODE()
 
         NODE(TG_DO_STATEMENT)
@@ -735,10 +757,10 @@ void DBG_PRETTY_PRINT_Print_TGAstNode(tg_ast_node_t *me, bool finalEntry) {
                       controlOfDo == DO_STATEMENT_FOOT ? "Foot " : "Unknown");
 
             FIELD("ContinueLabel")
-            SUBSYMBOL(((tg_do_statement_t*)me)->continueLabel, false)
+            SUBSYMBOL_STUB(((tg_do_statement_t*)me)->continueLabel, false)
 
             FIELD("BreakLabel")
-            SUBSYMBOL(((tg_do_statement_t*)me)->breakLabel, false)
+            SUBSYMBOL_STUB(((tg_do_statement_t*)me)->breakLabel, false)
 
             FIELD("Condition")
             TG_SUBNODE(((tg_do_statement_t*)me)->condition, false)
@@ -758,10 +780,10 @@ void DBG_PRETTY_PRINT_Print_TGAstNode(tg_ast_node_t *me, bool finalEntry) {
             TG_SUBNODE(((tg_for_statement_t*)me)->step, false)
 
             FIELD("ContinueLabel")
-            SUBSYMBOL(((tg_for_statement_t*)me)->continueLabel, false)
+            SUBSYMBOL_STUB(((tg_for_statement_t*)me)->continueLabel, false)
 
             FIELD("BreakLabel")
-            SUBSYMBOL(((tg_for_statement_t*)me)->breakLabel, false)
+            SUBSYMBOL_STUB(((tg_for_statement_t*)me)->breakLabel, false)
 
             FIELD_FINAL("Body")
             TG_SUBNODES(((tg_for_statement_t*)me)->statements, true)
@@ -769,7 +791,7 @@ void DBG_PRETTY_PRINT_Print_TGAstNode(tg_ast_node_t *me, bool finalEntry) {
 
         NODE(TG_GOTO_STATEMENT)
             FIELD("Target")
-            SUBSYMBOL(((tg_goto_statement_t*)me)->target, true)
+            SUBSYMBOL_STUB(((tg_goto_statement_t*)me)->target, true)
         END_NODE()
 
         NODE(TG_INITIALIZE_STATEMENT)
@@ -777,7 +799,7 @@ void DBG_PRETTY_PRINT_Print_TGAstNode(tg_ast_node_t *me, bool finalEntry) {
             VALUE_NUM(((tg_initialize_statement_t*)me)->preserve)
 
             FIELD("Variable")
-            SUBSYMBOL(((tg_initialize_statement_t*)me)->variable, false)
+            SUBSYMBOL_STUB(((tg_initialize_statement_t*)me)->variable, false)
 
             FIELD_FINAL("Ranges")
             TG_SUBNODES(((tg_initialize_statement_t*)me)->ranges, true)
@@ -790,7 +812,7 @@ void DBG_PRETTY_PRINT_Print_TGAstNode(tg_ast_node_t *me, bool finalEntry) {
 
         NODE(TG_PROC_CALL_STATEMENT)
             FIELD("Procedure")
-            SUBSYMBOL(((tg_proc_call_statement_t*)me)->procedure, false)
+            SUBSYMBOL_STUB(((tg_proc_call_statement_t*)me)->procedure, false)
 
             FIELD_FINAL("Arguments")
             TG_SUBNODES(((tg_proc_call_statement_t*)me)->arguments, true)
@@ -804,7 +826,7 @@ void DBG_PRETTY_PRINT_Print_TGAstNode(tg_ast_node_t *me, bool finalEntry) {
             TG_SUBNODE(((tg_while_statement_t*)me)->condition, false)
 
             FIELD("ContinueLabel")
-            SUBSYMBOL(((tg_while_statement_t*)me)->continueLabel, false)
+            SUBSYMBOL_STUB(((tg_while_statement_t*)me)->continueLabel, false)
 
             FIELD_FINAL("Body")
             TG_SUBNODES(((tg_while_statement_t*)me)->statements, true)
@@ -823,12 +845,12 @@ void DBG_PRETTY_PRINT_Print_TGAstNode(tg_ast_node_t *me, bool finalEntry) {
 
         NODE(TG_DEFAULT_EXPRESSION)
             FIELD_FINAL("Type")
-            SUBSYMBOL(((tg_default_expression_t*)me)->type, true)
+            SUBSYMBOL_STUB(((tg_default_expression_t*)me)->type, true)
         END_NODE()
 
         NODE(TG_ENSURE_TYPE_EXPRESSION)
             FIELD("TargetType")
-            SUBSYMBOL(((tg_ensure_type_expression_t*)me)->targetType, false)
+            SUBSYMBOL_STUB(((tg_ensure_type_expression_t*)me)->targetType, false)
 
             FIELD_FINAL("Expression")
             TG_SUBNODE(((tg_ensure_type_expression_t*)me)->expression, true)
@@ -836,7 +858,7 @@ void DBG_PRETTY_PRINT_Print_TGAstNode(tg_ast_node_t *me, bool finalEntry) {
 
         NODE(TG_LITERAL_EXPRESSION)
             FIELD_FINAL("LiteralType")
-            SUBSYMBOL(((tg_literal_expression_t*)me)->literalType, true)
+            SUBSYMBOL_STUB(((tg_literal_expression_t*)me)->literalType, true)
         END_NODE()
 
         NODE(TG_REFERENCE_EXPRESSION)
@@ -844,7 +866,7 @@ void DBG_PRETTY_PRINT_Print_TGAstNode(tg_ast_node_t *me, bool finalEntry) {
             TG_SUBNODE(((tg_reference_expression_t*)me)->baseExpression, false)
 
             FIELD("Link")
-            SUBSYMBOL(((tg_reference_expression_t*)me)->linkSymbol, false)
+            SUBSYMBOL_STUB(((tg_reference_expression_t*)me)->linkSymbol, false)
 
             FIELD_FINAL("Arguments")
             TG_SUBNODES(((tg_reference_expression_t*)me)->arguments, true)
